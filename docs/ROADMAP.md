@@ -6,7 +6,7 @@ One approved subtask per iteration. [TASKS.md](TASKS.md) owns individual status,
 | ---------------------- | ----- | ---------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | 0 - Foundation         | 9     | Completed (0.1-0.9 verified) | Observe React in a Tauri window; TypeScript, tests, lint, formatting and build pass                                  |
 | 1 - Design System      | 9     | Completed (1.1-1.9 verified) | Consistent tokens, responsive shell, accessible navigation and reusable controls                                     |
-| 2 - My Library         | 12    | Not started                  | Book management and covers survive desktop restart                                                                   |
+| 2 - My Library         | 12    | 2.1 complete; 2.2 pending    | Book management and covers survive desktop restart                                                                   |
 | 3 - Writing Editor     | 12    | Not started                  | Chapters, formatting and save/recovery behavior verified with real persistence                                       |
 | 4 - Goals & Deadlines  | 7     | Not started                  | Targets, missing/overdue deadlines and required pace calculations verified                                           |
 | 5 - Activity & Streaks | 8     | Not started                  | Actual activity records, scheduled-day streaks and date/timezone boundaries verified                                 |
@@ -14,4 +14,4 @@ One approved subtask per iteration. [TASKS.md](TASKS.md) owns individual status,
 | 7 - Export & Backup    | 7     | Not started                  | Portable exports and validated, recoverable backup/restore pass roundtrip and failure checks                         |
 | 8 - Release            | 10    | Not started                  | Accessibility and Windows installation verified; artifacts reviewed before explicitly authorized publication/tagging |
 
-Foundation acceptance is complete. Milestone 1 acceptance is complete for the current shell/shared components. The next task is 2.1 (book data model), awaiting approval; do not start library implementation without it. No library or editor implementation belongs to Milestone 0. Maintenance tasks such as GIT.1 are recorded separately and do not change numbered milestone totals.
+Foundation acceptance is complete. Milestone 1 acceptance is complete for the current shell/shared components. Task 2.1 (book data model) is complete. The next task is 2.2 (SQLite and migrations), awaiting approval; no book persistence or UI is implemented yet. No library or editor implementation belongs to Milestone 0. Maintenance tasks such as GIT.1 are recorded separately and do not change numbered milestone totals.

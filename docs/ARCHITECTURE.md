@@ -4,7 +4,7 @@ Status: Foundation complete through task 0.9, including Windows development-wind
 
 ## Technology direction
 
-Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs forty shell/navigation/shared-component tests plus twelve Edge browser accessibility/layout tests; domain and persistence tests will accompany their feature implementations. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
+Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs seventy-two domain/component tests plus twelve Edge browser accessibility/layout tests; domain and persistence tests will accompany their feature implementations. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
 
 ## Organization
 
@@ -21,7 +21,7 @@ src/
     i18n/en.ts         centralized English UI copy
   components/ui/       shared Button/Input/Modal/Card/ProgressBar
   features/
-    library/           books and covers
+    library/           book metadata types/validation; future books and covers
     editor/            chapters and writing
     goals/             targets and deadlines
     activity/          writing events, calendar and streaks
@@ -89,7 +89,7 @@ App composes AppShell with section navigation and the current section presentati
 
 ## Navigation (1.3)
 
-A small ordered section ID list defines the SectionId union. App owns useState for the current section and renders centralized English title/subtitle/Coming soon copy. AppNavigation receives the active ID and typed selection callback; its native buttons use aria-current=page, visible focus outlines and standard keyboard activation. An effect moves focus to the new page heading after section changes without stealing initial mount focus. All five sections have explicit unfinished views; feature folders remain reserved.
+A small ordered section ID list defines the SectionId union. App owns useState for the current section and renders centralized English title/subtitle/Coming soon copy. AppNavigation receives the active ID and typed selection callback; its native buttons use aria-current=page, visible focus outlines and standard keyboard activation. An effect moves focus to the new page heading after section changes without stealing initial mount focus. All five sections have explicit unfinished views; library now contains domain metadata types/validation (2.1); other feature folders remain reserved.
 
 This desktop foundation needs no URL router or persistence for navigation. Reload/restart returns to library; browser history behavior is not implemented. Future unsaved-editor guards must be added before navigation can leave real editable content. Tests use user-event to cover keyboard and pointer interactions. Actual Windows navigation layout and one native keyboard transition were also visually verified.
 
@@ -120,3 +120,9 @@ ProgressBar normalizes a configurable range and synchronizes its read-only progr
 Playwright tests run the actual Vite frontend in installed Edge (channel msedge) with a dedicated port-5174 server owned by the test runner. Axe scans all current sections and a test-only component fixture; no rules are disabled. Browser/config/fixture TypeScript lives under tsconfig.e2e.json, referenced by the main typecheck/build. Vitest still collects only src test files; the test fixture is not a production route or JS entry. Generated screenshots/traces/reports are excluded from Git, lint and formatting.
 
 The fixture imports global styles before component modules to establish Tailwind cascade layers, matching main.tsx. Integration guards confirm styles are applied before accessibility assumptions. ProgressBar's forced-colors fill uses system Highlight with a narrow forced-color-adjust exception; no native permissions or desktop configuration changed. Current responsive/keyboard acceptance passed; the detailed review records remaining screen-reader/native/macOS limits.
+
+## Book domain model (2.1)
+
+Library owns book.ts: readonly persisted snapshot and editable metadata types plus pure validation from unknown input. UI and persistence are not implemented. The validator normalizes title/optional nulls and returns localized-message codes, not UI strings; storage-owned identity, paths and timestamps do not enter its output. Native persistence must enforce the same contract before writing; this frontend type/validator is not a security or database boundary by itself.
+
+DATA_MODEL.md defines canonical local deadlines versus UTC instants, safe numeric counts, nonduplicated derived progress, SQL mapping and future delete/reference behavior. No validation library, repository interface or SQL migration is introduced prematurely. Code stays feature-local rather than adding generic shared entity abstractions.

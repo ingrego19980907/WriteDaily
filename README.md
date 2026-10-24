@@ -6,9 +6,9 @@ WriteDaily is a planned free, offline-first Windows writing application, with fu
 
 ## Current status
 
-Foundation tasks 0.1-0.9 are complete: environment inspection, React/strict TypeScript/Vite, Tauri 2, Tailwind, ESLint/Prettier, Vitest, application structure, synchronized documentation and verified Windows desktop startup. The UI currently shows a responsive application shell with the WriteDaily brand and five navigable sections. Each section displays a Coming soon message. Feature folders are reserved; no library, editor, database, autosave, export or backup is implemented.
+Foundation tasks 0.1-0.9 are complete: environment inspection, React/strict TypeScript/Vite, Tauri 2, Tailwind, ESLint/Prettier, Vitest, application structure, synchronized documentation and verified Windows desktop startup. The UI currently shows a responsive application shell with the WriteDaily brand and five navigable sections. Each section displays a Coming soon message. Library now contains book domain types/validation; its UI/repository and the editor, database, autosave, export and backup are not implemented.
 
-Frontend checks, the React DOM smoke test and native development build passed. The Windows Tauri window was opened and its React heading, tagline and status visually verified in task 0.9. Milestone 0 is complete; Milestone 1 (design system, navigation and accessibility/layout review) is also complete; task 2.1 (book data model) awaits approval. See [task status and verification evidence](docs/TASKS.md).
+Frontend checks, the React DOM smoke test and native development build passed. The Windows Tauri window was opened and its React heading, tagline and status visually verified in task 0.9. Milestone 0 is complete; Milestone 1 (design system, navigation and accessibility/layout review) is also complete; task 2.1 (book data model) is complete; task 2.2 (SQLite and migrations) awaits approval. See [task status and verification evidence](docs/TASKS.md).
 
 ## Prerequisites
 
@@ -90,14 +90,14 @@ npm.cmd test          # Watch mode in an interactive terminal; press q to exit
 
 Vitest 5 uses the shared Vite configuration and jsdom for DOM tests. React Testing Library checks rendered UI through accessible queries; jest-dom adds DOM assertions. Tests are colocated as `src/**/*.test.ts` or `src/**/*.test.tsx`. Import `test`, `expect` and hooks explicitly from `vitest`; test globals are disabled. `src/test/setup.ts` registers matchers and cleans up mounted React trees after each test. Strict TypeScript checks include tests and setup code.
 
-The current forty tests cover ProgressBar normalization/semantics, Modal focus/dismissal, Button/Input interactions, native semantics and field accessibility plus shell landmarks/skip target, initial My Library section, all five keyboard navigation destinations, active-item uniqueness, heading focus and pointer return to the library. These simulated DOM tests are complemented by 12 real Edge browser tests. Native persistence and release accessibility testing remain future work.
+The current seventy-two tests cover book metadata validation, ProgressBar normalization/semantics, Modal focus/dismissal, Button/Input interactions, native semantics and field accessibility plus shell landmarks/skip target, initial My Library section, all five keyboard navigation destinations, active-item uniqueness, heading focus and pointer return to the library. These simulated DOM tests are complemented by 12 real Edge browser tests. Native persistence and release accessibility testing remain future work.
 
 ## Application structure
 
 - `src/main.tsx`: React mounting and global stylesheet import.
 - `src/app/`: App composition, colocated smoke test and centralized English copy in `i18n/en.ts`.
 - `src/styles/`: Tailwind entry and global CSS.
-- `src/features/`: reserved library, editor, goals, activity and achievements modules.
+- `src/features/library/`: book domain types/validation; editor, goals, activity and achievements modules remain reserved.
 - `src/components/ui/`: shared Button, Input, Modal, Card and ProgressBar components; `src/hooks/`, `services/`, `types/`, `utils/`: reserved shared code boundaries.
 - `src/test/`: shared test setup.
 - `src-tauri/`: Rust desktop host and Tauri configuration.
@@ -122,7 +122,7 @@ Data model, autosave, streak and backup policies remain proposals until their im
 
 ## Application shell
 
-`src/app/AppShell.tsx` provides the masthead, keyboard skip link and main content area. App supplies five section buttons through its optional navigation slot. Main content adapts to the supported minimum desktop size (640x480); the layout was visually checked in Tauri at minimum and wider sizes. Accessibility/layout verification passed in 1.9; book data model design is next. Run `npm.cmd run tauri -- dev` with Cargo on PATH to inspect the current shell.
+`src/app/AppShell.tsx` provides the masthead, keyboard skip link and main content area. App supplies five section buttons through its optional navigation slot. Main content adapts to the supported minimum desktop size (640x480); the layout was visually checked in Tauri at minimum and wider sizes. Accessibility/layout verification passed in 1.9; book metadata is defined and SQLite/migrations are next. Run `npm.cmd run tauri -- dev` with Cargo on PATH to inspect the current shell.
 
 ## Section navigation
 
@@ -185,8 +185,14 @@ The visible label names the progressbar for assistive technology. Optional aria-
 npm.cmd run test:e2e
 ```
 
-Requires a supported installed Microsoft Edge (tested with 156.0.4314.42). Playwright uses channel msedge, starts/stops Vite on port 5174 and runs headless; no browser download is performed. Keep that port free. Playwright/axe checks real keyboard interaction, modal focus, responsive reflow, 200% text size, rendered contrast and forced colors. There are 12 passing browser tests in addition to the 40 passing Vitest tests.
+Requires a supported installed Microsoft Edge (tested with 156.0.4314.42). Playwright uses channel msedge, starts/stops Vite on port 5174 and runs headless; no browser download is performed. Keep that port free. Playwright/axe checks real keyboard interaction, modal focus, responsive reflow, 200% text size, rendered contrast and forced colors. There are 12 browser tests (last verified in 1.9) in addition to 72 currently passing Vitest tests.
 
 `tests/fixtures/components.html` and its TSX entry are test infrastructure covering otherwise unconnected primitives. Global CSS must load before component imports, as in src/main.tsx. The fixture is absent from the production JS entry bundle. Screenshots and failure traces are generated under ignored test-results directories. Browser test/config/fixture code is strictly checked by tsconfig.e2e.json.
 
 See [accessibility/layout review](docs/ACCESSIBILITY_REVIEW.md) for evidence and limits. Automated passes do not establish full WCAG conformance or replace future manual screen-reader and release checks.
+
+## Book metadata model
+
+`src/features/library/book.ts` defines BookDetails, Book and validateBookDetails. The validator normalizes valid editable metadata or returns field/error codes; it never saves a book or accepts system-owned fields into its output. Titles support Unicode, nullable goals use positive safe integers, and deadlines remain local YYYY-MM-DD dates. See [data model](docs/DATA_MODEL.md) for limits, planned SQL mapping and deletion relationships.
+
+Focused verification: `npm.cmd run test:run -- src/features/library/book.test.ts`. SQLite/migrations are the next task; no book data is persisted yet.

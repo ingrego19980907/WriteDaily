@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Awaiting approval before 2.1 (book data model); no library feature has been implemented.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Task 2.1 (book data model) is complete; awaiting approval before 2.2 (SQLite and migrations). Library UI/repository/persistence remain unimplemented.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -36,20 +36,20 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 
 ## Milestone 2: My Library
 
-| Done | ID   | Description                        | Status      | Dependencies | Acceptance criteria                                                      |
-| ---- | ---- | ---------------------------------- | ----------- | ------------ | ------------------------------------------------------------------------ |
-| [ ]  | 2.1  | Design book data model             | Not started | 1.9          | Fields, constraints and deletion relationships reviewed                  |
-| [ ]  | 2.2  | Configure SQLite and migrations    | Not started | 2.1          | Database opens and migrations apply safely on fresh and existing schemas |
-| [ ]  | 2.3  | Implement book repository          | Not started | 2.2          | Validated CRUD operations pass real database tests                       |
-| [ ]  | 2.4  | Implement book creation            | Not started | 2.3          | Valid books persist and invalid input shows errors                       |
-| [ ]  | 2.5  | Implement book editing             | Not started | 2.4          | Changes persist after reopening                                          |
-| [ ]  | 2.6  | Implement book deletion            | Not started | 2.5          | Confirmation and safe dependent-data policy verified                     |
-| [ ]  | 2.7  | Implement cover upload and storage | Not started | 2.6          | Managed covers survive restart and invalid files are rejected            |
-| [ ]  | 2.8  | Design book cards                  | Not started | 2.7          | Cover, title and progress render accessibly                              |
-| [ ]  | 2.9  | Implement library grid             | Not started | 2.8          | Responsive grid opens the correct book                                   |
-| [ ]  | 2.10 | Implement book progress            | Not started | 2.9          | Zero, missing and exceeded targets handled                               |
-| [ ]  | 2.11 | Add empty states and validation    | Not started | 2.10         | Empty, loading and error states work                                     |
-| [ ]  | 2.12 | Test persistence after restart     | Not started | 2.11         | Books and covers survive a real desktop restart                          |
+| Done | ID   | Description                        | Status                 | Dependencies | Acceptance criteria                                                      |
+| ---- | ---- | ---------------------------------- | ---------------------- | ------------ | ------------------------------------------------------------------------ |
+| [x]  | 2.1  | Design book data model             | Completed (2026-10-24) | 1.9          | Fields, constraints and deletion relationships reviewed                  |
+| [ ]  | 2.2  | Configure SQLite and migrations    | Not started            | 2.1          | Database opens and migrations apply safely on fresh and existing schemas |
+| [ ]  | 2.3  | Implement book repository          | Not started            | 2.2          | Validated CRUD operations pass real database tests                       |
+| [ ]  | 2.4  | Implement book creation            | Not started            | 2.3          | Valid books persist and invalid input shows errors                       |
+| [ ]  | 2.5  | Implement book editing             | Not started            | 2.4          | Changes persist after reopening                                          |
+| [ ]  | 2.6  | Implement book deletion            | Not started            | 2.5          | Confirmation and safe dependent-data policy verified                     |
+| [ ]  | 2.7  | Implement cover upload and storage | Not started            | 2.6          | Managed covers survive restart and invalid files are rejected            |
+| [ ]  | 2.8  | Design book cards                  | Not started            | 2.7          | Cover, title and progress render accessibly                              |
+| [ ]  | 2.9  | Implement library grid             | Not started            | 2.8          | Responsive grid opens the correct book                                   |
+| [ ]  | 2.10 | Implement book progress            | Not started            | 2.9          | Zero, missing and exceeded targets handled                               |
+| [ ]  | 2.11 | Add empty states and validation    | Not started            | 2.10         | Empty, loading and error states work                                     |
+| [ ]  | 2.12 | Test persistence after restart     | Not started            | 2.11         | Books and covers survive a real desktop restart                          |
 
 ## Milestone 3: Writing Editor
 
@@ -320,3 +320,12 @@ Verification: `git check-ignore --no-index` assertions passed for 19 ignored pat
 - Found/fixed ProgressBar forced-colors contrast loss using scoped Canvas/CanvasText/Highlight rules. Found/fixed test fixture stylesheet import order so scans include actual styled controls; added rendering guards and reran the audit. Reviewed final compact screenshots.
 - `npm.cmd run test:e2e`: 12 browser tests passed. `npm.cmd run test:run`: 40 unit/component tests passed. Typecheck, lint, format:check, production build and git diff checks passed.
 - Detailed scope/results/limits: [ACCESSIBILITY_REVIEW.md](ACCESSIBILITY_REVIEW.md). No manual screen-reader session, macOS or new native-layer review in this subtask; full release accessibility remains 8.3. Current Milestone 1 keyboard/contrast/responsive acceptance is satisfied.
+
+## Verification evidence: 2.1
+
+- Added features/library/book.ts with readonly BookDetails/Book snapshots and a pure unknown-input metadata validator. Removed the library folder marker now real domain code exists. No dependency, SQL connection, migration, repository, cover import or library UI added.
+- Defined title trim/NFC/200-code-point/control-character rules, nullable positive safe-integer goals, canonical calendar dates including leap years and overdue dates, persistence-owned IDs/cover/lifecycle fields and error codes for future localized forms.
+- DATA_MODEL.md records SQL field mapping/constraint requirements and future relationships: chapter/settings cascade only on confirmed deletion; activity/achievements remain with detached references; cover cleanup follows successful commit. Derived word counts/progress are not stored redundantly.
+- Added 32 domain tests covering normalization/Unicode/title bounds, invalid payloads/counts, safe integer endpoints, real/invalid dates, accumulated errors, input immutability and exclusion of persistence-owned properties.
+- `npm.cmd run test:run`: 7 files, 72 tests passed. Typecheck, lint, production build, format:check and git diff checks passed.
+- UI/browser tests were not rerun because there is no UI/layout change; the prior 12 browser checks remain recorded in 1.9. No persistence safety or schema execution claim: authoritative native validation and database constraints still require implementation/testing in 2.2/2.3.
