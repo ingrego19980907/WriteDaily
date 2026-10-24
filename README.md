@@ -8,7 +8,7 @@ WriteDaily is a planned free, offline-first Windows writing application, with fu
 
 Foundation tasks 0.1-0.9 are complete: environment inspection, React/strict TypeScript/Vite, Tauri 2, Tailwind, ESLint/Prettier, Vitest, application structure, synchronized documentation and verified Windows desktop startup. The UI currently shows a responsive application shell with the WriteDaily brand and five navigable sections. Each section displays a Coming soon message. Feature folders are reserved; no library, editor, database, autosave, export or backup is implemented.
 
-Frontend checks, the React DOM smoke test and native development build passed. The Windows Tauri window was opened and its React heading, tagline and status visually verified in task 0.9. Milestone 0 is complete; tasks 1.1-1.6 colors/typography, shell, navigation, Button, Input and Modal are complete; task 1.7 (Card) awaits approval. See [task status and verification evidence](docs/TASKS.md).
+Frontend checks, the React DOM smoke test and native development build passed. The Windows Tauri window was opened and its React heading, tagline and status visually verified in task 0.9. Milestone 0 is complete; tasks 1.1-1.7 colors/typography, shell, navigation and shared Button/Input/Modal/Card are complete; task 1.8 (ProgressBar) awaits approval. See [task status and verification evidence](docs/TASKS.md).
 
 ## Prerequisites
 
@@ -66,7 +66,7 @@ The build checks the frontend and compiles `src-tauri/target/debug/write-daily.e
 
 ## Styling
 
-Tailwind CSS 4.3.3 is integrated using @tailwindcss/vite, following the [official Vite setup](https://tailwindcss.com/docs/installation/using-vite). `src/styles/global.css` imports Tailwind; use static utility class names in React components. No separate Tailwind or PostCSS configuration is needed for this setup. The shell and navigation use semantic utility classes. Palette and typography tokens are centralized in `src/styles/tokens.css`; the existing page uses the warm background, readable text colors and local UI/serif fonts. The responsive AppShell is implemented; Button, Input and Modal are implemented; the remaining reusable controls are later milestone 1 work. See [design system](docs/DESIGN_SYSTEM.md) for token usage and contrast limits.
+Tailwind CSS 4.3.3 is integrated using @tailwindcss/vite, following the [official Vite setup](https://tailwindcss.com/docs/installation/using-vite). `src/styles/global.css` imports Tailwind; use static utility class names in React components. No separate Tailwind or PostCSS configuration is needed for this setup. The shell and navigation use semantic utility classes. Palette and typography tokens are centralized in `src/styles/tokens.css`; the existing page uses the warm background, readable text colors and local UI/serif fonts. The responsive AppShell is implemented; Button, Input, Modal and Card are implemented; the remaining reusable controls are later milestone 1 work. See [design system](docs/DESIGN_SYSTEM.md) for token usage and contrast limits.
 
 ## Linting and formatting
 
@@ -98,7 +98,7 @@ The current twenty-six tests cover Modal focus/dismissal, Button/Input interacti
 - `src/app/`: App composition, colocated smoke test and centralized English copy in `i18n/en.ts`.
 - `src/styles/`: Tailwind entry and global CSS.
 - `src/features/`: reserved library, editor, goals, activity and achievements modules.
-- `src/components/ui/`: shared Button, Input and Modal components; `src/hooks/`, `services/`, `types/`, `utils/`: reserved shared code boundaries.
+- `src/components/ui/`: shared Button, Input, Modal and Card components; `src/hooks/`, `services/`, `types/`, `utils/`: reserved shared code boundaries.
 - `src/test/`: shared test setup.
 - `src-tauri/`: Rust desktop host and Tauri configuration.
 
@@ -121,7 +121,7 @@ Data model, autosave, streak and backup policies remain proposals until their im
 
 ## Application shell
 
-`src/app/AppShell.tsx` provides the masthead, keyboard skip link and main content area. App supplies five section buttons through its optional navigation slot. Main content adapts to the supported minimum desktop size (640x480); the layout was visually checked in Tauri at minimum and wider sizes. Reusable Card is the next task. Run `npm.cmd run tauri -- dev` with Cargo on PATH to inspect the current shell.
+`src/app/AppShell.tsx` provides the masthead, keyboard skip link and main content area. App supplies five section buttons through its optional navigation slot. Main content adapts to the supported minimum desktop size (640x480); the layout was visually checked in Tauri at minimum and wider sizes. Reusable ProgressBar is the next task. Run `npm.cmd run tauri -- dev` with Cargo on PATH to inspect the current shell.
 
 ## Section navigation
 
@@ -161,3 +161,9 @@ Import Modal from `src/components/ui/Modal.tsx` and supply controlled state, one
 ```
 
 Radix Dialog handles trapped focus, background interaction, Escape/backdrop/Close dismissal and focus restoration. The caller can refuse a closing state change when unsaved content needs a decision. Modal does not save data or confirm discarding edits. Long content scrolls under a visible header/Close action. No product screen opens a modal yet. Focused tests: `npm.cmd run test:run -- src/components/ui/Modal.test.tsx`.
+
+## Shared Card
+
+Import Card from `src/components/ui/Card.tsx` to group related content on a warm surface with consistent border, padding, rounding and subtle shadow. It accepts native div props/ref and className; use semantic headings and buttons/links inside as needed. It adds no automatic interactivity or keyboard stop.
+
+Existing Coming soon messages use Card, so `npm.cmd run tauri -- dev` shows the integration. Library book cards and their data/actions remain later feature work.

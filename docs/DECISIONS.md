@@ -91,3 +91,9 @@ Add error #9B443A as a semantic token (6.34:1 surface, 5.79:1 background), keepi
 Choose @radix-ui/react-dialog 1.3.1 (React 19 compatible) for established focus trapping, keyboard/outside dismissal and trigger restoration; avoid custom accessibility machinery. See https://www.radix-ui.com/primitives/docs/components/dialog . Modal supplies WriteDaily presentation with required title/closeLabel/semantic trigger, optional description and caller-owned open state. A caller may refuse closing rather than discard unsaved input. No product flow added.
 
 Seven tests cover accessible opening, focus loop, StrictMode Escape/restore, close/reopen, overlay dismissal, refused closing and optional descriptions (26 total tests). Temporary ignored Tauri preview visually verified wide/compact scrolling and visible Close; removed afterward and restored normal debug configuration. Native SendKeys captures were inconclusive, so keyboard assertions rely on behavioral tests. No custom animation, data saving or destructive confirmation policy introduced.
+
+## 2026-10-24 - Shared Card (1.7)
+
+Use a small noninteractive native div wrapper with props/ref and layout className rather than a polymorphic/interactive variant system. Token-based component CSS supplies surface, border, padding, radius and centralized shadow-card. Apply it to existing Coming soon notices with a semantic h2 title; do not start library book cards or introduce fake data. Keep action semantics in child controls.
+
+Existing App/navigation/component tests remain green (26 tests); updated App's notice-heading assertion. TypeScript, lint/build and emitted CSS token checks passed. No new dependencies or tests that mirror the presentation implementation; full visual review remains 1.9.

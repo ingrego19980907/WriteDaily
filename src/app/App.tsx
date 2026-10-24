@@ -3,6 +3,7 @@ import { en } from './i18n/en'
 import { AppShell } from './AppShell'
 import { AppNavigation } from './AppNavigation'
 import type { SectionId } from './navigation'
+import { Card } from '../components/ui/Card'
 
 export default function App() {
   const [activeSection, setActiveSection] = useState<SectionId>('library')
@@ -35,10 +36,10 @@ export default function App() {
           {section.title}
         </h1>
         <p className="font-writing text-writing">{section.subtitle}</p>
-        <div className="space-y-2 border-t border-border pt-6">
-          <p className="font-semibold">{en.shell.comingSoon}</p>
+        <Card className="space-y-2">
+          <h2 className="font-semibold">{en.shell.comingSoon}</h2>
           <p className="text-ui text-secondary">{section.description}</p>
-        </div>
+        </Card>
       </div>
     </AppShell>
   )

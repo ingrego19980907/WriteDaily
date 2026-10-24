@@ -13,6 +13,8 @@
   --color-overlay: color-mix(in srgb, var(--color-foreground) 40%, transparent);
   --shadow-modal: 0 1rem 3rem
     color-mix(in srgb, var(--color-foreground) 20%, transparent);
+  --shadow-card: 0 2px 8px
+    color-mix(in srgb, var(--color-foreground) 4%, transparent);
 
   --font-sans:
     'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;

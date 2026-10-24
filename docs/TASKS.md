@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.6 (colors, typography, shell, navigation, Button, Input and Modal) are complete; awaiting approval before 1.7 (Card).
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.7 (colors, typography, shell, navigation and shared Button/Input/Modal/Card) are complete; awaiting approval before 1.8 (ProgressBar).
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -30,7 +30,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [x]  | 1.4 | Implement Button                | Completed (2026-10-24) | 1.3          | Accessible button variants render with focus states      |
 | [x]  | 1.5 | Implement Input                 | Completed (2026-10-24) | 1.4          | Labels, errors and keyboard entry work                   |
 | [x]  | 1.6 | Implement Modal                 | Completed (2026-10-24) | 1.5          | Focus trap, dismissal and focus restoration work         |
-| [ ]  | 1.7 | Implement Card                  | Not started            | 1.6          | Reusable card respects design tokens                     |
+| [x]  | 1.7 | Implement Card                  | Completed (2026-10-24) | 1.6          | Reusable card respects design tokens                     |
 | [ ]  | 1.8 | Implement ProgressBar           | Not started            | 1.7          | Clamped values and accessible progress semantics work    |
 | [ ]  | 1.9 | Verify accessibility and layout | Not started            | 1.8          | Keyboard, contrast and responsive checks documented      |
 
@@ -293,3 +293,11 @@ Verification: `git check-ignore --no-index` assertions passed for 19 ignored pat
 - Actual Tauri visual preview verified on wide and minimum-size windows with long scrollable content. Compact capture confirms Close remains visible and body scrolling is available. Focus and dismissal behavior are established by automated tests; native SendKeys screenshots were inconclusive and are not counted as additional keyboard evidence.
 - Preview HTML/TSX/config were isolated under ignored .cache/modal-preview and removed after closing the window and stopping dev. No permanent demo route or product controls added. Local screenshots remain ignored under .cache/desktop-verification/modal-*.png. Standard debug build without bundling restored the normal desktop configuration afterward.
 - Formatting and git diff checks passed after documentation updates. Consumers must decide whether closing an unsaved form is allowed; this component does not implement saving or discard confirmation.
+
+## Verification evidence: 1.7
+
+- Added components/ui/Card.tsx and card.css: a native div container forwarding props/ref and accepting layout className. Uses surface/foreground/border tokens, 0.75rem radius, 1.5rem padding, wrapping text and centralized subtle shadow-card. No interaction, variant abstraction or dependency added.
+- Applied Card to existing Coming soon section messages; changed the message title to a level-two heading. These remain unfinished feature notices, not book cards or mock data.
+- Updated the existing App render assertion to check the notice heading semantics. `npm.cmd run test:run`: 5 files, 26 tests passed. No separate tests duplicating the presentation-only implementation were added.
+- Typecheck, lint and production build passed. CSS smoke check confirmed .card, shadow-card and surface/border variable references in emitted production assets.
+- Formatting and git diff checks passed after documentation updates. Native window was not reopened for this simple presentation change; visual review remains 1.9. Run npm.cmd run tauri -- dev to inspect the integrated information cards.

@@ -19,7 +19,7 @@ src/
     app-shell.css      shell layout and responsive navigation area
     App.test.tsx       colocated render smoke test
     i18n/en.ts         centralized English UI copy
-  components/ui/       shared Button/Input/Modal and future accessible primitives
+  components/ui/       shared Button/Input/Modal/Card and future primitives
   features/
     library/           books and covers
     editor/            chapters and writing
@@ -106,3 +106,7 @@ Input is a native single-line field wrapper with a required visible label and op
 Modal wraps @radix-ui/react-dialog rather than implementing a focus trap manually. The component owns presentation (portal, overlay, title/optional description, header Close and scrollable content); the consumer owns open state and whether a dismissal request may proceed. A required semantic trigger provides deterministic focus restoration. Shared Button's ref/prop forwarding supports Radix asChild composition. No app-to-UI imports or localization dependency are added: callers supply text. Like Input, Modal is not yet used by a product feature; styles/dependency load with its eventual consumer.
 
 Seven behavioral tests cover focus, description and dismissal boundaries, including StrictMode and a refused dismissal retaining form input. A temporary ignored Tauri preview verified layout/scrolling, then was removed. Native keyboard capture was inconclusive and is not substituted for test evidence. The normal desktop configuration was rebuilt after preview. Future destructive confirmations may need a dedicated alert-dialog pattern; unsaved-form decisions remain explicit feature responsibilities.
+
+## Shared Card (1.7)
+
+Card is a small native div wrapper with component-layer styles and native props/ref forwarding. It owns surface, border, radius, padding and the shared shadow-card token; the consumer owns content/heading/interactive children. App composes it into existing Coming soon notices. No feature-specific book data or interaction is placed in the primitive. Existing App tests cover the integrated heading/content; the production CSS check verifies token/style inclusion. No new dependencies or presentation-mirroring test suite were needed.
