@@ -1,6 +1,6 @@
 # Proposed data model
 
-Status: design outline only; no database or migration exists. Finalize concrete DDL and constraints in the relevant model tasks.
+Status: design outline only; no database or migration exists. Finalize concrete DDL and constraints in the relevant model tasks. SQLite and Tiptap are not installed yet. Proposed IDs, schema constraints, activity rules and retention behavior are subject to approval during those tasks.
 
 | Entity              | Proposed fields and constraints                                                                                                                                         |
 | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: task 0.6 completed; awaiting approval before 0.7. Initial planning documents exist, but 0.8 remains pending synchronization with an initialized project.
+Current stop: tasks 0.1-0.8 completed; awaiting approval before 0.9. Milestone 0 remains incomplete until the desktop startup acceptance criteria are verified.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -16,8 +16,8 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [x]  | 0.4 | Configure Tailwind CSS               | Completed (2026-10-24) | 0.3          | Vite builds with a verified Tailwind utility                          |
 | [x]  | 0.5 | Configure ESLint and formatting      | Completed (2026-10-24) | 0.4          | Lint and formatting checks pass                                       |
 | [x]  | 0.6 | Configure Vitest                     | Completed (2026-10-24) | 0.5          | A meaningful render smoke test passes                                 |
-| [ ]  | 0.7 | Create application structure         | Not started            | 0.6          | Feature boundaries and application entry are documented and build     |
-| [ ]  | 0.8 | Create project documentation         | Not started            | 0.7          | All required documents exist and match the initialized configuration  |
+| [x]  | 0.7 | Create application structure         | Completed (2026-10-24) | 0.6          | Feature boundaries and application entry are documented and build     |
+| [x]  | 0.8 | Create project documentation         | Completed (2026-10-24) | 0.7          | All required documents exist and match the initialized configuration  |
 | [ ]  | 0.9 | Verify desktop startup               | Not started            | 0.8          | Observe Tauri window with React rendered; typecheck and tests pass    |
 
 ## Milestone 1: Design System
@@ -132,6 +132,10 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [ ]  | 8.9  | Prepare GitHub release      | Not started | 8.8          | Release notes and artifacts reviewed; publish only when authorized         |
 | [ ]  | 8.10 | Tag version 1.0.0           | Not started | 8.9          | Release gates pass and explicit authorization obtained before Git mutation |
 
+## Historical verification evidence
+
+Each entry describes the repository and environment at that task. Later tasks supersede earlier statements about installed tooling, file paths or pending work.
+
 ## Verification evidence: 0.1
 
 - Workspace initially contained only `.git`; `git status --short` was clean.
@@ -202,6 +206,24 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 
 ## Maintenance tasks
 
-- [x] GIT.1 ? Extend Git ignore rules. Status: Completed (2026-10-24). Dependencies: existing frontend/Tauri setup. Acceptance: caches, test artifacts and local environment files are ignored; source, lockfiles, required icons and environment templates remain visible.
+- [x] GIT.1 - Extend Git ignore rules. Status: Completed (2026-10-24). Dependencies: existing frontend/Tauri setup. Acceptance: caches, test artifacts and local environment files are ignored; source, lockfiles, required icons and environment templates remain visible.
 
-Verification: `git check-ignore --no-index` assertions passed for 19 ignored paths and 13 retained paths; `git diff --check` passed. Existing src-tauri/.gitignore already excludes native target output and generated schemas. No files deleted or removed from the Git index. Task 0.7 remains pending; this maintenance request interrupted it before any structure changes.
+Verification: `git check-ignore --no-index` assertions passed for 19 ignored paths and 13 retained paths; `git diff --check` passed. Existing src-tauri/.gitignore already excludes native target output and generated schemas. No files deleted or removed from the Git index. At that point task 0.7 was pending; it was subsequently completed as recorded below.
+
+## Verification evidence: 0.7
+
+- Moved App and its existing test to src/app; global stylesheet to src/styles/global.css. Updated React entry imports and extracted the unchanged English messages into app/i18n/en.ts.
+- Created approved feature/shared folders using .gitkeep markers. Documented module responsibilities and dependency direction; no product features, persistence implementation or dependencies added.
+- `npm.cmd run test:run`: 1 file, 1 test passed at its new location.
+- `npm.cmd run typecheck`, `npm.cmd run lint`, `npm.cmd run build`: passed after relocation.
+- `npm.cmd run format:check` and `git diff --check`: passed after documentation formatting.
+- No Tauri window or installer verification in this task; desktop startup remains task 0.9.
+
+## Verification evidence: 0.8
+
+- Audited all nine required documents against tracked source layout, npm scripts/engines and lockfile, Rust manifest, Tauri configuration/capability and test setup.
+- Reconciled current versus planned behavior, historical evidence, milestone counts/status and remaining acceptance gates. Updated setup/build instructions and document links; preserved historical outcomes.
+- Corrected inherited Yarn packageManager metadata to npm@11.19.1 to match the actual documented package manager and lockfile. No dependency installation or implementation changes.
+- Local Markdown links, documented file paths, npm commands, dependency/version references, task IDs/dependencies and milestone totals passed consistency checks.
+- `npm.cmd run format:check` and `git diff --check`: passed. No application tests or native rebuild repeated for documentation/metadata changes.
+- Desktop window and React visual verification remain task 0.9; installer/fresh-machine validation remains milestone 8.
