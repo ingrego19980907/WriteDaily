@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.7 (colors, typography, shell, navigation and shared Button/Input/Modal/Card) are complete; awaiting approval before 1.8 (ProgressBar).
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.8 (tokens, shell, navigation and shared UI primitives) are complete; awaiting approval before 1.9 (accessibility and layout verification).
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -31,7 +31,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [x]  | 1.5 | Implement Input                 | Completed (2026-10-24) | 1.4          | Labels, errors and keyboard entry work                   |
 | [x]  | 1.6 | Implement Modal                 | Completed (2026-10-24) | 1.5          | Focus trap, dismissal and focus restoration work         |
 | [x]  | 1.7 | Implement Card                  | Completed (2026-10-24) | 1.6          | Reusable card respects design tokens                     |
-| [ ]  | 1.8 | Implement ProgressBar           | Not started            | 1.7          | Clamped values and accessible progress semantics work    |
+| [x]  | 1.8 | Implement ProgressBar           | Completed (2026-10-24) | 1.7          | Clamped values and accessible progress semantics work    |
 | [ ]  | 1.9 | Verify accessibility and layout | Not started            | 1.8          | Keyboard, contrast and responsive checks documented      |
 
 ## Milestone 2: My Library
@@ -301,3 +301,12 @@ Verification: `git check-ignore --no-index` assertions passed for 19 ignored pat
 - Updated the existing App render assertion to check the notice heading semantics. `npm.cmd run test:run`: 5 files, 26 tests passed. No separate tests duplicating the presentation-only implementation were added.
 - Typecheck, lint and production build passed. CSS smoke check confirmed .card, shadow-card and surface/border variable references in emitted production assets.
 - Formatting and git diff checks passed after documentation updates. Native window was not reopened for this simple presentation change; visual review remains 1.9. Run npm.cmd run tauri -- dev to inspect the integrated information cards.
+
+## Verification evidence: 1.8
+
+- Added components/ui/ProgressBar.tsx and progress-bar.css with visible label, stable labelledby ID, progressbar role, minimum 0, configurable maximum/default 100 and synchronized visual/accessibility value. Native div props/ref and caller aria-valuetext pass through; semantics owned by the component cannot be overridden through typed props.
+- Finite values clamp to [0,max]. Invalid maxima (nonpositive or nonfinite) fall back to 100. Null/undefined/nonfinite current values are indeterminate: aria-valuenow is omitted and a static centered segment replaces the percentage fill. No animation or new dependencies.
+- Added 14 parameterized tests for clamping, invalid maximum, unknown values, ref/ID/localized value text and determinate/unknown transitions. `npm.cmd run test:run`: 6 files, 40 tests passed. Typecheck, lint and production build passed.
+- Checked Vite CSS transformation and contrast: strong-accent fill against border track 5.19:1; secondary track boundary against background/surface 4.78:1/5.24:1. Semantics checked against WAI-ARIA progressbar guidance.
+- Component is ready for real library/goal consumers; no fictional progress inserted into Coming soon screens. No native visual preview in this task; shared visual/accessibility review remains 1.9.
+- Formatting and git diff checks passed after documentation updates. Focused tests: npm.cmd run test:run -- src/components/ui/ProgressBar.test.tsx.

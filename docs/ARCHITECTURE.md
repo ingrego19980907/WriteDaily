@@ -4,7 +4,7 @@ Status: Foundation complete through task 0.9, including Windows development-wind
 
 ## Technology direction
 
-Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs twenty-six shell/navigation/Button/Input/Modal tests; domain and persistence tests will accompany their feature implementations. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
+Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs forty shell/navigation/shared-component tests; domain and persistence tests will accompany their feature implementations. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
 
 ## Organization
 
@@ -19,7 +19,7 @@ src/
     app-shell.css      shell layout and responsive navigation area
     App.test.tsx       colocated render smoke test
     i18n/en.ts         centralized English UI copy
-  components/ui/       shared Button/Input/Modal/Card and future primitives
+  components/ui/       shared Button/Input/Modal/Card/ProgressBar
   features/
     library/           books and covers
     editor/            chapters and writing
@@ -110,3 +110,7 @@ Seven behavioral tests cover focus, description and dismissal boundaries, includ
 ## Shared Card (1.7)
 
 Card is a small native div wrapper with component-layer styles and native props/ref forwarding. It owns surface, border, radius, padding and the shared shadow-card token; the consumer owns content/heading/interactive children. App composes it into existing Coming soon notices. No feature-specific book data or interaction is placed in the primitive. Existing App tests cover the integrated heading/content; the production CSS check verifies token/style inclusion. No new dependencies or presentation-mirroring test suite were needed.
+
+## Shared ProgressBar (1.8)
+
+ProgressBar normalizes a configurable range and synchronizes its read-only progressbar ARIA values with a token-styled fill. The visible label stays outside the progressbar node and is linked through useId. Unknown current values omit aria-valuenow; invalid maximum falls back to 100. This presentation primitive does not calculate manuscript totals or daily activity and adds no feature data, polling, live region or persistence. Static unknown-state styling avoids motion requirements. Consumers supply actual values and optional localized aria-valuetext. Fourteen boundary/semantics tests accompany the component; CSS transformation/contrast checks pass. Full visual/accessibility review remains 1.9.

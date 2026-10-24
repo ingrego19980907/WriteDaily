@@ -97,3 +97,9 @@ Seven tests cover accessible opening, focus loop, StrictMode Escape/restore, clo
 Use a small noninteractive native div wrapper with props/ref and layout className rather than a polymorphic/interactive variant system. Token-based component CSS supplies surface, border, padding, radius and centralized shadow-card. Apply it to existing Coming soon notices with a semantic h2 title; do not start library book cards or introduce fake data. Keep action semantics in child controls.
 
 Existing App/navigation/component tests remain green (26 tests); updated App's notice-heading assertion. TypeScript, lint/build and emitted CSS token checks passed. No new dependencies or tests that mirror the presentation implementation; full visual review remains 1.9.
+
+## 2026-10-24 - Shared ProgressBar (1.8)
+
+Use a labelled read-only progressbar role with a token-styled fill, explicit min/max/current semantics and no keyboard/live-region behavior. Clamp finite current values; treat missing/nonfinite values as unknown rather than claiming completion. Invalid maxima fall back to 100. Unknown state uses a static centered segment, not an animated or fake percentage. No new dependency and no example progress in product screens. Reference: https://www.w3.org/TR/wai-aria/#progressbar .
+
+Strong accent fill on the light border track measures 5.19:1; secondary boundary contrasts with both supported surfaces. Fourteen parameterized range/semantics/transition tests bring the suite to 40 passing tests. TypeScript/lint/build and Vite CSS transformation pass. Full visual/accessibility review is the next approved task (1.9).

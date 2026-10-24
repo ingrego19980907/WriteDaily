@@ -1,6 +1,6 @@
 # Design system
 
-Status: colors/typography implemented in 1.1 and application shell in 1.2; navigation implemented in 1.3 and Button in 1.4, Input in 1.5 and Modal in 1.6; Card implemented in 1.7; ProgressBar remains future work. `src/styles/tokens.css` defines centralized Tailwind theme variables; `src/styles/global.css` imports them and applies base styling.
+Status: colors/typography implemented in 1.1 and application shell in 1.2; navigation implemented in 1.3 and Button in 1.4, Input in 1.5 and Modal in 1.6; Card implemented in 1.7; ProgressBar implemented in 1.8; full accessibility/layout review remains 1.9. `src/styles/tokens.css` defines centralized Tailwind theme variables; `src/styles/global.css` imports them and applies base styling.
 
 | Token               | Value   |
 | ------------------- | ------- |
@@ -103,3 +103,19 @@ Content uses a surface background, secondary border, 1rem radius and a soft --sh
 Card uses surface background, foreground text, decorative border, 0.75rem radius and 1.5rem padding. The --shadow-card token is a subtle 0 2px 8px shadow using foreground at 4% opacity. min-width:0 and overflow-wrap:anywhere let it fit compact grids and long content; focus outlines of child controls are not clipped. Component-layer CSS permits utility overrides without a variants library.
 
 Existing Coming soon notices now use Card with a level-two heading. This is a shared presentation primitive; library-specific covers, book progress and book actions remain milestone 2. Full visual review remains 1.9.
+
+## ProgressBar
+
+`src/components/ui/ProgressBar.tsx` is a read-only progress indicator with required visible label, optional numeric value (or null) and max (default 100). The labelled role lives separately from the label text because progressbar descendants are presentational. It exposes aria-valuemin=0, normalized aria-valuemax and aria-valuenow for known values. It adds no Tab stop, live region or keyboard interaction. Native div props/ref apply to the bar; custom localized aria-valuetext may describe word counts. Keep that text synchronized with the actual value.
+
+| Input                              | Behavior                                         |
+| ---------------------------------- | ------------------------------------------------ |
+| Finite value below 0               | Clamp to 0                                       |
+| Finite value above max             | Clamp to max                                     |
+| Positive finite max                | Preserve that range, including fractional values |
+| Nonpositive/nonfinite max          | Fall back to 100                                 |
+| Null, undefined or nonfinite value | Indeterminate; omit aria-valuenow                |
+
+The bar is 0.75rem high, rounded and full-width in its grid wrapper. Shared border color is the track, secondary is its visible boundary and strong accent is the fill (5.19:1 fill/track contrast). Known fill width follows normalized value/max; unknown state uses a static centered 30% segment, which is not a percentage completion claim. No animation is needed, including in reduced-motion mode. Do not use the pale sage as a low-contrast progress fill on the light track.
+
+See [WAI-ARIA progressbar guidance](https://www.w3.org/TR/wai-aria/#progressbar). The component is not yet used by a real progress feature; do not insert example counts into product screens. Visual review remains 1.9 and actual book/daily aggregation remains feature work.
