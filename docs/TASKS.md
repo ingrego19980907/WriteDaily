@@ -1,0 +1,207 @@
+# Task tracker
+
+Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
+
+Current stop: task 0.6 completed; awaiting approval before 0.7. Initial planning documents exist, but 0.8 remains pending synchronization with an initialized project.
+
+Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
+
+## Milestone 0: Foundation
+
+| Done | ID  | Description                          | Status                 | Dependencies | Acceptance criteria                                                   |
+| ---- | --- | ------------------------------------ | ---------------------- | ------------ | --------------------------------------------------------------------- |
+| [x]  | 0.1 | Inspect environment                  | Completed (2026-10-24) | None         | Record Node/npm, Rust/Cargo, C++ tools, SDK and WebView2 availability |
+| [x]  | 0.2 | Initialize React + TypeScript + Vite | Completed (2026-10-24) | 0.1          | Frontend starts and strict TypeScript build passes                    |
+| [x]  | 0.3 | Configure Tauri 2                    | Completed (2026-10-24) | 0.2          | Compatible dependencies resolve and desktop wrapper compiles          |
+| [x]  | 0.4 | Configure Tailwind CSS               | Completed (2026-10-24) | 0.3          | Vite builds with a verified Tailwind utility                          |
+| [x]  | 0.5 | Configure ESLint and formatting      | Completed (2026-10-24) | 0.4          | Lint and formatting checks pass                                       |
+| [x]  | 0.6 | Configure Vitest                     | Completed (2026-10-24) | 0.5          | A meaningful render smoke test passes                                 |
+| [ ]  | 0.7 | Create application structure         | Not started            | 0.6          | Feature boundaries and application entry are documented and build     |
+| [ ]  | 0.8 | Create project documentation         | Not started            | 0.7          | All required documents exist and match the initialized configuration  |
+| [ ]  | 0.9 | Verify desktop startup               | Not started            | 0.8          | Observe Tauri window with React rendered; typecheck and tests pass    |
+
+## Milestone 1: Design System
+
+| Done | ID  | Description                     | Status      | Dependencies | Acceptance criteria                                      |
+| ---- | --- | ------------------------------- | ----------- | ------------ | -------------------------------------------------------- |
+| [ ]  | 1.1 | Define colors and typography    | Not started | 0.9          | Central tokens and local font stacks render consistently |
+| [ ]  | 1.2 | Create application shell        | Not started | 1.1          | Shell adapts to supported window sizes                   |
+| [ ]  | 1.3 | Create navigation               | Not started | 1.2          | All section navigation works by keyboard                 |
+| [ ]  | 1.4 | Implement Button                | Not started | 1.3          | Accessible button variants render with focus states      |
+| [ ]  | 1.5 | Implement Input                 | Not started | 1.4          | Labels, errors and keyboard entry work                   |
+| [ ]  | 1.6 | Implement Modal                 | Not started | 1.5          | Focus trap, dismissal and focus restoration work         |
+| [ ]  | 1.7 | Implement Card                  | Not started | 1.6          | Reusable card respects design tokens                     |
+| [ ]  | 1.8 | Implement ProgressBar           | Not started | 1.7          | Clamped values and accessible progress semantics work    |
+| [ ]  | 1.9 | Verify accessibility and layout | Not started | 1.8          | Keyboard, contrast and responsive checks documented      |
+
+## Milestone 2: My Library
+
+| Done | ID   | Description                        | Status      | Dependencies | Acceptance criteria                                                      |
+| ---- | ---- | ---------------------------------- | ----------- | ------------ | ------------------------------------------------------------------------ |
+| [ ]  | 2.1  | Design book data model             | Not started | 1.9          | Fields, constraints and deletion relationships reviewed                  |
+| [ ]  | 2.2  | Configure SQLite and migrations    | Not started | 2.1          | Database opens and migrations apply safely on fresh and existing schemas |
+| [ ]  | 2.3  | Implement book repository          | Not started | 2.2          | Validated CRUD operations pass real database tests                       |
+| [ ]  | 2.4  | Implement book creation            | Not started | 2.3          | Valid books persist and invalid input shows errors                       |
+| [ ]  | 2.5  | Implement book editing             | Not started | 2.4          | Changes persist after reopening                                          |
+| [ ]  | 2.6  | Implement book deletion            | Not started | 2.5          | Confirmation and safe dependent-data policy verified                     |
+| [ ]  | 2.7  | Implement cover upload and storage | Not started | 2.6          | Managed covers survive restart and invalid files are rejected            |
+| [ ]  | 2.8  | Design book cards                  | Not started | 2.7          | Cover, title and progress render accessibly                              |
+| [ ]  | 2.9  | Implement library grid             | Not started | 2.8          | Responsive grid opens the correct book                                   |
+| [ ]  | 2.10 | Implement book progress            | Not started | 2.9          | Zero, missing and exceeded targets handled                               |
+| [ ]  | 2.11 | Add empty states and validation    | Not started | 2.10         | Empty, loading and error states work                                     |
+| [ ]  | 2.12 | Test persistence after restart     | Not started | 2.11         | Books and covers survive a real desktop restart                          |
+
+## Milestone 3: Writing Editor
+
+| Done | ID   | Description                   | Status      | Dependencies | Acceptance criteria                                                           |
+| ---- | ---- | ----------------------------- | ----------- | ------------ | ----------------------------------------------------------------------------- |
+| [ ]  | 3.1  | Design chapter data model     | Not started | 2.12         | Ordering, content schema and revisions specified                              |
+| [ ]  | 3.2  | Implement chapter repository  | Not started | 3.1          | Chapter CRUD and revision handling pass persistence checks                    |
+| [ ]  | 3.3  | Implement chapter management  | Not started | 3.2          | Create, rename and confirmed deletion work                                    |
+| [ ]  | 3.4  | Integrate Tiptap              | Not started | 3.3          | Rich text edits and serialization work                                        |
+| [ ]  | 3.5  | Add formatting toolbar        | Not started | 3.4          | Bold, italic, headings, lists and undo/redo work                              |
+| [ ]  | 3.6  | Implement chapter navigation  | Not started | 3.5          | Pending edits preserved when switching chapters                               |
+| [ ]  | 3.7  | Implement word counting       | Not started | 3.6          | Documented counting policy passes Unicode and empty-content tests             |
+| [ ]  | 3.8  | Implement autosave            | Not started | 3.7          | Serialized debounced writes and retry behavior pass failure checks            |
+| [ ]  | 3.9  | Implement save status         | Not started | 3.8          | Saved appears only after successful commit; errors remain visible             |
+| [ ]  | 3.10 | Add focus mode                | Not started | 3.9          | Focus mode can be entered and exited by keyboard                              |
+| [ ]  | 3.11 | Add editor preferences        | Not started | 3.10         | Font size persists within validated limits                                    |
+| [ ]  | 3.12 | Test persistence and recovery | Not started | 3.11         | Formatting, rapid navigation, interrupted saves and restart recovery verified |
+
+## Milestone 4: Goals & Deadlines
+
+| Done | ID  | Description                     | Status      | Dependencies | Acceptance criteria                                      |
+| ---- | --- | ------------------------------- | ----------- | ------------ | -------------------------------------------------------- |
+| [ ]  | 4.1 | Aggregate book word counts      | Not started | 3.12         | Chapter sums stay correct after edits and deletion       |
+| [ ]  | 4.2 | Implement daily goals           | Not started | 4.1          | Validated daily targets persist                          |
+| [ ]  | 4.3 | Implement total word goals      | Not started | 4.2          | Optional targets persist and handle completion           |
+| [ ]  | 4.4 | Implement deadlines             | Not started | 4.3          | Missing, today and overdue dates handled locally         |
+| [ ]  | 4.5 | Calculate required writing pace | Not started | 4.4          | Scheduled days and nonnegative remaining words handled   |
+| [ ]  | 4.6 | Create progress components      | Not started | 4.5          | Actual goal results render accessibly                    |
+| [ ]  | 4.7 | Add calculation tests           | Not started | 4.6          | Missing goals, overdue dates and completed books covered |
+
+## Milestone 5: Activity & Streaks
+
+| Done | ID  | Description                       | Status      | Dependencies | Acceptance criteria                                                 |
+| ---- | --- | --------------------------------- | ----------- | ------------ | ------------------------------------------------------------------- |
+| [ ]  | 5.1 | Design activity records           | Not started | 4.7          | Paste, deletion, imports, local days and retention policy finalized |
+| [ ]  | 5.2 | Record writing sessions/activity  | Not started | 5.1          | Content and idempotent activity commit atomically                   |
+| [ ]  | 5.3 | Calculate daily statistics        | Not started | 5.2          | Daily totals and historical goal snapshots aggregate correctly      |
+| [ ]  | 5.4 | Create activity calendar          | Not started | 5.3          | Intensity and inspectable day details reflect actual records        |
+| [ ]  | 5.5 | Calculate current streak          | Not started | 5.4          | Scheduled-day grace rules pass tests                                |
+| [ ]  | 5.6 | Calculate longest streak          | Not started | 5.5          | Historical longest streak passes schedule edge cases                |
+| [ ]  | 5.7 | Support preferred writing days    | Not started | 5.6          | Schedule changes preserve historical interpretation                 |
+| [ ]  | 5.8 | Test date and timezone edge cases | Not started | 5.7          | Midnight, DST and timezone changes covered                          |
+
+## Milestone 6: Achievements
+
+| Done | ID  | Description                      | Status      | Dependencies | Acceptance criteria                                    |
+| ---- | --- | -------------------------------- | ----------- | ------------ | ------------------------------------------------------ |
+| [ ]  | 6.1 | Define achievement rules         | Not started | 5.8          | Eight product achievements have precise criteria       |
+| [ ]  | 6.2 | Implement achievement evaluation | Not started | 6.1          | Boundary conditions produce expected unlocks           |
+| [ ]  | 6.3 | Persist unlocked achievements    | Not started | 6.2          | Retries and restart never duplicate unlocks            |
+| [ ]  | 6.4 | Design achievement cards         | Not started | 6.3          | Locked and unlocked cards are accessible               |
+| [ ]  | 6.5 | Create achievements page         | Not started | 6.4          | Persistent achievement state renders correctly         |
+| [ ]  | 6.6 | Implement unlock notifications   | Not started | 6.5          | Subtle notifications respect accessibility preferences |
+| [ ]  | 6.7 | Add tests                        | Not started | 6.6          | Thresholds, retries and completion rules covered       |
+
+## Milestone 7: Export & Backup
+
+| Done | ID  | Description                    | Status      | Dependencies | Acceptance criteria                                                 |
+| ---- | --- | ------------------------------ | ----------- | ------------ | ------------------------------------------------------------------- |
+| [ ]  | 7.1 | Export individual chapters     | Not started | 6.7          | Selected chapter exports with correct content                       |
+| [ ]  | 7.2 | Export complete books          | Not started | 7.1          | Chapters export in manuscript order                                 |
+| [ ]  | 7.3 | Implement portable text export | Not started | 7.2          | UTF-8 portable text retains readable structure                      |
+| [ ]  | 7.4 | Implement library backup       | Not started | 7.3          | Consistent database and cover snapshot validates                    |
+| [ ]  | 7.5 | Implement library restore      | Not started | 7.4          | Validated staged restore includes safety backup and rollback        |
+| [ ]  | 7.6 | Validate backup integrity      | Not started | 7.5          | Corrupt archives and unsafe paths rejected                          |
+| [ ]  | 7.7 | Test restore scenarios         | Not started | 7.6          | Roundtrip, interruption, incompatible schema and corruption covered |
+
+## Milestone 8: Release
+
+| Done | ID   | Description                 | Status      | Dependencies | Acceptance criteria                                                        |
+| ---- | ---- | --------------------------- | ----------- | ------------ | -------------------------------------------------------------------------- |
+| [ ]  | 8.1  | Polish UI and empty states  | Not started | 7.7          | Loading, empty and error states reviewed                                   |
+| [ ]  | 8.2  | Improve keyboard navigation | Not started | 8.1          | Main workflows complete without a mouse                                    |
+| [ ]  | 8.3  | Test accessibility          | Not started | 8.2          | Contrast, semantics and assistive navigation findings resolved             |
+| [ ]  | 8.4  | Test Windows installation   | Not started | 8.3          | Install, launch, upgrade and uninstall preserve writing as specified       |
+| [ ]  | 8.5  | Create application icon     | Not started | 8.4          | Required desktop icon formats build                                        |
+| [ ]  | 8.6  | Prepare screenshots         | Not started | 8.5          | Accurate release screenshots created                                       |
+| [ ]  | 8.7  | Complete README             | Not started | 8.6          | Fresh-machine setup and recovery instructions verified                     |
+| [ ]  | 8.8  | Build Windows release       | Not started | 8.7          | Installer builds and launches on target Windows                            |
+| [ ]  | 8.9  | Prepare GitHub release      | Not started | 8.8          | Release notes and artifacts reviewed; publish only when authorized         |
+| [ ]  | 8.10 | Tag version 1.0.0           | Not started | 8.9          | Release gates pass and explicit authorization obtained before Git mutation |
+
+## Verification evidence: 0.1
+
+- Workspace initially contained only `.git`; `git status --short` was clean.
+- `node --version`: v22.12.0; `npm.cmd --version`: 10.9.0; `git --version`: 2.33.0.windows.2.
+- `Get-Command` found no Rust/Cargo on PATH. Direct rustc/cargo calls returned 1.61.0; rustup reported the MSVC stable host.
+- `vswhere` located VS Build Tools 2017 15.9.40 with C++ tools; SDK directory 10.0.17763.0 exists.
+- Registry query detected WebView2 155.0.4283.62.
+- No package install, application startup, TypeScript compilation or application tests performed: no application exists.
+- Required initial planning documents created and checked for presence; 0.8 acceptance also requires synchronization with the eventual scaffold.
+
+## Verification evidence: 0.2
+
+- Generated official create-vite 9.3.1 react-ts scaffold in a temporary directory; merged selected files without replacing documentation and removed the temporary scaffold.
+- Installed React/React DOM 19.3.1, TypeScript 6.0.3, Vite 8.3.5 and plugin-react 6.1.2; lockfile records resolved versions. npm reported zero vulnerabilities.
+- `npm.cmd run typecheck`: passed with strict enabled in application and tooling projects.
+- `npm.cmd run build`: passed; production assets emitted to ignored dist directory.
+- `npm.cmd ls --depth=0`: passed with no missing/invalid top-level dependencies.
+- `npm.cmd run dev -- --host 127.0.0.1 --port 5173 --strictPort`: Vite ready; HTTP checks returned 200 for HTML and transformed App.tsx. Server stopped after verification.
+- React server-render smoke through Vite SSR loading produced the expected heading and tagline. This is not a visual browser or desktop-window verification.
+- `git diff --check`: passed. No test runner yet (Vitest is task 0.6). No Tauri startup claim.
+- npm registry access required sandbox escalation after EACCES; installation succeeded with approved network access.
+
+## Verification evidence: 0.3
+
+- Installed local @tauri-apps/cli 2.12.4; npm audit reported zero vulnerabilities. Initialized the official desktop scaffold with existing frontend build/dev hooks.
+- Approved rustup update installed rustc/Cargo 1.99.1 MSVC. No C++ tools or WebView2 update was necessary for this build; existing VS 2017 tools linked successfully.
+- `npm.cmd run tauri -- info` detected WebView2 155.0.4283.62, VS Build Tools 2017 and the updated Rust/Cargo. @tauri-apps/api is intentionally absent until native commands are needed.
+- `npm.cmd run tauri -- build --debug --no-bundle`: passed, including frontend typecheck/build; native compilation finished in 2m 20s and produced `src-tauri/target/debug/write-daily.exe`.
+- `npm.cmd run typecheck`: passed separately.
+- `cargo fmt --manifest-path src-tauri/Cargo.toml -- --check`: passed after formatting scaffold files.
+- `cargo metadata --manifest-path src-tauri/Cargo.toml --locked --offline --no-deps --format-version 1`: passed. Cargo.lock retained for repeatable dependency resolution.
+- Checked desktop version/path configuration and devCsp schema field. Verified target artifacts and generated schemas are ignored by Git.
+- No GUI window was opened or visually inspected. Task 0.9 remains incomplete. No installer build/install or application test runner verification was performed.
+- `git diff --check`: passed. No automatic commit or push.
+
+## Verification evidence: 0.4
+
+- Checked official Tailwind Vite installation guidance and npm metadata: @tailwindcss/vite 4.3.3 supports Vite 8; project uses Vite 8.3.5.
+- Installed tailwindcss and @tailwindcss/vite 4.3.3 as development dependencies and updated npm lockfile; npm audit reported zero vulnerabilities.
+- Added the official Vite plugin and CSS import. Moved bootstrap main layout to utilities and explicitly styled the heading because Tailwind Preflight resets default heading styles. Design tokens and components remain milestone 1.
+- `npm.cmd run typecheck`: passed.
+- `npm.cmd run build`: passed, generated production CSS (5.74 kB).
+- Production CSS smoke check: mx-auto, max-w-3xl, px-6, py-16, text-3xl and font-bold selectors exist; Tailwind import resolved.
+- `npm.cmd ls tailwindcss @tailwindcss/vite vite`: passed with compatible, deduplicated dependencies.
+- No browser visual or desktop launch verification in this subtask. No unit test runner exists yet (task 0.6); no extra test dependencies introduced.
+- `git diff --check`: passed.
+
+## Verification evidence: 0.5
+
+- Added ESLint 10.13.0 flat config with @eslint/js, typescript-eslint 8.72.0, React Hooks and Fast Refresh recommended rules. Browser and tooling globals are scoped separately; generated/native build output is ignored. Warning count must be zero.
+- Added exact Prettier 3.9.10, eslint-config-prettier, shared EditorConfig defaults and ignores for generated files/lockfiles. Formatted supported existing source/configuration/documentation. Rust remains under cargo fmt.
+- Compatibility investigation: Node 22.12 could not satisfy ESLint 10 or transitive eslint-visitor-keys 5. An initial ESLint 9 attempt produced engine/deprecation warnings and was replaced. With explicit installation approval, winget installed official Node LTS 24.22.1 (npm 11.19.1). Final tooling uses ESLint 10 and package engines now reflect its supported Node ranges; npm lockfile synchronized.
+- `npm.cmd run lint`: passed. In-memory negative smoke checks confirmed react-hooks/rules-of-hooks and @typescript-eslint/no-explicit-any trigger on violations; generated native output is ignored.
+- Prettier negative smoke check rejected deliberately unformatted input.
+- `npm.cmd run format:check`: passed after formatting and documentation updates.
+- `npm.cmd run typecheck` and `npm.cmd run build`: passed with updated Node/tooling.
+- `npm.cmd ls --depth=0`: passed. Final npm installation/audit: zero vulnerabilities.
+- `git diff --check`: passed. No desktop recompile or visual launch was needed for tooling configuration; Vitest is still task 0.6.
+
+## Verification evidence: 0.6
+
+- Installed Vitest 5.0.5, jsdom 30.1.3, @testing-library/react 16.3.3, @testing-library/dom 10.4.2 and @testing-library/jest-dom 7.0.1 after checking official guidance and npm compatibility metadata. Installed Node 24.22.1 and Vite 8.3.5 are compatible; package/lockfile Node engine range synchronized with jsdom requirements.
+- Added shared test config, explicit DOM cleanup/matchers, npm watch and one-shot test scripts, and a colocated App render smoke test.
+- `npm.cmd run test:run`: 1 test file, 1 test passed. Verifies WriteDaily heading and tagline within the main landmark using jsdom.
+- `npm.cmd run typecheck`, `npm.cmd run lint`, `npm.cmd run build`: passed; tests/setup are included in strict checking.
+- `npm.cmd run format:check` and `git diff --check`: passed after formatting documentation.
+- npm reported zero vulnerabilities. No GUI, browser layout, desktop startup, coverage or persistence verification implied by this test.
+
+## Maintenance tasks
+
+- [x] GIT.1 ? Extend Git ignore rules. Status: Completed (2026-10-24). Dependencies: existing frontend/Tauri setup. Acceptance: caches, test artifacts and local environment files are ignored; source, lockfiles, required icons and environment templates remain visible.
+
+Verification: `git check-ignore --no-index` assertions passed for 19 ignored paths and 13 retained paths; `git diff --check` passed. Existing src-tauri/.gitignore already excludes native target output and generated schemas. No files deleted or removed from the Git index. Task 0.7 remains pending; this maintenance request interrupted it before any structure changes.

@@ -1,0 +1,13 @@
+@import 'tailwindcss';
+
+:root {
+  font-family: system-ui, sans-serif;
+  color-scheme: light;
+  line-height: 1.6;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  margin: 0;
+}
