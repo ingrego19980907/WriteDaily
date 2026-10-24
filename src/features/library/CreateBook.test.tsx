@@ -5,7 +5,10 @@ import { createBook } from '../../services/books'
 import { CreateBook } from './CreateBook'
 import type { Book } from './book'
 
-vi.mock('../../services/books', () => ({ createBook: vi.fn() }))
+vi.mock('../../services/books', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../services/books')>()),
+  createBook: vi.fn(),
+}))
 beforeEach(() => {
   vi.mocked(createBook).mockReset()
 })

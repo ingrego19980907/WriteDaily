@@ -1,8 +1,10 @@
 # Data model
 
+Editing (2.5) exposes update_book(id, expectedUpdatedAt, details), plus list_books and get_book(id) for selecting/reloading persisted metadata. The loaded snapshot revision is mandatory; no automatic conflict overwrite, token refresh or silent draft replacement occurs. Native Conflict/NotFound map to conflict/not_found codes; validation/persistence mappings remain available. Optional empty form fields become null. Update preserves ID, createdAt, coverPath and completedAt; only editable metadata and native updatedAt change. Command-boundary tests verify changes survive closing/reopening a disposable database. SQL migration 001 is unchanged.
+
 Creation (2.4) accepts only BookDetails through create_book. Form blanks become null for optional fields; goal strings must contain decimal digits and pass the safe-integer domain validator. Native DTO decoding and repository validation remain authoritative. The command runs blocking persistence outside the UI thread and resolves only after commit; no schema change. A disposable-database command-boundary test verifies reopen retention and serializable validation/persistence errors. Real desktop IPC interaction/restart verification is not claimed by these tests; full desktop restart acceptance remains 2.12.
 
-Status: book metadata types/validation (2.1), native SQLite/migration v1 (2.2) and Rust book repository (2.3) are implemented. Book creation has a Tauri command/dialog (2.4). Editing/deletion UI, library cards/grid and cover import/cleanup remain planned. SQLite is bundled; Tiptap remains uninstalled. Other entities remain planned.
+Status: book metadata types/validation (2.1), native SQLite/migration v1 (2.2) and Rust book repository (2.3) are implemented. Book creation has a Tauri command/dialog (2.4). Editing is connected through revision-checked IPC (2.5); deletion UI, library cards/grid and cover import/cleanup remain planned. SQLite is bundled; Tiptap remains uninstalled. Other entities remain planned.
 
 | Entity              | Proposed fields and constraints                                                                                                                                         |
 | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -92,7 +94,7 @@ Identity/schema checks are structural safeguards, not proof that every row meets
 - Coarse managed-cover reference containment (covers/ prefix; no traversal, extra directory separator, backslash or URI colon).
 - UTC timestamp string shape and basic created/updated/completed ordering.
 
-SQLite may coerce numeric text even in STRICT tables. Native repository 2.3 additionally enforces NFC/Unicode trimming and controls, complete dates/timestamps and DTO constraints. Cover references are checked structurally; actual file content, physical containment and ownership remain the importer boundary in 2.7. The TypeScript validator is not a substitute. Only the create_book command is exposed to the frontend.
+SQLite may coerce numeric text even in STRICT tables. Native repository 2.3 additionally enforces NFC/Unicode trimming and controls, complete dates/timestamps and DTO constraints. Cover references are checked structurally; actual file content, physical containment and ownership remain the importer boundary in 2.7. The TypeScript validator is not a substitute. The frontend can invoke typed create/list/get/update commands. Delete remains internal until the confirmed workflow in 2.6.
 
 ### Durability and test evidence
 

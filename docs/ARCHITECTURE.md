@@ -1,12 +1,14 @@
 # Architecture
 
+Book editing (2.5): Library loads persisted snapshots through list_books and renders a basic title/action list. BookDetailsDialog shares field parsing, validation and pending guards with creation. Each editor owns its draft and base snapshot/token; props/list changes do not replace unsaved work. update_book requires id plus expectedUpdatedAt, modifies metadata only and resolves after commit. Conflict or missing-book results preserve the draft and block saving. Only an explicit Replace draft with latest details action calls get_book and replaces the draft after success. List loading rejects stale requests after unmount and merges late results with newer committed local snapshots. Browser editing verification uses isolated test-only IPC responses; actual persistence is verified by native temporary-database tests. Cards/grid, deletion and covers remain later tasks.
+
 Book creation (2.4): CreateBook owns an in-memory draft that stays mounted across section changes. Closing/Escape preserves it for the current app session; restart recovery is not promised. The form validates metadata and uses services/books.ts to invoke create_book. Browser preview explicitly reports that desktop is required and never simulates saving. The async native command moves database locking and repository work into spawn_blocking, returns a committed snapshot, and maps failures to codes without exposing SQL/path details. Pending submission blocks duplicate activation and dialog dismissal. Success clears the draft and closes the dialog. Listing/cards, editing, deletion and cover selection remain subsequent tasks.
 
-Status: Foundation complete through task 0.9, including Windows development-window visual verification; application structure established in task 0.7. React/Vite, Tauri, Tailwind, lint/format tooling and Vitest are configured. Book metadata, native SQLite/migration and Rust repository are implemented through 2.4, including the book creation command/dialog. Other product features remain planned. Runtime entry is `src/main.tsx`, application composition is `src/app/App.tsx`, and global CSS is `src/styles/global.css`.
+Status: Foundation complete through task 0.9, including Windows development-window visual verification; application structure established in task 0.7. React/Vite, Tauri, Tailwind, lint/format tooling and Vitest are configured. Book metadata, native SQLite/migration and Rust repository are implemented through 2.5, including book creation and revision-checked editing commands/dialogs. Other product features remain planned. Runtime entry is `src/main.tsx`, application composition is `src/app/App.tsx`, and global CSS is `src/styles/global.css`.
 
 ## Technology direction
 
-Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs ninety-one domain/component tests plus fifteen Edge browser accessibility/layout tests; native persistence is additionally covered by 26 Rust tests. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
+Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs one hundred domain/component tests plus eighteen Edge browser accessibility/layout tests; native persistence is additionally covered by 27 Rust tests. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
 
 ## Organization
 
@@ -23,7 +25,7 @@ src/
     i18n/en.ts         centralized English UI copy
   components/ui/       shared Button/Input/Modal/Card/ProgressBar
   features/
-    library/           book metadata validation and creation dialog; future cards/covers
+    library/           book metadata validation and creation dialog; basic selection list and creation/editing dialogs; future cards/covers
     editor/            chapters and writing
     goals/             targets and deadlines
     activity/          writing events, calendar and streaks
@@ -51,7 +53,7 @@ Resolve storage paths via Tauri application directories, never hardcode user pat
 
 ## Desktop bootstrap (0.3)
 
-`src-tauri` contains the Rust entry point, Tauri build script, configuration, generated scaffold icons and default core capability for the main window. Only create_book is exposed as a custom application command; no arbitrary filesystem, shell or SQL commands are exposed. Native SQLite initialization now runs internally (2.2). The frontend uses @tauri-apps/api 2.12.4 for typed create_book invocation. Removed unused logging/serialization scaffold dependencies.
+`src-tauri` contains the Rust entry point, Tauri build script, configuration, generated scaffold icons and default core capability for the main window. Only create_book, list_books, get_book and update_book are exposed as custom application commands; no arbitrary filesystem, shell or SQL commands are exposed. Native SQLite initialization now runs internally (2.2). The frontend uses @tauri-apps/api 2.12.4 for typed book command invocation. Removed unused logging/serialization scaffold dependencies.
 
 Desktop hooks run the existing npm dev/build scripts. Vite uses fixed loopback port 5173 and ignores Rust changes; Tauri owns Rust rebuilds. Production CSP restricts scripts to bundled code; development CSP additionally permits Vite's loopback HTTP/WebSocket endpoint and React refresh preamble. No remote content is loaded.
 
@@ -139,6 +141,6 @@ Native tests isolate temporary files and cover data retention, constraints, atom
 
 ## Book repository (2.3)
 
-Public native books module supplies typed DTOs, validation and BookRepository; it borrows the app-managed Connection and does not expose arbitrary SQL to JavaScript; a separate adapter exposes create only. List/get validate full stored snapshots; create/update/delete use bound parameters and IMMEDIATE transactions. Success is returned after commit only. Snapshot updatedAt is required for update/delete to prevent stale writes across connections, with monotonically advancing UTC millisecond timestamps.
+Public native books module supplies typed DTOs, validation and BookRepository; it borrows the app-managed Connection and does not expose arbitrary SQL to JavaScript; a separate adapter exposes create/list/get/update. List/get validate full stored snapshots; create/update/delete use bound parameters and IMMEDIATE transactions. Success is returned after commit only. Snapshot updatedAt is required for update/delete to prevent stale writes across connections, with monotonically advancing UTC millisecond timestamps.
 
 Native validation matches frontend metadata normalization through shared JSON fixtures, and additionally checks UUIDs, full stored timestamps/order and managed cover reference shape. Serde maps camelCase DTOs and rejects unsupported input fields/types. No silent row repair/filtering. Covered-book deletion is explicitly blocked until file cleanup is implemented; no file IO occurs in the repository. Future IPC wraps this blocking API, handles database lock/errors and owns user confirmation policy. Existing migration SQL is unchanged.

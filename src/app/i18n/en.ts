@@ -1,6 +1,25 @@
 export const en = {
   library: {
     create: 'Create book',
+    edit: 'Edit book',
+    editDescription: 'Update the title, goals or deadline for this book.',
+    save: 'Save changes',
+    updating: 'Saving…',
+    updated: 'Book updated:',
+    editFailure:
+      'Could not save changes. Your draft is kept. Please try again.',
+    conflict:
+      'This book has changed elsewhere. Your draft is kept. Load the latest details before editing again.',
+    missing: 'This book is no longer available. Your draft is kept.',
+    replaceDraft: 'Replace draft with latest details',
+    reloading: 'Loading latest details…',
+    reloadFailure:
+      'Could not load the latest details. Your draft is kept. Please try again.',
+    books: 'Books',
+    loading: 'Loading books…',
+    loadFailure: 'Could not load your books. Please try again.',
+    retry: 'Retry loading books',
+    empty: 'No books yet. Create your first story.',
     close: 'Close',
     description: 'Give your story a title. Goals and a deadline are optional.',
     title: 'Title',

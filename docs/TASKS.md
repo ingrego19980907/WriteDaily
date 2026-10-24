@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Tasks 2.1-2.4 (book model, SQLite/migration v1, native repository and book creation) are complete; awaiting approval before 2.5 (book editing). Only creation has IPC/UI; editing/deletion UI, library cards/grid and cover import/cleanup remain planned.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Tasks 2.1-2.5 (book model, SQLite/migration v1, native repository, creation and editing) are complete; awaiting approval before 2.6 (book deletion). Creation/editing have IPC/UI and a basic selection list; deletion UI, library cards/grid and cover import/cleanup remain planned.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -42,7 +42,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [x]  | 2.2  | Configure SQLite and migrations    | Completed (2026-10-24) | 2.1          | Database opens and migrations apply safely on fresh and existing schemas |
 | [x]  | 2.3  | Implement book repository          | Completed (2026-10-24) | 2.2          | Validated CRUD operations pass real database tests                       |
 | [x]  | 2.4  | Implement book creation            | Completed (2026-10-24) | 2.3          | Valid books persist and invalid input shows errors                       |
-| [ ]  | 2.5  | Implement book editing             | Not started            | 2.4          | Changes persist after reopening                                          |
+| [x]  | 2.5  | Implement book editing             | Completed (2026-10-24) | 2.4          | Changes persist after reopening                                          |
 | [ ]  | 2.6  | Implement book deletion            | Not started            | 2.5          | Confirmation and safe dependent-data policy verified                     |
 | [ ]  | 2.7  | Implement cover upload and storage | Not started            | 2.6          | Managed covers survive restart and invalid files are rejected            |
 | [ ]  | 2.8  | Design book cards                  | Not started            | 2.7          | Cover, title and progress render accessibly                              |
@@ -133,6 +133,16 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [ ]  | 8.10 | Tag version 1.0.0           | Not started | 8.9          | Release gates pass and explicit authorization obtained before Git mutation |
 
 ## Historical verification evidence
+
+## Verification evidence: 2.5
+
+- Added a basic persisted-book selection list and shared BookDetailsDialog for creation/editing. Existing books load on startup; committed creation/updates update their matching IDs without dropping other drafts. A late list response merges with newer local committed snapshots rather than erasing a newly created book. This is not the future card/grid design (2.8/2.9).
+- Added list_books/get_book/update_book commands and typed services. Native work runs on spawn_blocking under the managed connection lock; updates require expectedUpdatedAt from the edited snapshot. Conflict/not-found/persistence errors are mapped without exposing database details. No dependency or migration change, no delete IPC.
+- Drafts survive close/Escape, navigation and failed writes during the current session. Conflict/not-found blocks saving; the explicitly labelled Replace draft with latest details action fetches the current snapshot and replaces the draft only after a successful read. Failed reload keeps the draft. Successful update installs the committed snapshot/token, closes the dialog and updates the list. Duplicate/pending dismissal guards remain shared with creation.
+- 27 native tests passed, including command-boundary update/reopen retention, nullable field clearing, identity/creation-time preservation, stale-write rejection and validation failures. Repository tests additionally cover SQL rollback and cover/completion preservation. All databases disposable; actual library untouched. Cargo fmt/Clippy pass.
+- 100 frontend tests passed: edit prefill/normalization/clearing, invalid-field focus, close/reopen, failed save/reload, stale/missing books, pending/duplicate submission, correct selection with duplicate titles, load retry and late listing race. Typed-service tests verify identity/revision payload and native error propagation.
+- 18 Edge tests passed. Three editing workflows at 320/640/1100px use a clearly isolated test-only IPC fixture to verify reflow, WCAG scans, keyboard dismissal/focus, draft retention across navigation, failures/conflict recovery and successful list/form updates. Production browser preview still refuses persistence; test fixture is not a production entry.
+- Lint, formatting, strict typecheck, production build, Cargo fmt/Clippy and diff checks passed. No real native GUI/IPC restart verification claimed: browser responses and native disposable-database boundary are tested separately. Full desktop restart verification remains 2.12. Next: 2.6, awaiting approval.
 
 ## Verification evidence: 2.4
 

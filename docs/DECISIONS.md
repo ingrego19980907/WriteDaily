@@ -1,5 +1,9 @@
 # Decision log
 
+## 2026-10-24 - Book editing (2.5)
+
+Reuse the creation fields/validation/pending behavior through BookDetailsDialog. Add only the native read/update commands required for editing and a basic list of persisted titles/actions; retain cards/grid work for 2.8/2.9. Key drafts by book ID, preserve them across navigation/dismissal/errors, and send the exact base updatedAt token. Conflicts block retry until the user explicitly replaces the draft with a successfully loaded latest version. Never silently rebase a draft or report saved before commit. Use no new dependency or migration.
+
 ## 2026-10-24 - Book creation (2.4)
 
 Expose only create_book through the official Tauri 2 API (2.12.4), following [official command guidance](https://v2.tauri.app/develop/calling-rust/). Reuse the native repository and managed Mutex connection on spawn_blocking. Keep the dialog draft in the mounted feature across dismissal/navigation, clear only after commit, and block dismissal/repeated submission during a write. Drafts are session-only. Browser preview reports desktop required; no mock persistence. Cover import and book cards/grid remain their approved later tasks.

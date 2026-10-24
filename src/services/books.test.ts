@@ -1,6 +1,6 @@
 import { beforeEach, expect, test, vi } from 'vitest'
 import { invoke, isTauri } from '@tauri-apps/api/core'
-import { createBook } from './books'
+import { createBook, getBook, listBooks, updateBook } from './books'
 
 vi.mock('@tauri-apps/api/core', () => ({ invoke: vi.fn(), isTauri: vi.fn() }))
 const details = {
@@ -28,5 +28,35 @@ test('browser preview explicitly refuses persistence without a fake saved result
   await expect(createBook(details)).rejects.toEqual({
     code: 'desktop_required',
   })
+  expect(invoke).not.toHaveBeenCalled()
+})
+
+test('read and update use only typed commands and include the snapshot token', async () => {
+  vi.mocked(isTauri).mockReturnValue(true)
+  vi.mocked(invoke).mockResolvedValue([])
+  await listBooks()
+  await getBook('book-id')
+  await updateBook('book-id', 'snapshot-token', details)
+  expect(invoke).toHaveBeenNthCalledWith(1, 'list_books')
+  expect(invoke).toHaveBeenNthCalledWith(2, 'get_book', { id: 'book-id' })
+  expect(invoke).toHaveBeenNthCalledWith(3, 'update_book', {
+    id: 'book-id',
+    expectedUpdatedAt: 'snapshot-token',
+    details,
+  })
+  vi.mocked(invoke).mockRejectedValueOnce({ code: 'conflict' })
+  await expect(
+    updateBook('book-id', 'snapshot-token', details),
+  ).rejects.toEqual({ code: 'conflict' })
+})
+
+test('read and update refuse browser persistence', async () => {
+  vi.mocked(isTauri).mockReturnValue(false)
+  for (const operation of [
+    listBooks(),
+    getBook('id'),
+    updateBook('id', 'token', details),
+  ])
+    await expect(operation).rejects.toEqual({ code: 'desktop_required' })
   expect(invoke).not.toHaveBeenCalled()
 })
