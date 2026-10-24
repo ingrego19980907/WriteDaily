@@ -1,5 +1,13 @@
 import { expect, test } from 'vitest'
 import { BOOK_TITLE_MAX_LENGTH, validateBookDetails } from './book'
+import cases from '../../../tests/fixtures/book-details.json'
+
+test.each(cases)(
+  'shared Rust/TypeScript contract: $name',
+  ({ input, expected }) => {
+    expect(validateBookDetails(input)).toEqual(expected)
+  },
+)
 
 test('normalizes editable metadata and leaves unset goals/date null', () => {
   expect(validateBookDetails({ title: '  A story  ' })).toEqual({

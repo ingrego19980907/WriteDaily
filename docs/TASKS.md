@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Tasks 2.1-2.2 (book model, native SQLite and migration v1) are complete; awaiting approval before 2.3 (book repository). Library CRUD/UI and cover storage remain unimplemented.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Tasks 2.1-2.3 (book model, SQLite/migration v1 and native repository) are complete; awaiting approval before 2.4 (book creation). Tauri book commands, library CRUD UI and cover import/cleanup remain unimplemented.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -40,7 +40,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | ---- | ---- | ---------------------------------- | ---------------------- | ------------ | ------------------------------------------------------------------------ |
 | [x]  | 2.1  | Design book data model             | Completed (2026-10-24) | 1.9          | Fields, constraints and deletion relationships reviewed                  |
 | [x]  | 2.2  | Configure SQLite and migrations    | Completed (2026-10-24) | 2.1          | Database opens and migrations apply safely on fresh and existing schemas |
-| [ ]  | 2.3  | Implement book repository          | Not started            | 2.2          | Validated CRUD operations pass real database tests                       |
+| [x]  | 2.3  | Implement book repository          | Completed (2026-10-24) | 2.2          | Validated CRUD operations pass real database tests                       |
 | [ ]  | 2.4  | Implement book creation            | Not started            | 2.3          | Valid books persist and invalid input shows errors                       |
 | [ ]  | 2.5  | Implement book editing             | Not started            | 2.4          | Changes persist after reopening                                          |
 | [ ]  | 2.6  | Implement book deletion            | Not started            | 2.5          | Confirmation and safe dependent-data policy verified                     |
@@ -339,3 +339,13 @@ Verification: `git check-ignore --no-index` assertions passed for 19 ignored pat
 - `npm.cmd run test:run`: 72 passed; typecheck, lint and production build passed. UI/browser tests were not repeated because UI/layout did not change.
 - Tauri dev rebuilt/launched with responsive WriteDaily window. A read-only inspection of the actual development DB confirmed user_version=1, application_id=1464090969, journal_mode=wal and zero books. No real books were inserted/deleted and release DB was not selected. Closed the app gracefully and stopped dev; the empty development DB remains for normal use.
 - Added Git ignore rules for local .sqlite3 files/sidecars; migration SQL and both dependency lockfiles remain versioned. Documentation/format/diff checks passed. Native repository validation, CRUD and cover imports remain 2.3 onward.
+
+## Verification evidence: 2.3
+
+- Added src-tauri/src/books/ with native BookDetails/Book DTOs, pure authoritative validation and BookRepository list/get/create/update/delete. Public Rust module only; no book IPC command, frontend persistence mock or UI feature added. Migration 001 is unchanged.
+- Writes use bound parameters, IMMEDIATE transactions and return success only after commit. UUID-v4/UTC milliseconds are native-owned; full metadata updates preserve identity/cover/completion. Updates/deletes reject stale updatedAt tokens across connections; timestamps advance monotonically even after clock rollback.
+- Read validation rejects noncanonical/malformed stored data without silently repairing/skipping it. Native input decoding rejects unknown/system fields and wrong numeric types. Deleting a book with a cover returns CoverCleanupRequired until confirmed file cleanup is implemented; tests verify the record/file remain intact.
+- Added direct chrono/uuid/unicode-normalization/serde dependencies and dev serde_json (most were already transitive); versions/docs checked. Added shared JSON metadata cases exercised by Rust and TypeScript; resolveJsonModule enables typed test fixture imports.
+- `cargo test --manifest-path src-tauri/Cargo.toml --locked --offline`: 25 passed (15 repository/contract + 10 database tests). Covers real CRUD/reopen, committed deletion persistence, failure rollback, parameterization, cross-connection conflict, Unicode limits, canonical dates/instants, malformed stored rows and DTO JSON shape. Only temporary databases used.
+- `npm.cmd run test:run`: 86 passed, including 14 shared validation fixtures. Typecheck, lint, frontend build, native fmt/Clippy, format:check and git diff checks passed.
+- No real app-data books were inserted/updated/deleted. UI/browser checks were not repeated because runtime UI/layout did not change; prior browser evidence remains 1.9. Book creation/IPC wiring is the next task; physical cover validation/deletion remains future work.

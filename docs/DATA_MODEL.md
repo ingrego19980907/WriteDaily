@@ -1,6 +1,6 @@
 # Data model
 
-Status: book metadata types/validation (2.1) and native SQLite initialization/migration v1 (2.2) are implemented. No book repository, CRUD command/UI or cover file storage exists. SQLite is bundled with the Rust application; Tiptap remains uninstalled. Other entities and their relationship policies remain planned.
+Status: book metadata types/validation (2.1), native SQLite/migration v1 (2.2) and Rust book repository (2.3) are implemented. No Tauri book command, book CRUD UI or cover file import/cleanup exists. SQLite is bundled; Tiptap remains uninstalled. Other entities remain planned.
 
 | Entity              | Proposed fields and constraints                                                                                                                                         |
 | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -37,14 +37,14 @@ Code: src/features/library/book.ts. BookDetails contains only editable metadata.
 
 Missing/null optional counts/date normalize to null. Numeric strings, blank strings, fractions, nonfinite/unsafe counts and invalid calendar dates are rejected. Forms must explicitly convert empty optional inputs to null and numeric text to a number before submission; the domain validator does not guess or silently coerce. Titles are trimmed/NFC-normalized before the code-point length check. The 200-code-point cap is a metadata limit, not a manuscript limit; HTML maxlength counts UTF-16 units and must not replace the domain rule.
 
-Extra input properties are excluded from the returned metadata, so ID, timestamps, coverPath and completedAt cannot enter the editable result by spreading a form payload. The TypeScript validator does not yet validate complete persisted rows or authorize file references; native persistence must implement matching validation before accepting writes. Existing TypeScript interfaces are not runtime proof that a row/path is safe.
+Extra input properties are excluded from the returned metadata, so ID, timestamps, coverPath and completedAt cannot enter the editable result by spreading a form payload. The TypeScript validator does not validate complete persisted rows or authorize file references. Native repository validation is implemented in 2.3; physical file validation/containment remains 2.7. Existing TypeScript interfaces are not runtime proof that a row/path is safe.
 
 ### Persistence boundary and remaining work
 
 - Enable foreign keys on every connection; use migrations, transactions and parameterized statements.
 - Add database checks for nonempty/max-length titles and nullable positive safe-integer counts. Date column checks should enforce canonical shape; real calendar validity and Unicode normalization also need native validation. SQL affinity alone is insufficient for this contract; see [SQLite datatypes](https://www.sqlite.org/datatype3.html).
 - Enforce UUID and canonical timestamp formats at the native boundary; map snake_case SQL to camelCase domain fields in the repository. No database-specific type leaks into UI components.
-- Generate IDs and timestamps in trusted persistence code. Metadata validation accepts no persistence-owned values. Connection/migration ownership is implemented in the Rust database module (2.2); native CRUD validation and DTO mapping remain 2.3.
+- Generate IDs and timestamps in trusted persistence code. Metadata validation accepts no persistence-owned values. Connection/migration ownership is implemented in the Rust database module (2.2); native CRUD validation and camelCase DTO mapping are implemented in 2.3; IPC/UI wiring starts in 2.4.
 - covers/<generated-uuid>.<validated-image-extension> is the managed reference shape planned for 2.7. Resolve it beneath the application's managed cover directory and verify containment; reject traversal, absolute paths, URI schemes and unexpected separators. Native import/cleanup implementation and allowed formats are not present yet.
 - Cover references are unique per book; importing the same source for another book creates an independently owned file. No SQL default timestamp or completion based on current target is assumed.
 
@@ -90,15 +90,47 @@ Identity/schema checks are structural safeguards, not proof that every row meets
 - Coarse managed-cover reference containment (covers/ prefix; no traversal, extra directory separator, backslash or URI colon).
 - UTC timestamp string shape and basic created/updated/completed ordering.
 
-SQLite may coerce numeric text even in STRICT tables. NFC normalization, complete Unicode whitespace/control handling, timestamp calendar/time validity, image extension/content/path ownership and native DTO validation still require the authoritative repository/import boundary in 2.3/2.7. The TypeScript validator is not a substitute. No frontend write operations are exposed before that work.
+SQLite may coerce numeric text even in STRICT tables. Native repository 2.3 additionally enforces NFC/Unicode trimming and controls, complete dates/timestamps and DTO constraints. Cover references are checked structurally; actual file content, physical containment and ownership remain the importer boundary in 2.7. The TypeScript validator is not a substitute. No frontend book write operations are exposed yet.
 
 ### Durability and test evidence
 
 Foreign keys, WAL, FULL synchronous and timeout settings are verified by native tests; WAL is persistent and foreign-key settings must be reapplied for each connection. Never copy just a live .sqlite3 file as a backup: uncheckpointed data may be in -wal. Consistent snapshot/restore remains milestone 7. Normal connection close lets SQLite handle WAL lifecycle; application code never manually deletes sidecars.
 
-Ten Rust tests use disposable tempfile directories, never actual application data. They cover fresh/reopened databases, constraints, duplicate titles/unique cover references, effective foreign keys, failed initial/upgrade rollback, preserved data after upgrade and future-version rejection, unchanged foreign/corrupt files and invalid directory errors. Real Tauri startup separately created the empty development database and read-only inspection confirmed version 1, matching marker and WAL. Book persistence through actual CRUD remains later tasks.
+Ten Rust tests use disposable tempfile directories, never actual application data. They cover fresh/reopened databases, constraints, duplicate titles/unique cover references, effective foreign keys, failed initial/upgrade rollback, preserved data after upgrade and future-version rejection, unchanged foreign/corrupt files and invalid directory errors. Real Tauri startup separately created the empty development database and read-only inspection confirmed version 1, matching marker and WAL. Native CRUD persistence is tested in 2.3; book operations through the desktop UI remain later tasks.
 
 Official references: [rusqlite bundled SQLite](https://docs.rs/rusqlite/0.40.2/rusqlite/), [atomic migrations](https://docs.rs/rusqlite_migration/2.6.0/rusqlite_migration/struct.Migrations.html), [SQLite PRAGMAs](https://www.sqlite.org/pragma.html), [WAL](https://www.sqlite.org/wal.html).
+
+## Native book repository (2.3)
+
+Module: src-tauri/src/books/. Public Rust types: BookRepository, Book, BookDetails, BookError and ValidationIssue. The constructor borrows the native managed connection mutably; callers acquire the existing database mutex. This is a Rust API, not a registered Tauri IPC/SQL interface.
+
+| Method                                   | Behavior                                                                                                                                                                                                                     |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| list()                                   | Return validated books ordered by updated_at DESC, then id ASC for stable ties. Invalid rows cause an error; they are never silently skipped.                                                                                |
+| get(id)                                  | Require a canonical lowercase UUID-v4 ID; return a validated snapshot or NotFound.                                                                                                                                           |
+| create(details)                          | Normalize/validate metadata, generate UUID-v4 and canonical UTC milliseconds, insert/read back within an IMMEDIATE transaction, return only after commit. Cover/completion start null.                                       |
+| update(id, expected_updated_at, details) | Full replacement of the four editable metadata fields. Check the current token in an IMMEDIATE transaction, update with bound parameters, read/validate and commit. Preserve identity, createdAt, coverPath and completedAt. |
+| delete(id, expected_updated_at)          | Internal deletion of an uncovered book, guarded by the loaded snapshot token and committed transaction. UI confirmation is mandatory when this becomes a user operation in 2.6.                                              |
+
+### Validation and JSON contract
+
+Book serializes camelCase keys matching the TypeScript Book shape. BookDetails deserializes camelCase metadata and rejects unknown fields, wrong types, fractional counts and attempts to pass system-owned fields. Missing Option fields become null equivalents. Native business validation returns field/code issues matching the frontend for representable metadata; shared tests/fixtures/book-details.json examples exercise both implementations. Invalid JSON/types fail decoding before repository calls; the UI command adapter is not implemented yet.
+
+Unicode normalization uses unicode-normalization; the edge whitespace set intentionally matches ECMAScript trim (BOM is trimmed; NEL remains a rejected control). Count code points, not UTF-8 bytes/UTF-16 units. Chrono validates actual dates and canonical UTC millisecond instants; offset timestamps, alternate precision, year zero and leap seconds are not accepted as stored tokens. UUID uses an established generator/parser rather than a custom regex.
+
+On reads, metadata must already be canonical: malformed/non-NFC/nontrimmed rows, invalid timestamps/order and malformed cover references produce InvalidStoredData. Reads never rewrite or remove them. A list does not claim success after dropping invalid rows. Completion must fall between creation and last update.
+
+Native cover reference shape is covers/<canonical-uuid-v4>.(png|jpg|jpeg|webp), lowercase extension. This validates the reference only, not whether a file exists or is a safe image. Cover import/removal remains 2.7. Because safe filesystem cleanup is absent, delete returns CoverCleanupRequired for a covered book and leaves row/file intact. This guard must be extended with the confirmed deletion/cleanup workflow before covered-book deletion is offered.
+
+### Concurrency, durability and failures
+
+Every write uses bound parameters and an IMMEDIATE SQLite transaction. SQL structure is fixed; titles/IDs/dates never become SQL text. Snapshots return only after commit succeeds. Invalid writes, SQL failures and stale-token conflicts leave previous data unchanged. No migration or real user-library modification was needed for this repository task.
+
+Update/delete require the exact previously loaded updatedAt. A different token returns Conflict, including when another connection/process committed the newer change. Updated timestamps are max(current UTC time, previous updatedAt + 1ms), so a same-millisecond edit or backward system clock cannot reuse the token. Overflow beyond year 9999 fails without writing. The timestamp is a concurrency token as well as a display instant; it is not proof that the OS clock is correct.
+
+Errors are explicit: Validation, NotFound, Conflict, InvalidStoredData, CoverCleanupRequired, ClockOutOfRange and Database. A future Tauri adapter must map these to localized errors, handle mutex failures and run blocking database work off the UI thread. No arbitrary SQL access or real deletion command is exposed to JavaScript now.
+
+Fifteen repository/contract tests plus the ten SQLite bootstrap tests pass. They use disposable databases and verify CRUD/reopen, guarded deletion, SQL-injection-like title literals, failed-write rollback, two-connection conflicts, stable ordering/monotonic timestamps, preserved system fields, invalid stored data and camelCase serialization. Shared metadata examples also run under Vitest. Failure injection tests cover SQLite statement failures, not every physical disk/power-loss scenario.
 
 ## Proposed activity rules
 

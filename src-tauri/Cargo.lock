@@ -3645,6 +3645,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a2c754d6c33795a1c324727428e5a7dedb5b06195f9890bdbcba760d3e246563"
 
 [[package]]
+name = "unicode-normalization"
+version = "0.1.26"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "75cd3fb03d5288b3ba9a1ee103ac7e9cbb59f0b03d64f8ddfcc04dd42758a85d"
+dependencies = [
+ "tinyvec",
+]
+
+[[package]]
 name = "unicode-segmentation"
 version = "1.13.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4223,12 +4232,17 @@ checksum = "1ebf944e87a7c253233ad6766e082e3cd714b5d03812acc24c318f549614536e"
 name = "write-daily"
 version = "0.0.0"
 dependencies = [
+ "chrono",
  "rusqlite",
  "rusqlite_migration",
+ "serde",
+ "serde_json",
  "tauri",
  "tauri-build",
  "tempfile",
  "thiserror 2.0.21",
+ "unicode-normalization",
+ "uuid",
 ]
 
 [[package]]

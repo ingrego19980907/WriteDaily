@@ -1,0 +1,151 @@
+[
+  {
+    "name": "trimmed title and absent optionals",
+    "input": { "title": "  Story  " },
+    "expected": {
+      "success": true,
+      "data": {
+        "title": "Story",
+        "targetWordCount": null,
+        "dailyWordGoal": null,
+        "deadline": null
+      }
+    }
+  },
+  {
+    "name": "BOM NBSP and NFC normalization",
+    "input": { "title": "\ufeffCafe\u0301\u00a0" },
+    "expected": {
+      "success": true,
+      "data": {
+        "title": "Café",
+        "targetWordCount": null,
+        "dailyWordGoal": null,
+        "deadline": null
+      }
+    }
+  },
+  {
+    "name": "Ukrainian and ideographic whitespace",
+    "input": { "title": "\u3000Моя історія\u3000" },
+    "expected": {
+      "success": true,
+      "data": {
+        "title": "Моя історія",
+        "targetWordCount": null,
+        "dailyWordGoal": null,
+        "deadline": null
+      }
+    }
+  },
+  {
+    "name": "NEL remains an invalid control rather than being trimmed",
+    "input": { "title": "\u0085Story\u0085" },
+    "expected": {
+      "success": false,
+      "issues": [{ "field": "title", "code": "invalid_title" }]
+    }
+  },
+  {
+    "name": "maximum safe target and minimum daily goal",
+    "input": {
+      "title": "Story",
+      "targetWordCount": 9007199254740991,
+      "dailyWordGoal": 1
+    },
+    "expected": {
+      "success": true,
+      "data": {
+        "title": "Story",
+        "targetWordCount": 9007199254740991,
+        "dailyWordGoal": 1,
+        "deadline": null
+      }
+    }
+  },
+  {
+    "name": "invalid goal bounds accumulate issues",
+    "input": { "title": "Story", "targetWordCount": 0, "dailyWordGoal": -1 },
+    "expected": {
+      "success": false,
+      "issues": [
+        { "field": "targetWordCount", "code": "invalid_count" },
+        { "field": "dailyWordGoal", "code": "invalid_count" }
+      ]
+    }
+  },
+  {
+    "name": "unsafe count",
+    "input": { "title": "Story", "targetWordCount": 9007199254740992 },
+    "expected": {
+      "success": false,
+      "issues": [{ "field": "targetWordCount", "code": "invalid_count" }]
+    }
+  },
+  {
+    "name": "real leap day",
+    "input": { "title": "Story", "deadline": "2000-02-29" },
+    "expected": {
+      "success": true,
+      "data": {
+        "title": "Story",
+        "targetWordCount": null,
+        "dailyWordGoal": null,
+        "deadline": "2000-02-29"
+      }
+    }
+  },
+  {
+    "name": "non-leap century",
+    "input": { "title": "Story", "deadline": "1900-02-29" },
+    "expected": {
+      "success": false,
+      "issues": [{ "field": "deadline", "code": "invalid_date" }]
+    }
+  },
+  {
+    "name": "zero year is not a supported date",
+    "input": { "title": "Story", "deadline": "0000-01-01" },
+    "expected": {
+      "success": false,
+      "issues": [{ "field": "deadline", "code": "invalid_date" }]
+    }
+  },
+  {
+    "name": "date format is canonical",
+    "input": { "title": "Story", "deadline": "2026-1-01" },
+    "expected": {
+      "success": false,
+      "issues": [{ "field": "deadline", "code": "invalid_date" }]
+    }
+  },
+  {
+    "name": "overdue deadlines are accepted",
+    "input": { "title": "Story", "deadline": "2001-01-01" },
+    "expected": {
+      "success": true,
+      "data": {
+        "title": "Story",
+        "targetWordCount": null,
+        "dailyWordGoal": null,
+        "deadline": "2001-01-01"
+      }
+    }
+  },
+  {
+    "name": "empty title",
+    "input": { "title": " \t\n " },
+    "expected": {
+      "success": false,
+      "issues": [{ "field": "title", "code": "required" }]
+    }
+  },
+  {
+    "name": "embedded newline",
+    "input": { "title": "First\nSecond" },
+    "expected": {
+      "success": false,
+      "issues": [{ "field": "title", "code": "invalid_title" }]
+    }
+  }
+]

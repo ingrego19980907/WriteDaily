@@ -1,3 +1,4 @@
+pub mod books;
 mod database;
 
 use tauri::Manager;

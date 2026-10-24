@@ -123,3 +123,11 @@ Choose rusqlite 0.40.2 with bundled SQLite and rusqlite_migration 2.6.0 for atom
 Use Tauri app_data_dir, development subfolder for debug, a single managed Mutex connection, FK ON, 5s busy timeout, synchronous FULL and verified WAL. Refuse foreign/unversioned nonempty/newer schemas before persistent configuration changes; never reset a failing database. Transactional migration 1 creates STRICT books plus format marker; no downgrade or checksum framework. Constraints supplement, but do not replace, full native input/path validation in 2.3/2.7. Errors stop startup; recovery UI is not implemented.
 
 Ten isolated SQLite tests verify real file behavior and rollback. Actual Tauri startup/read-only inspection confirmed the empty development DB (version 1, expected marker, WAL). Native fmt/Clippy and 72 frontend tests/typecheck/lint/build pass. No book CRUD command, cover import or production data deletion added. Official references are linked in DATA_MODEL.md.
+
+## 2026-10-24 - Native book repository (2.3)
+
+Implement the repository as a public Rust library API borrowing the managed Connection, with no prematurely exposed IPC command/UI. Use serde camelCase DTOs, uuid v4, chrono UTC/calendar parsing and unicode-normalization rather than custom generators/time parsing. Native metadata decoding rejects unknown/system fields; normalization matches ECMAScript trim/NFC through shared fixtures, including BOM/NEL differences. No existing migration is edited.
+
+Use IMMEDIATE transactional writes and expected updatedAt tokens for updates/deletion. Advance update time by at least 1ms even after system-clock rollback. Return only committed snapshots, reject malformed persisted rows without repair/filtering, and keep cover/completion immutable during metadata edits. Refuse covered-book deletion until its explicit cleanup workflow exists; UI confirmation remains task 2.6.
+
+Twenty-five native tests and 86 frontend tests pass, including shared fixtures, SQL failure rollback, two-connection conflicts, real reopen persistence and JSON shape. No actual user-library data modified and no UI/browser behavior changed. Repository errors are typed; a future Tauri adapter must map them to localized outcomes and run blocking work outside the UI thread.

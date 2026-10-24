@@ -1,10 +1,10 @@
 # Architecture
 
-Status: Foundation complete through task 0.9, including Windows development-window visual verification; application structure established in task 0.7. React/Vite, Tauri, Tailwind, lint/format tooling and Vitest are configured. Book metadata domain and native SQLite initialization/migration are implemented through 2.2; book CRUD/UI and other product features remain absent. Runtime entry is `src/main.tsx`, application composition is `src/app/App.tsx`, and global CSS is `src/styles/global.css`.
+Status: Foundation complete through task 0.9, including Windows development-window visual verification; application structure established in task 0.7. React/Vite, Tauri, Tailwind, lint/format tooling and Vitest are configured. Book metadata, native SQLite/migration and Rust repository are implemented through 2.3; book IPC/UI and other product features remain absent. Runtime entry is `src/main.tsx`, application composition is `src/app/App.tsx`, and global CSS is `src/styles/global.css`.
 
 ## Technology direction
 
-Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs seventy-two domain/component tests plus twelve Edge browser accessibility/layout tests; domain and persistence tests will accompany their feature implementations. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
+Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs eighty-six domain/component tests plus twelve Edge browser accessibility/layout tests; native persistence is additionally covered by 25 Rust tests. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
 
 ## Organization
 
@@ -123,7 +123,7 @@ The fixture imports global styles before component modules to establish Tailwind
 
 ## Book domain model (2.1)
 
-Library owns book.ts: readonly persisted snapshot and editable metadata types plus pure validation from unknown input. Book CRUD/UI is not implemented; native SQLite initialization is provided in 2.2. The validator normalizes title/optional nulls and returns localized-message codes, not UI strings; storage-owned identity, paths and timestamps do not enter its output. Native persistence must enforce the same contract before writing; this frontend type/validator is not a security or database boundary by itself.
+Library owns book.ts: readonly persisted snapshot and editable metadata types plus pure validation from unknown input. Book IPC/UI is not implemented; native initialization is in 2.2 and the Rust repository in 2.3. The validator normalizes title/optional nulls and returns localized-message codes, not UI strings; storage-owned identity, paths and timestamps do not enter its output. Native persistence must enforce the same contract before writing; this frontend type/validator is not a security or database boundary by itself.
 
 DATA_MODEL.md defines canonical local deadlines versus UTC instants, safe numeric counts, nonduplicated derived progress, SQL mapping and future delete/reference behavior. No validation library, repository interface or SQL migration is introduced prematurely. Code stays feature-local rather than adding generic shared entity abstractions.
 
@@ -134,3 +134,9 @@ Rust owns rusqlite (bundled SQLite) and rusqlite_migration. Tauri setup resolves
 The database module sets per-connection FK/timeout/FULL sync, checks ownership marker and schema version, rejects foreign/future databases, checks integrity and applies ordered SQL atomically before enabling verified WAL. Migration 1 creates STRICT books; user_version is the migration index and the application marker is set transactionally. Errors propagate from setup without reset/fallback or empty-library claims. No custom repair/recovery UI yet.
 
 Native tests isolate temporary files and cover data retention, constraints, atomic rollback, upgrade/refusal and unchanged invalid files. SQL steps must remain append-only after release. WAL files stay under SQLite control; snapshot backups remain milestone 7 and are a prerequisite to future destructive production schema changes. Current Rust floor is 1.95 due to the migration dependency, verified on Rust 1.99.1.
+
+## Book repository (2.3)
+
+Public native books module supplies typed DTOs, validation and BookRepository; it borrows the app-managed Connection and does not expose SQL/CRUD commands to JavaScript. List/get validate full stored snapshots; create/update/delete use bound parameters and IMMEDIATE transactions. Success is returned after commit only. Snapshot updatedAt is required for update/delete to prevent stale writes across connections, with monotonically advancing UTC millisecond timestamps.
+
+Native validation matches frontend metadata normalization through shared JSON fixtures, and additionally checks UUIDs, full stored timestamps/order and managed cover reference shape. Serde maps camelCase DTOs and rejects unsupported input fields/types. No silent row repair/filtering. Covered-book deletion is explicitly blocked until file cleanup is implemented; no file IO occurs in the repository. Future IPC wraps this blocking API, handles database lock/errors and owns user confirmation policy. Existing migration SQL is unchanged.
