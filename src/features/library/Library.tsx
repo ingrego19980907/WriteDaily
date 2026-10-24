@@ -5,6 +5,7 @@ import { bookErrorCode, listBooks } from '../../services/books'
 import type { Book } from './book'
 import { CreateBook } from './CreateBook'
 import { BookDetailsDialog } from './BookDetailsDialog'
+import { DeleteBook } from './DeleteBook'
 
 const copy = en.library
 
@@ -13,6 +14,9 @@ export function Library() {
   const [loading, setLoading] = useState(true)
   const [failure, setFailure] = useState('')
   const request = useRef(0)
+  const deletedIds = useRef(new Set<string>())
+  const heading = useRef<HTMLHeadingElement>(null)
+  const [deleted, setDeleted] = useState('')
 
   const load = useCallback(() => {
     const current = ++request.current
@@ -21,12 +25,14 @@ export function Library() {
         if (request.current !== current) return
         // A create/update may commit while the initial list request is in flight.
         setBooks((previous) => [
-          ...loaded.map((book) => {
-            const committed = previous.find((item) => item.id === book.id)
-            return committed && committed.updatedAt > book.updatedAt
-              ? committed
-              : book
-          }),
+          ...loaded
+            .filter((book) => !deletedIds.current.has(book.id))
+            .map((book) => {
+              const committed = previous.find((item) => item.id === book.id)
+              return committed && committed.updatedAt > book.updatedAt
+                ? committed
+                : book
+            }),
           ...previous.filter(
             (book) => !loaded.some((item) => item.id === book.id),
           ),
@@ -62,10 +68,20 @@ export function Library() {
     )
   }
 
+  function removed(book: Book) {
+    deletedIds.current.add(book.id)
+    setBooks((previous) => previous.filter((item) => item.id !== book.id))
+    setDeleted(book.title)
+    requestAnimationFrame(() => heading.current?.focus())
+  }
+
   return (
     <div className="space-y-4">
       <CreateBook onSaved={saved} />
-      <h2 className="font-semibold">{copy.books}</h2>
+      <h2 ref={heading} tabIndex={-1} className="font-semibold">
+        {copy.books}
+      </h2>
+      <p role="status">{deleted ? `${copy.deleted} ${deleted}` : ''}</p>
       {loading && <p role="status">{copy.loading}</p>}
       {failure && (
         <div className="space-y-2">
@@ -92,6 +108,7 @@ export function Library() {
               {book.title}
             </h3>
             <BookDetailsDialog book={book} onSaved={saved} />
+            <DeleteBook book={book} onDeleted={removed} />
           </li>
         ))}
       </ul>

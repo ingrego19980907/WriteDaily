@@ -25,6 +25,17 @@ mockIPC((command, payload) => {
       title: 'Latest details',
       updatedAt: '2026-10-24T11:00:00.000Z',
     }
+  if (command === 'delete_book') {
+    const { id, expectedUpdatedAt, confirmed } = payload as {
+      id: string
+      expectedUpdatedAt: string
+      confirmed: boolean
+    }
+    if (id !== original.id || confirmed !== true)
+      throw new Error('Unconfirmed test deletion')
+    if (expectedUpdatedAt === original.updatedAt) throw { code: 'conflict' }
+    return undefined
+  }
   if (command === 'update_book') {
     const { id, expectedUpdatedAt, details } = payload as {
       id: string

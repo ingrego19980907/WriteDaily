@@ -1,10 +1,12 @@
 # Data model
 
+Confirmed deletion (2.6) exposes delete_book(id, expectedUpdatedAt, confirmed). False confirmation returns confirmation_required before repository work. Conflict/not_found/cover_cleanup_required/persistence are explicit outcomes; only committed success removes the UI row. Reload after conflict displays the latest title/revision and resets acknowledgement, requiring a new confirmation. Cancel and failures preserve data. Only the books table exists in production; future owned chapters/settings must cascade and historical activity must detach/retain when their migrations are introduced. Synthetic disposable-table tests exercise that policy without adding future schemas. Current covered-book deletion remains blocked, so no file ownership assumptions or partial cover cleanup occur. Migration 001 is unchanged.
+
 Editing (2.5) exposes update_book(id, expectedUpdatedAt, details), plus list_books and get_book(id) for selecting/reloading persisted metadata. The loaded snapshot revision is mandatory; no automatic conflict overwrite, token refresh or silent draft replacement occurs. Native Conflict/NotFound map to conflict/not_found codes; validation/persistence mappings remain available. Optional empty form fields become null. Update preserves ID, createdAt, coverPath and completedAt; only editable metadata and native updatedAt change. Command-boundary tests verify changes survive closing/reopening a disposable database. SQL migration 001 is unchanged.
 
 Creation (2.4) accepts only BookDetails through create_book. Form blanks become null for optional fields; goal strings must contain decimal digits and pass the safe-integer domain validator. Native DTO decoding and repository validation remain authoritative. The command runs blocking persistence outside the UI thread and resolves only after commit; no schema change. A disposable-database command-boundary test verifies reopen retention and serializable validation/persistence errors. Real desktop IPC interaction/restart verification is not claimed by these tests; full desktop restart acceptance remains 2.12.
 
-Status: book metadata types/validation (2.1), native SQLite/migration v1 (2.2) and Rust book repository (2.3) are implemented. Book creation has a Tauri command/dialog (2.4). Editing is connected through revision-checked IPC (2.5); deletion UI, library cards/grid and cover import/cleanup remain planned. SQLite is bundled; Tiptap remains uninstalled. Other entities remain planned.
+Status: book metadata types/validation (2.1), native SQLite/migration v1 (2.2) and Rust book repository (2.3) are implemented. Book creation has a Tauri command/dialog (2.4). Editing is connected through revision-checked IPC (2.5); confirmed deletion is connected in 2.6; library cards/grid and cover import/cleanup remain planned. SQLite is bundled; Tiptap remains uninstalled. Other entities remain planned.
 
 | Entity              | Proposed fields and constraints                                                                                                                                         |
 | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -63,7 +65,7 @@ Extra input properties are excluded from the returned metadata, so ID, timestamp
 | Preferences            | Clear a deleted selected-book reference; do not leave a dangling active-book ID.                                                                                                                                              |
 | Cover file             | No SQL cascade can delete a file. Delete only this book's owned file after the database transaction commits; failed file cleanup leaves a retryable orphan, not a rolled-back manuscript deletion or a false successful save. |
 
-Deletion requires explicit user confirmation (task 2.6). The transaction removes only the selected book and its owned dependent manuscript/settings. Never delete retained history/achievements, unrelated covers or backup archives. Cancel or database failure must leave the book/cover intact. Coordinate recoverable file cleanup in 2.6/2.7; no deletion is performed by this task. See [SQLite foreign-key actions](https://www.sqlite.org/foreignkeys.html#fk_actions) for CASCADE/SET NULL semantics. Only books currently exists. The dependent-table relationships are a contract for future migrations, not a claim that those tables or deletion operations exist.
+Deletion requires explicit user confirmation (task 2.6). The transaction removes only the selected book and its owned dependent manuscript/settings. Never delete retained history/achievements, unrelated covers or backup archives. Cancel or database failure must leave the book/cover intact. Coordinate recoverable file cleanup in 2.6/2.7; current confirmed deletion removes only uncovered books; covered books remain protected until safe cleanup exists. See [SQLite foreign-key actions](https://www.sqlite.org/foreignkeys.html#fk_actions) for CASCADE/SET NULL semantics. Only books currently exists. The dependent-table relationships are a contract for future migrations, not a claim that those dependent tables exist.
 
 ## SQLite and migration v1 (2.2)
 
@@ -94,7 +96,7 @@ Identity/schema checks are structural safeguards, not proof that every row meets
 - Coarse managed-cover reference containment (covers/ prefix; no traversal, extra directory separator, backslash or URI colon).
 - UTC timestamp string shape and basic created/updated/completed ordering.
 
-SQLite may coerce numeric text even in STRICT tables. Native repository 2.3 additionally enforces NFC/Unicode trimming and controls, complete dates/timestamps and DTO constraints. Cover references are checked structurally; actual file content, physical containment and ownership remain the importer boundary in 2.7. The TypeScript validator is not a substitute. The frontend can invoke typed create/list/get/update commands. Delete remains internal until the confirmed workflow in 2.6.
+SQLite may coerce numeric text even in STRICT tables. Native repository 2.3 additionally enforces NFC/Unicode trimming and controls, complete dates/timestamps and DTO constraints. Cover references are checked structurally; actual file content, physical containment and ownership remain the importer boundary in 2.7. The TypeScript validator is not a substitute. The frontend can invoke typed create/list/get/update commands. Confirmed delete_book is exposed in 2.6; covered-book deletion remains blocked.
 
 ### Durability and test evidence
 
@@ -114,7 +116,7 @@ Module: src-tauri/src/books/. Public Rust types: BookRepository, Book, BookDetai
 | get(id)                                  | Require a canonical lowercase UUID-v4 ID; return a validated snapshot or NotFound.                                                                                                                                           |
 | create(details)                          | Normalize/validate metadata, generate UUID-v4 and canonical UTC milliseconds, insert/read back within an IMMEDIATE transaction, return only after commit. Cover/completion start null.                                       |
 | update(id, expected_updated_at, details) | Full replacement of the four editable metadata fields. Check the current token in an IMMEDIATE transaction, update with bound parameters, read/validate and commit. Preserve identity, createdAt, coverPath and completedAt. |
-| delete(id, expected_updated_at)          | Internal deletion of an uncovered book, guarded by the loaded snapshot token and committed transaction. UI confirmation is mandatory when this becomes a user operation in 2.6.                                              |
+| delete(id, expected_updated_at)          | Deletion of an uncovered book, guarded by the loaded snapshot token, committed transaction and explicit UI confirmation (2.6).                                                                                               |
 
 ### Validation and JSON contract
 
@@ -132,7 +134,7 @@ Every write uses bound parameters and an IMMEDIATE SQLite transaction. SQL struc
 
 Update/delete require the exact previously loaded updatedAt. A different token returns Conflict, including when another connection/process committed the newer change. Updated timestamps are max(current UTC time, previous updatedAt + 1ms), so a same-millisecond edit or backward system clock cannot reuse the token. Overflow beyond year 9999 fails without writing. The timestamp is a concurrency token as well as a display instant; it is not proof that the OS clock is correct.
 
-Errors are explicit: Validation, NotFound, Conflict, InvalidStoredData, CoverCleanupRequired, ClockOutOfRange and Database. A future Tauri adapter must map these to localized errors, handle mutex failures and run blocking database work off the UI thread. No arbitrary SQL access or real deletion command is exposed to JavaScript now.
+Errors are explicit: Validation, NotFound, Conflict, InvalidStoredData, CoverCleanupRequired, ClockOutOfRange and Database. The Tauri adapter maps errors to localized outcomes, handles mutex failures and runs blocking database work off the UI thread. Only typed commands are exposed; deletion requires explicit confirmation and the loaded revision. No arbitrary SQL access.
 
 Fifteen repository/contract tests plus the ten SQLite bootstrap tests pass. They use disposable databases and verify CRUD/reopen, guarded deletion, SQL-injection-like title literals, failed-write rollback, two-connection conflicts, stable ordering/monotonic timestamps, preserved system fields, invalid stored data and camelCase serialization. Shared metadata examples also run under Vitest. Failure injection tests cover SQLite statement failures, not every physical disk/power-loss scenario.
 

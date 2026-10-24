@@ -30,3 +30,12 @@ export function bookErrorCode(error: unknown): unknown {
     ? error.code
     : null
 }
+
+/** Call only after explicit user confirmation for this snapshot. */
+export function deleteBook(
+  id: string,
+  expectedUpdatedAt: string,
+): Promise<void> {
+  if (!isTauri()) return Promise.reject({ code: 'desktop_required' })
+  return invoke<void>('delete_book', { id, expectedUpdatedAt, confirmed: true })
+}

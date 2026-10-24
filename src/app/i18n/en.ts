@@ -1,6 +1,24 @@
 export const en = {
   library: {
     create: 'Create book',
+    delete: 'Delete book',
+    deleteDescription:
+      'Permanently delete this book? This cannot be undone. Any unsaved edits for this book will also be discarded.',
+    confirmDelete: 'I understand that this deletion is permanent.',
+    cancel: 'Cancel',
+    deleting: 'Deleting…',
+    deleted: 'Book deleted:',
+    deleteFailure:
+      'Could not delete the book. It remains in your library. Please try again.',
+    deleteConflict:
+      'This book has changed. Load the latest details and confirm again before deleting.',
+    deleteMissing:
+      'This book is no longer available. No deletion was confirmed. Close this dialog and reopen the library later.',
+    deleteCover:
+      'This book has a cover. Deletion is unavailable until safe cover cleanup is supported.',
+    deleteReload: 'Load latest details',
+    deleteReloadFailure:
+      'Could not load the latest details. No deletion was performed. Please try again.',
     edit: 'Edit book',
     editDescription: 'Update the title, goals or deadline for this book.',
     save: 'Save changes',

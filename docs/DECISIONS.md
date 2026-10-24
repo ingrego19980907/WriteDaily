@@ -1,5 +1,9 @@
 # Decision log
 
+## 2026-10-24 - Confirmed book deletion (2.6)
+
+Reuse Modal with initial focus on Cancel, an explicit permanent-deletion warning naming the book, and a separate unchecked acknowledgement. Require the loaded revision and a true confirmation argument at the native boundary. Never auto-retry a conflict or remove a row on failure/not-found. Reload displays the current snapshot and requires confirmation again. Remove only after commit, retain other drafts, guard late listings, and focus a surviving library heading. Keep covered books blocked until safe managed-file cleanup in 2.7. Test future cascade/history-retention policy through disposable synthetic tables, without prematurely creating product schemas or editing migration 001.
+
 ## 2026-10-24 - Book editing (2.5)
 
 Reuse the creation fields/validation/pending behavior through BookDetailsDialog. Add only the native read/update commands required for editing and a basic list of persisted titles/actions; retain cards/grid work for 2.8/2.9. Key drafts by book ID, preserve them across navigation/dismissal/errors, and send the exact base updatedAt token. Conflicts block retry until the user explicitly replaces the draft with a successfully loaded latest version. Never silently rebase a draft or report saved before commit. Use no new dependency or migration.

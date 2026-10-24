@@ -1,5 +1,7 @@
 # Accessibility and layout review
 
+Task 2.6 follow-up: all 21 Edge tests pass, including deletion dialogs at 320/640/1100px with safe initial Cancel focus, Enter/Escape cancellation, focus restoration, explicit unchecked acknowledgement, conflict/reconfirmation, WCAG scans without disabled rules and reflow. Successful deletion moves focus to the surviving Books heading after the row/trigger disappears. Browser deletion uses test-only IPC responses; native persistence/rollback tests use disposable SQLite files separately. No new native GUI or manual screen-reader claim.
+
 Task 2.5 follow-up: all 18 Edge tests pass. Editing at 320/640/1100px covers prefilled fields, invalid-title focus, Escape/focus restoration, draft retention across navigation, persistence-error feedback, disabled saving during conflict, explicit reload, successful UI update and axe WCAG scans without disabled rules. Editing browser workflows use test-only IPC responses; they are not proof of native desktop persistence. Native reopen tests use disposable SQLite files separately. Existing screen-reader/platform limitations remain.
 
 Task 2.4 follow-up: all 15 Edge tests pass, including the creation dialog at 320/640/1100px, linked invalid-title feedback/first-field focus, Escape/trigger focus restoration, retained draft, explicit desktop-only persistence feedback and axe WCAG scans. These browser tests do not exercise native SQLite IPC or constitute manual screen-reader verification.

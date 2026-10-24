@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Tasks 2.1-2.5 (book model, SQLite/migration v1, native repository, creation and editing) are complete; awaiting approval before 2.6 (book deletion). Creation/editing have IPC/UI and a basic selection list; deletion UI, library cards/grid and cover import/cleanup remain planned.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Tasks 2.1-2.6 (book model, SQLite/migration v1, native repository, creation, editing and confirmed deletion) are complete; awaiting approval before 2.7 (cover upload and storage). Library cards/grid and cover import/cleanup remain planned; deletion of covered books remains blocked.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -43,7 +43,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [x]  | 2.3  | Implement book repository          | Completed (2026-10-24) | 2.2          | Validated CRUD operations pass real database tests                       |
 | [x]  | 2.4  | Implement book creation            | Completed (2026-10-24) | 2.3          | Valid books persist and invalid input shows errors                       |
 | [x]  | 2.5  | Implement book editing             | Completed (2026-10-24) | 2.4          | Changes persist after reopening                                          |
-| [ ]  | 2.6  | Implement book deletion            | Not started            | 2.5          | Confirmation and safe dependent-data policy verified                     |
+| [x]  | 2.6  | Implement book deletion            | Completed (2026-10-24) | 2.5          | Confirmation and safe dependent-data policy verified                     |
 | [ ]  | 2.7  | Implement cover upload and storage | Not started            | 2.6          | Managed covers survive restart and invalid files are rejected            |
 | [ ]  | 2.8  | Design book cards                  | Not started            | 2.7          | Cover, title and progress render accessibly                              |
 | [ ]  | 2.9  | Implement library grid             | Not started            | 2.8          | Responsive grid opens the correct book                                   |
@@ -133,6 +133,16 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [ ]  | 8.10 | Tag version 1.0.0           | Not started | 8.9          | Release gates pass and explicit authorization obtained before Git mutation |
 
 ## Historical verification evidence
+
+## Verification evidence: 2.6
+
+- Added DeleteBook confirmation dialog: selected persisted title, permanent-deletion/unsaved-edit warning, unchecked acknowledgement and disabled delete until explicitly checked. Cancel receives initial focus; Cancel/Escape make no persistence call and reopening resets confirmation. Pending deletion/reload blocks dismissal and repeated actions.
+- Registered typed delete_book(id, expectedUpdatedAt, confirmed). Native confirmation=false is rejected; repository requires the exact revision, bound parameters and a committed transaction. Conflict requires loading latest details and confirming again. Failure/not-found/cover-cleanup errors retain the row; success alone removes the matching ID, announces deletion and focuses the Books heading after its trigger disappears.
+- Guarded late list responses with session-local deleted IDs so a stale response cannot resurrect a committed deletion. Cancellation leaves the separately mounted editing draft intact. Covered books remain blocked with an explicit explanation until safe managed-file cleanup in 2.7; no filesystem cleanup or new dependency/migration introduced.
+- 29 Rust tests passed, including command-boundary confirmation rejection, selected/unrelated book behavior, committed deletion after reopen, stale revision and injected SQL failure retention, cover row/file protection. Synthetic test-only FK tables verify owned cascade and retained history/achievement policy; production currently has only books. No real user database or files modified.
+- 110 frontend tests passed: confirmation/cancel/Enter/Escape, pending duplicate guard, error/conflict/reload/reconfirmation, selected identity with duplicate titles, post-delete focus, late-list protection, service payload/error handling and preservation of cancelled editing drafts.
+- All 21 Edge tests passed, including deletion at 320/640/1100px with isolated test-only IPC, initial safe focus, cancellation, unchecked reopen, conflict/reconfirmation, WCAG scans, reflow and post-delete focus. Browser IPC responses and native disposable SQLite tests are separate; no actual native GUI/restart claim. Full desktop restart gate remains 2.12.
+- Lint, strict typecheck, production build, formatting, Cargo fmt/Clippy and diff checks passed. Next: 2.7, awaiting approval.
 
 ## Verification evidence: 2.5
 

@@ -26,6 +26,10 @@ impl From<BookError> for BookCommandError {
                 code: "not_found",
                 issues: vec![],
             },
+            BookError::CoverCleanupRequired => Self {
+                code: "cover_cleanup_required",
+                issues: vec![],
+            },
             _ => Self::unavailable(),
         }
     }
@@ -81,6 +85,45 @@ fn update(
         .map_err(Into::into)
 }
 
+fn delete(
+    database: &Database,
+    id: &str,
+    expected_updated_at: &str,
+    confirmed: bool,
+) -> Result<(), BookCommandError> {
+    if !confirmed {
+        return Err(BookCommandError {
+            code: "confirmation_required",
+            issues: vec![],
+        });
+    }
+    let mut connection = database
+        .lock()
+        .map_err(|_| BookCommandError::unavailable())?;
+    BookRepository::new(&mut connection)
+        .delete(id, expected_updated_at)
+        .map_err(Into::into)
+}
+
+#[tauri::command]
+pub async fn delete_book(
+    app: tauri::AppHandle,
+    id: String,
+    expected_updated_at: String,
+    confirmed: bool,
+) -> Result<(), BookCommandError> {
+    tauri::async_runtime::spawn_blocking(move || {
+        delete(
+            &app.state::<Database>(),
+            &id,
+            &expected_updated_at,
+            confirmed,
+        )
+    })
+    .await
+    .map_err(|_| BookCommandError::unavailable())?
+}
+
 #[tauri::command]
 pub async fn list_books(app: tauri::AppHandle) -> Result<Vec<Book>, BookCommandError> {
     tauri::async_runtime::spawn_blocking(move || list(&app.state::<Database>()))
@@ -122,6 +165,129 @@ pub async fn create_book(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn details() -> BookDetails {
+        BookDetails {
+            title: "Selected book".into(),
+            target_word_count: None,
+            daily_word_goal: None,
+            deadline: None,
+        }
+    }
+
+    #[test]
+    fn confirmed_deletion_preserves_unrelated_data_and_survives_reopen() {
+        let directory = tempfile::tempdir().unwrap();
+        let database = crate::database::open(directory.path()).unwrap();
+        let selected = create(&database, details()).unwrap();
+        let other = create(&database, details()).unwrap();
+        // Synthetic future relationships only: no chapter/history product schema is introduced.
+        database.lock().unwrap().execute_batch("CREATE TABLE owned_fixture (book_id TEXT REFERENCES books(id) ON DELETE CASCADE); CREATE TABLE history_fixture (book_id TEXT REFERENCES books(id) ON DELETE SET NULL, words INTEGER); CREATE TABLE achievement_fixture (name TEXT);").unwrap();
+        database
+            .lock()
+            .unwrap()
+            .execute("INSERT INTO owned_fixture VALUES (?1)", [&selected.id])
+            .unwrap();
+        database
+            .lock()
+            .unwrap()
+            .execute(
+                "INSERT INTO history_fixture VALUES (?1, 42)",
+                [&selected.id],
+            )
+            .unwrap();
+        database
+            .lock()
+            .unwrap()
+            .execute("INSERT INTO achievement_fixture VALUES ('retained')", [])
+            .unwrap();
+        assert_eq!(
+            delete(&database, &selected.id, &selected.updated_at, false)
+                .unwrap_err()
+                .code,
+            "confirmation_required"
+        );
+        assert_eq!(get(&database, &selected.id).unwrap(), selected);
+        delete(&database, &selected.id, &selected.updated_at, true).unwrap();
+        drop(database);
+        let reopened = crate::database::open(directory.path()).unwrap();
+        assert_eq!(get(&reopened, &selected.id).unwrap_err().code, "not_found");
+        assert_eq!(get(&reopened, &other.id).unwrap(), other);
+        let connection = reopened.lock().unwrap();
+        assert_eq!(
+            connection
+                .query_row("SELECT count(*) FROM owned_fixture", [], |r| r
+                    .get::<_, i64>(0))
+                .unwrap(),
+            0
+        );
+        assert_eq!(
+            connection
+                .query_row(
+                    "SELECT words FROM history_fixture WHERE book_id IS NULL",
+                    [],
+                    |r| r.get::<_, i64>(0)
+                )
+                .unwrap(),
+            42
+        );
+        assert_eq!(
+            connection
+                .query_row("SELECT name FROM achievement_fixture", [], |r| r
+                    .get::<_, String>(0))
+                .unwrap(),
+            "retained"
+        );
+    }
+
+    #[test]
+    fn deletion_errors_preserve_book_and_files() {
+        let directory = tempfile::tempdir().unwrap();
+        let database = crate::database::open(directory.path()).unwrap();
+        let original = create(&database, details()).unwrap();
+        let changed = update(&database, &original.id, &original.updated_at, details()).unwrap();
+        assert_eq!(
+            delete(&database, &original.id, &original.updated_at, true)
+                .unwrap_err()
+                .code,
+            "conflict"
+        );
+        database.lock().unwrap().execute_batch("CREATE TRIGGER prevent_delete BEFORE DELETE ON books BEGIN SELECT RAISE(ABORT, 'test failure'); END;").unwrap();
+        assert_eq!(
+            delete(&database, &changed.id, &changed.updated_at, true)
+                .unwrap_err()
+                .code,
+            "persistence"
+        );
+        assert_eq!(get(&database, &changed.id).unwrap(), changed);
+        database
+            .lock()
+            .unwrap()
+            .execute_batch("DROP TRIGGER prevent_delete;")
+            .unwrap();
+        let cover = format!("covers/{}.png", original.id);
+        std::fs::create_dir(directory.path().join("covers")).unwrap();
+        std::fs::write(directory.path().join(&cover), b"untouched cover").unwrap();
+        database
+            .lock()
+            .unwrap()
+            .execute(
+                "UPDATE books SET cover_path = ?1 WHERE id = ?2",
+                [&cover, &original.id],
+            )
+            .unwrap();
+        assert_eq!(
+            delete(&database, &changed.id, &changed.updated_at, true)
+                .unwrap_err()
+                .code,
+            "cover_cleanup_required"
+        );
+        assert!(get(&database, &changed.id).is_ok());
+        assert_eq!(
+            std::fs::read(directory.path().join(&cover)).unwrap(),
+            b"untouched cover"
+        );
+    }
 
     #[test]
     fn command_boundary_commits_and_reports_validation_without_database_details() {

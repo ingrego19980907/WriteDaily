@@ -1,6 +1,6 @@
 import { beforeEach, expect, test, vi } from 'vitest'
 import { invoke, isTauri } from '@tauri-apps/api/core'
-import { createBook, getBook, listBooks, updateBook } from './books'
+import { createBook, deleteBook, getBook, listBooks, updateBook } from './books'
 
 vi.mock('@tauri-apps/api/core', () => ({ invoke: vi.fn(), isTauri: vi.fn() }))
 const details = {
@@ -59,4 +59,25 @@ test('read and update refuse browser persistence', async () => {
   ])
     await expect(operation).rejects.toEqual({ code: 'desktop_required' })
   expect(invoke).not.toHaveBeenCalled()
+})
+
+test('confirmed deletion sends identity and revision, propagates failure and refuses browser persistence', async () => {
+  vi.mocked(isTauri).mockReturnValue(true)
+  vi.mocked(invoke)
+    .mockResolvedValueOnce(undefined)
+    .mockRejectedValueOnce({ code: 'conflict' })
+  await expect(deleteBook('selected', 'revision')).resolves.toBeUndefined()
+  expect(invoke).toHaveBeenCalledWith('delete_book', {
+    id: 'selected',
+    expectedUpdatedAt: 'revision',
+    confirmed: true,
+  })
+  await expect(deleteBook('selected', 'revision')).rejects.toEqual({
+    code: 'conflict',
+  })
+  vi.mocked(isTauri).mockReturnValue(false)
+  await expect(deleteBook('selected', 'revision')).rejects.toEqual({
+    code: 'desktop_required',
+  })
+  expect(invoke).toHaveBeenCalledTimes(2)
 })

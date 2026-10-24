@@ -11,7 +11,8 @@ pub fn run() {
             commands::create_book,
             commands::list_books,
             commands::get_book,
-            commands::update_book
+            commands::update_book,
+            commands::delete_book
         ])
         .setup(|app| {
             let mut data_directory = app.path().app_data_dir()?;
