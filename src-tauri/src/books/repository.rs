@@ -23,7 +23,7 @@ fn row_book(row: &Row<'_>) -> rusqlite::Result<Book> {
     })
 }
 
-fn load(connection: &Connection, id: &str) -> Result<Book, BookError> {
+pub(crate) fn load(connection: &Connection, id: &str) -> Result<Book, BookError> {
     let book = connection
         .query_row(
             &format!("SELECT {COLUMNS} FROM books WHERE id = ?1"),
@@ -113,6 +113,23 @@ impl<'connection> BookRepository<'connection> {
 
     /// Internal persistence operation. UI confirmation is a separate requirement (2.6).
     pub fn delete(&mut self, id: &str, expected_updated_at: &str) -> Result<(), BookError> {
+        self.delete_inner(id, expected_updated_at, false)
+    }
+
+    pub(crate) fn delete_with_cleanup(
+        &mut self,
+        id: &str,
+        expected_updated_at: &str,
+    ) -> Result<(), BookError> {
+        self.delete_inner(id, expected_updated_at, true)
+    }
+
+    fn delete_inner(
+        &mut self,
+        id: &str,
+        expected_updated_at: &str,
+        managed_cleanup: bool,
+    ) -> Result<(), BookError> {
         validate_id(id)?;
         validate_expected(expected_updated_at)?;
         let transaction = self
@@ -122,8 +139,14 @@ impl<'connection> BookRepository<'connection> {
         if book.updated_at != expected_updated_at {
             return Err(BookError::Conflict);
         }
-        if book.cover_path.is_some() {
+        if book.cover_path.is_some() && !managed_cleanup {
             return Err(BookError::CoverCleanupRequired);
+        }
+        if let Some(path) = book.cover_path {
+            transaction.execute(
+                "INSERT OR IGNORE INTO pending_cover_cleanup(path) VALUES (?1)",
+                [path],
+            )?;
         }
         let changed = transaction.execute(
             "DELETE FROM books WHERE id = ?1 AND updated_at = ?2",

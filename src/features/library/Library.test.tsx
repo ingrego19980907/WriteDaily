@@ -106,7 +106,7 @@ test('a late initial listing cannot erase a newly committed book', async () => {
 test('deletes only the confirmed identity, retains other books and restores focus after its trigger is removed', async () => {
   const user = userEvent.setup()
   vi.mocked(listBooks).mockResolvedValue([book, { ...book, id: 'two' }])
-  vi.mocked(deleteBook).mockResolvedValue(undefined)
+  vi.mocked(deleteBook).mockResolvedValue({ cleanupPending: true })
   render(<Library />)
   const actions = await screen.findAllByRole('button', { name: 'Delete book' })
   await user.click(actions[1])
@@ -118,6 +118,7 @@ test('deletes only the confirmed identity, retains other books and restores focu
   )
   expect(deleteBook).toHaveBeenCalledWith('two', book.updatedAt)
   expect(await screen.findByText('Book deleted: Same title')).toBeVisible()
+  expect(screen.getByText(/Some old cover files remain queued/)).toBeVisible()
   expect(
     within(screen.getByRole('list', { name: 'Books' })).getAllByRole(
       'listitem',
@@ -139,7 +140,7 @@ test('failed deletion keeps the row and a late listing cannot resurrect a commit
   vi.mocked(createBook).mockResolvedValue(book)
   vi.mocked(deleteBook)
     .mockRejectedValueOnce({ code: 'persistence' })
-    .mockResolvedValueOnce(undefined)
+    .mockResolvedValueOnce({ cleanupPending: false })
   render(<Library />)
   await user.click(screen.getByRole('button', { name: 'Create book' }))
   await user.type(screen.getByLabelText('Title'), book.title)

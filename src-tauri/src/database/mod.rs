@@ -5,7 +5,8 @@ use rusqlite_migration::{M, Migrations};
 
 const APPLICATION_ID: i32 = 0x5744_4159; // WDAY: local format marker, not authentication.
 const INITIAL_SCHEMA: &str = include_str!("../../migrations/001_books.sql");
-const MIGRATION_STEPS: &[M<'static>] = &[M::up(INITIAL_SCHEMA)];
+const COVER_SCHEMA: &str = include_str!("../../migrations/002_cover_cleanup.sql");
+const MIGRATION_STEPS: &[M<'static>] = &[M::up(INITIAL_SCHEMA), M::up(COVER_SCHEMA)];
 const MIGRATIONS: Migrations<'static> = Migrations::from_slice(MIGRATION_STEPS);
 
 pub type Database = Mutex<Connection>;
@@ -34,6 +35,7 @@ pub fn open(data_directory: &Path) -> Result<Database, DatabaseError> {
     fs::create_dir_all(data_directory)?;
     let mut connection = Connection::open(data_directory.join("write-daily.sqlite3"))?;
     initialize(&mut connection, &MIGRATIONS)?;
+    connection.prepare("SELECT path FROM pending_cover_cleanup LIMIT 0")?;
     Ok(Mutex::new(connection))
 }
 

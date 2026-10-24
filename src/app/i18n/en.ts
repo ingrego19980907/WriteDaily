@@ -1,6 +1,27 @@
 export const en = {
   library: {
     create: 'Create book',
+    cover: 'Cover image',
+    coverHint:
+      'PNG, JPEG or WebP, up to 5 MiB and 4096 × 4096 pixels. Saved as a PNG up to 1200 × 1600 pixels.',
+    coverSave: 'Save cover',
+    coverRemove: 'Remove cover',
+    coverSaving: 'Saving cover…',
+    coverSaved: 'Cover saved.',
+    coverRemoved: 'Cover removed.',
+    coverInvalid:
+      'Choose a valid PNG, JPEG or WebP within the supported dimensions.',
+    coverTooLarge: 'Choose an image no larger than 5 MiB.',
+    coverFailure:
+      'Could not save the cover. The current cover is unchanged. Please try again.',
+    coverReadFailure: 'The saved cover could not be loaded.',
+    coverLoading: 'Loading cover…',
+    coverAlt: 'Book cover',
+    coverConflict:
+      'This book has changed. Load the latest book details before trying again.',
+    coverReload: 'Load latest book details',
+    coverCleanupPending:
+      'The change is saved. Some old cover files remain queued for cleanup on the next cover operation or app startup.',
     delete: 'Delete book',
     deleteDescription:
       'Permanently delete this book? This cannot be undone. Any unsaved edits for this book will also be discarded.',

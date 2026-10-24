@@ -1,9 +1,66 @@
+use crate::covers::{CoverError, CoverResult, CoverStore, DeleteResult};
 use crate::{
     books::{Book, BookDetails, BookError, BookRepository, ValidationIssue},
     database::Database,
 };
 use serde::Serialize;
 use tauri::Manager;
+
+impl From<CoverError> for BookCommandError {
+    fn from(error: CoverError) -> Self {
+        match error {
+            CoverError::Book(error) => error.into(),
+            CoverError::InvalidImage => Self {
+                code: "invalid_image",
+                issues: vec![],
+            },
+            CoverError::TooLarge => Self {
+                code: "image_too_large",
+                issues: vec![],
+            },
+            _ => Self::unavailable(),
+        }
+    }
+}
+
+#[tauri::command]
+pub async fn set_cover(
+    app: tauri::AppHandle,
+    id: String,
+    expected_updated_at: String,
+    bytes: Option<Vec<u8>>,
+) -> Result<CoverResult, BookCommandError> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let database = app.state::<Database>();
+        let mut connection = database
+            .lock()
+            .map_err(|_| BookCommandError::unavailable())?;
+        app.state::<CoverStore>()
+            .set(&mut connection, &id, &expected_updated_at, bytes.as_deref())
+            .map_err(Into::into)
+    })
+    .await
+    .map_err(|_| BookCommandError::unavailable())?
+}
+
+#[tauri::command]
+pub async fn read_cover(
+    app: tauri::AppHandle,
+    id: String,
+    expected_path: String,
+) -> Result<Vec<u8>, BookCommandError> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let database = app.state::<Database>();
+        let mut connection = database
+            .lock()
+            .map_err(|_| BookCommandError::unavailable())?;
+        app.state::<CoverStore>()
+            .read(&mut connection, &id, &expected_path)
+            .map_err(Into::into)
+    })
+    .await
+    .map_err(|_| BookCommandError::unavailable())?
+}
 
 #[derive(Debug, Serialize)]
 pub struct BookCommandError {
@@ -87,10 +144,11 @@ fn update(
 
 fn delete(
     database: &Database,
+    covers: &CoverStore,
     id: &str,
     expected_updated_at: &str,
     confirmed: bool,
-) -> Result<(), BookCommandError> {
+) -> Result<DeleteResult, BookCommandError> {
     if !confirmed {
         return Err(BookCommandError {
             code: "confirmation_required",
@@ -100,8 +158,8 @@ fn delete(
     let mut connection = database
         .lock()
         .map_err(|_| BookCommandError::unavailable())?;
-    BookRepository::new(&mut connection)
-        .delete(id, expected_updated_at)
+    covers
+        .delete(&mut connection, id, expected_updated_at)
         .map_err(Into::into)
 }
 
@@ -111,10 +169,11 @@ pub async fn delete_book(
     id: String,
     expected_updated_at: String,
     confirmed: bool,
-) -> Result<(), BookCommandError> {
+) -> Result<DeleteResult, BookCommandError> {
     tauri::async_runtime::spawn_blocking(move || {
         delete(
             &app.state::<Database>(),
+            &app.state::<CoverStore>(),
             &id,
             &expected_updated_at,
             confirmed,
@@ -179,6 +238,7 @@ mod tests {
     fn confirmed_deletion_preserves_unrelated_data_and_survives_reopen() {
         let directory = tempfile::tempdir().unwrap();
         let database = crate::database::open(directory.path()).unwrap();
+        let covers = CoverStore::new(directory.path()).unwrap();
         let selected = create(&database, details()).unwrap();
         let other = create(&database, details()).unwrap();
         // Synthetic future relationships only: no chapter/history product schema is introduced.
@@ -202,13 +262,19 @@ mod tests {
             .execute("INSERT INTO achievement_fixture VALUES ('retained')", [])
             .unwrap();
         assert_eq!(
-            delete(&database, &selected.id, &selected.updated_at, false)
-                .unwrap_err()
-                .code,
+            delete(
+                &database,
+                &covers,
+                &selected.id,
+                &selected.updated_at,
+                false
+            )
+            .unwrap_err()
+            .code,
             "confirmation_required"
         );
         assert_eq!(get(&database, &selected.id).unwrap(), selected);
-        delete(&database, &selected.id, &selected.updated_at, true).unwrap();
+        delete(&database, &covers, &selected.id, &selected.updated_at, true).unwrap();
         drop(database);
         let reopened = crate::database::open(directory.path()).unwrap();
         assert_eq!(get(&reopened, &selected.id).unwrap_err().code, "not_found");
@@ -244,17 +310,18 @@ mod tests {
     fn deletion_errors_preserve_book_and_files() {
         let directory = tempfile::tempdir().unwrap();
         let database = crate::database::open(directory.path()).unwrap();
+        let covers = CoverStore::new(directory.path()).unwrap();
         let original = create(&database, details()).unwrap();
         let changed = update(&database, &original.id, &original.updated_at, details()).unwrap();
         assert_eq!(
-            delete(&database, &original.id, &original.updated_at, true)
+            delete(&database, &covers, &original.id, &original.updated_at, true)
                 .unwrap_err()
                 .code,
             "conflict"
         );
         database.lock().unwrap().execute_batch("CREATE TRIGGER prevent_delete BEFORE DELETE ON books BEGIN SELECT RAISE(ABORT, 'test failure'); END;").unwrap();
         assert_eq!(
-            delete(&database, &changed.id, &changed.updated_at, true)
+            delete(&database, &covers, &changed.id, &changed.updated_at, true)
                 .unwrap_err()
                 .code,
             "persistence"
@@ -266,7 +333,6 @@ mod tests {
             .execute_batch("DROP TRIGGER prevent_delete;")
             .unwrap();
         let cover = format!("covers/{}.png", original.id);
-        std::fs::create_dir(directory.path().join("covers")).unwrap();
         std::fs::write(directory.path().join(&cover), b"untouched cover").unwrap();
         database
             .lock()
@@ -276,17 +342,13 @@ mod tests {
                 [&cover, &original.id],
             )
             .unwrap();
-        assert_eq!(
-            delete(&database, &changed.id, &changed.updated_at, true)
-                .unwrap_err()
-                .code,
-            "cover_cleanup_required"
+        assert!(
+            !delete(&database, &covers, &changed.id, &changed.updated_at, true)
+                .unwrap()
+                .cleanup_pending
         );
-        assert!(get(&database, &changed.id).is_ok());
-        assert_eq!(
-            std::fs::read(directory.path().join(&cover)).unwrap(),
-            b"untouched cover"
-        );
+        assert!(get(&database, &changed.id).is_err());
+        assert!(!directory.path().join(&cover).exists());
     }
 
     #[test]

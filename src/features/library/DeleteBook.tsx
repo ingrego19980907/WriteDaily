@@ -12,7 +12,7 @@ export function DeleteBook({
   onDeleted,
 }: {
   book: Book
-  onDeleted: (book: Book) => void
+  onDeleted: (book: Book, cleanupPending?: boolean) => void
 }) {
   const [open, setOpen] = useState(false)
   const [snapshot, setSnapshot] = useState(book)
@@ -63,9 +63,10 @@ export function DeleteBook({
     setPending(true)
     setFailure('')
     try {
-      await deleteBook(snapshot.id, snapshot.updatedAt)
+      const result = await deleteBook(snapshot.id, snapshot.updatedAt)
       setOpen(false)
-      onDeleted(snapshot)
+      if (result?.cleanupPending) onDeleted(snapshot, true)
+      else onDeleted(snapshot)
     } catch (error) {
       const code = bookErrorCode(error)
       setBlocked(

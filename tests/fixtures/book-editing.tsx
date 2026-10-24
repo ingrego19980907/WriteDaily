@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client'
 import { mockIPC } from '@tauri-apps/api/mocks'
 import type { Book, BookDetails } from '../../src/features/library/book'
 import App from '../../src/app/App'
+import coverDataUrl from '../../src-tauri/icons/32x32.png?inline'
 
 const original: Book = {
   id: '8af2b704-45bc-4e41-8e25-d12f427da441',
@@ -34,7 +35,23 @@ mockIPC((command, payload) => {
     if (id !== original.id || confirmed !== true)
       throw new Error('Unconfirmed test deletion')
     if (expectedUpdatedAt === original.updatedAt) throw { code: 'conflict' }
-    return undefined
+    return { cleanupPending: false }
+  }
+  if (command === 'read_cover')
+    return Array.from(atob(coverDataUrl.split(',')[1]), (character) =>
+      character.charCodeAt(0),
+    )
+  if (command === 'set_cover') {
+    const { bytes } = payload as { bytes: number[] | null }
+    if (bytes && bytes[0] !== 137) throw { code: 'invalid_image' }
+    return {
+      book: {
+        ...original,
+        coverPath: bytes ? `covers/${original.id}.png` : null,
+        updatedAt: '2026-10-24T12:00:00.000Z',
+      },
+      cleanupPending: false,
+    }
   }
   if (command === 'update_book') {
     const { id, expectedUpdatedAt, details } = payload as {

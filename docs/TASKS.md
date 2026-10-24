@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Tasks 2.1-2.6 (book model, SQLite/migration v1, native repository, creation, editing and confirmed deletion) are complete; awaiting approval before 2.7 (cover upload and storage). Library cards/grid and cover import/cleanup remain planned; deletion of covered books remains blocked.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Tasks 2.1-2.7 (book model, SQLite/migrations v1-v2, native repository, creation, editing, confirmed deletion and managed covers) are complete; awaiting approval before 2.8 (book cards). Library cards/grid remain planned. Covered-book deletion now uses safe queued cleanup.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -44,7 +44,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [x]  | 2.4  | Implement book creation            | Completed (2026-10-24) | 2.3          | Valid books persist and invalid input shows errors                       |
 | [x]  | 2.5  | Implement book editing             | Completed (2026-10-24) | 2.4          | Changes persist after reopening                                          |
 | [x]  | 2.6  | Implement book deletion            | Completed (2026-10-24) | 2.5          | Confirmation and safe dependent-data policy verified                     |
-| [ ]  | 2.7  | Implement cover upload and storage | Not started            | 2.6          | Managed covers survive restart and invalid files are rejected            |
+| [x]  | 2.7  | Implement cover upload and storage | Completed (2026-10-24) | 2.6          | Managed covers survive restart and invalid files are rejected            |
 | [ ]  | 2.8  | Design book cards                  | Not started            | 2.7          | Cover, title and progress render accessibly                              |
 | [ ]  | 2.9  | Implement library grid             | Not started            | 2.8          | Responsive grid opens the correct book                                   |
 | [ ]  | 2.10 | Implement book progress            | Not started            | 2.9          | Zero, missing and exceeded targets handled                               |
@@ -133,6 +133,15 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [ ]  | 8.10 | Tag version 1.0.0           | Not started | 8.9          | Release gates pass and explicit authorization obtained before Git mutation |
 
 ## Historical verification evidence
+
+## Verification evidence: 2.7
+
+- Added BookCover with file selection, explicit save, persisted preview, replacement/removal, selected-file retention on failure, conflict reload and pending guards. English copy stays centralized. Cover changes follow creation as separate commits; cards remain 2.8. No arbitrary filesystem API or fake browser persistence.
+- Added image 0.25.10 with PNG/JPEG/WebP only after checking official Rust compatibility/decoder docs. Native decoding limits input to 5 MiB/4096px dimensions, normalizes to UUID PNG up to 1200x1600 without upscaling and caps stored bytes at 8 MiB. Independent files per book; only relative references persist.
+- Appended migration 002 for pending_cover_cleanup; migration 001 unchanged. New-file intent precedes exclusive write/sync and transactional reference update. Old files queue atomically on replacement/removal/confirmed deletion and clean only after commit. Cleanup retries at startup/cover operations, checks references/containment, refuses reparse points and never scans unrelated files. Deferred cleanup is a separate successful-operation warning.
+- 39 native tests passed: supported/corrupt/oversized images, dimension limits, downscaling, source independence, real file/database reopen retention, covered deletion/deferred cleanup, rollback/conflict, durable interrupted cleanup, retained referenced files, v1-to-v2 upgrade and Windows junction protection. All data disposable; actual library untouched.
+- 117 frontend tests passed, including cover payloads, preview, upload/removal, failed retry, oversized input, conflict reload, pending duplicate prevention and deferred-cleanup messaging. All 24 Edge tests passed; cover workflows at 320/640/1100px cover invalid input, browser image decoding, preview/removal, reflow and axe WCAG scans with isolated test IPC responses.
+- Lint, strict typecheck, formatting, production build, Cargo fmt/Clippy and diff checks passed. No actual native GUI/IPC restart claim; native reopen tests and browser IPC fixtures are separate. See [COVER_STORAGE.md](COVER_STORAGE.md). Next: 2.8, awaiting approval.
 
 ## Verification evidence: 2.6
 

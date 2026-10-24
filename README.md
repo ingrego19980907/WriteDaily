@@ -1,14 +1,16 @@
 # WriteDaily
 
+Managed covers are implemented: create a book, then choose its Cover image and Save cover. PNG/JPEG/WebP content is validated natively and saved independently under app data. Preview, replacement/removal and confirmed deletion use revision checks and durable cleanup retries. See [cover storage, limits and failure behavior](docs/COVER_STORAGE.md).
+
 A little writing, every day.
 
 WriteDaily is a planned free, offline-first Windows writing application, with future macOS support. It will combine a personal book library, chapter editor, goals, activity calendar, and achievements.
 
 ## Current status
 
-Foundation tasks 0.1-0.9 are complete: environment inspection, React/strict TypeScript/Vite, Tauri 2, Tailwind, ESLint/Prettier, Vitest, application structure, synchronized documentation and verified Windows desktop startup. The UI currently shows a responsive application shell with the WriteDaily brand and five navigable sections. My Library offers creation/editing dialogs, confirmed deletion and a basic persisted-book list; other sections display Coming soon. Library has book domain types/validation and native SQLite initialization/migration v1. The Rust book repository is implemented; Book creation is connected to SQLite through Tauri. Library cards/grid, editor, cover file import/cleanup, autosave, export and backup remain planned.
+Foundation tasks 0.1-0.9 are complete: environment inspection, React/strict TypeScript/Vite, Tauri 2, Tailwind, ESLint/Prettier, Vitest, application structure, synchronized documentation and verified Windows desktop startup. The UI currently shows a responsive application shell with the WriteDaily brand and five navigable sections. My Library offers creation/editing dialogs, confirmed deletion and a basic persisted-book list; other sections display Coming soon. Library has book domain types/validation and native SQLite initialization/migrations v1-v2. The Rust book repository is implemented; Book creation is connected to SQLite through Tauri. Library cards/grid, editor, autosave, export and backup remain planned.
 
-Frontend checks, the React DOM smoke test and native development build passed. The Windows Tauri window was opened and its React heading, tagline and status visually verified in task 0.9. Milestone 0 is complete; Milestone 1 (design system, navigation and accessibility/layout review) is also complete; tasks 2.1-2.6 are complete; task 2.7 (cover upload and storage) awaits approval. See [task status and verification evidence](docs/TASKS.md).
+Frontend checks, the React DOM smoke test and native development build passed. The Windows Tauri window was opened and its React heading, tagline and status visually verified in task 0.9. Milestone 0 is complete; Milestone 1 (design system, navigation and accessibility/layout review) is also complete; tasks 2.1-2.7 are complete; task 2.8 (book cards) awaits approval. See [task status and verification evidence](docs/TASKS.md).
 
 ## Prerequisites
 
@@ -90,7 +92,7 @@ npm.cmd test          # Watch mode in an interactive terminal; press q to exit
 
 Vitest 5 uses the shared Vite configuration and jsdom for DOM tests. React Testing Library checks rendered UI through accessible queries; jest-dom adds DOM assertions. Tests are colocated as `src/**/*.test.ts` or `src/**/*.test.tsx`. Import `test`, `expect` and hooks explicitly from `vitest`; test globals are disabled. `src/test/setup.ts` registers matchers and cleans up mounted React trees after each test. Strict TypeScript checks include tests and setup code.
 
-The current 110 tests cover shared native/frontend validation fixtures, book metadata validation, ProgressBar normalization/semantics, Modal focus/dismissal, Button/Input interactions, native semantics and field accessibility plus shell landmarks/skip target, initial My Library section, all five keyboard navigation destinations, active-item uniqueness, heading focus and pointer return to the library. These simulated DOM tests are complemented by 21 real Edge browser tests. Native persistence has 29 Rust tests; release accessibility testing remains future work.
+The current 117 tests cover shared native/frontend validation fixtures, book metadata validation, ProgressBar normalization/semantics, Modal focus/dismissal, Button/Input interactions, native semantics and field accessibility plus shell landmarks/skip target, initial My Library section, all five keyboard navigation destinations, active-item uniqueness, heading focus and pointer return to the library. These simulated DOM tests are complemented by 24 real Edge browser tests. Native persistence has 39 Rust tests; release accessibility testing remains future work.
 
 ## Application structure
 
@@ -122,7 +124,7 @@ Data model, autosave, streak and backup policies remain proposals until their im
 
 ## Application shell
 
-`src/app/AppShell.tsx` provides the masthead, keyboard skip link and main content area. App supplies five section buttons through its optional navigation slot. Main content adapts to the supported minimum desktop size (640x480); the layout was visually checked in Tauri at minimum and wider sizes. Accessibility/layout verification passed in 1.9; book metadata, SQLite/migrations and Rust repository are implemented; book creation, editing and confirmed deletion are implemented; cover handling is next. Run `npm.cmd run tauri -- dev` with Cargo on PATH to inspect the current shell.
+`src/app/AppShell.tsx` provides the masthead, keyboard skip link and main content area. App supplies five section buttons through its optional navigation slot. Main content adapts to the supported minimum desktop size (640x480); the layout was visually checked in Tauri at minimum and wider sizes. Accessibility/layout verification passed in 1.9; book metadata, SQLite/migrations and Rust repository are implemented; book creation, editing, confirmed deletion and managed covers are implemented; book cards are next. Run `npm.cmd run tauri -- dev` with Cargo on PATH to inspect the current shell.
 
 ## Section navigation
 
@@ -195,7 +197,7 @@ See [accessibility/layout review](docs/ACCESSIBILITY_REVIEW.md) for evidence and
 
 `src/features/library/book.ts` defines BookDetails, Book and validateBookDetails. The validator normalizes valid editable metadata or returns field/error codes; it never saves a book or accepts system-owned fields into its output. Titles support Unicode, nullable goals use positive safe integers, and deadlines remain local YYYY-MM-DD dates. See [data model](docs/DATA_MODEL.md) for limits, planned SQL mapping and deletion relationships.
 
-Focused verification: `npm.cmd run test:run -- src/features/library/book.test.ts`. Native SQLite/migration v1 and Rust repository are implemented. Book creation uses a typed Tauri command; editing uses a revision-checked update command.
+Focused verification: `npm.cmd run test:run -- src/features/library/book.test.ts`. Native SQLite/migrations v1-v2 and Rust repository are implemented. Book creation uses a typed Tauri command; editing uses a revision-checked update command.
 
 ## SQLite and native tests
 
@@ -208,14 +210,14 @@ cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
 cargo clippy --manifest-path src-tauri/Cargo.toml --locked --all-targets -- -D warnings
 ```
 
-Twenty-nine native SQLite/repository/command-boundary tests use isolated temporary directories and never the actual library. Both npm and native tests matter; Vitest does not exercise native persistence. First native build/test requires network access for Cargo packages; subsequent runs can use --offline when cached. Rust 1.99.1 was verified; older manifest-compatible toolchains were not separately tested.
+Thirty-nine native SQLite/repository/cover tests use isolated temporary directories and never the actual library. Both npm and native tests matter; Vitest does not exercise native persistence. First native build/test requires network access for Cargo packages; subsequent runs can use --offline when cached. Rust 1.99.1 was verified; older manifest-compatible toolchains were not separately tested.
 
 Database startup enables foreign keys, a 5-second busy timeout, synchronous FULL and WAL, and refuses foreign/newer/corrupt schemas without resetting data. Current initialization failures stop startup and report the native error in the development terminal; there is no recovery UI yet. No arbitrary SQL interface is exposed to React.
 
-Migration SQL under src-tauri/migrations is source code: commit it and never edit released steps; append new ones. Local .sqlite3/-wal/-shm artifacts are ignored. Do not copy a live database file alone for backup because WAL may contain recent commits; snapshot backup/restore is planned in milestone 7. See [data model](docs/DATA_MODEL.md) for constraints, migration behavior and native repository and remaining cover-import work.
+Migration SQL under src-tauri/migrations is source code: commit it and never edit released steps; append new ones. Local .sqlite3/-wal/-shm artifacts are ignored. Do not copy a live database file alone for backup because WAL may contain recent commits; snapshot backup/restore is planned in milestone 7. See [data model](docs/DATA_MODEL.md) for constraints, migration behavior and native repository and managed cover storage.
 
 ## Native book repository
 
-`src-tauri/src/books/` provides native list/get/create/update/delete with validated metadata and real SQLite transactions. Create/list/get/update and confirmed delete are exposed through typed Tauri commands. The library uses a basic list for selecting metadata to edit; cards/grid remain planned. UUIDs/timestamps are generated natively; update/delete require the loaded updatedAt token and return Conflict if stale. Malformed stored data is reported rather than silently filtered or rewritten. Covered-book deletion is blocked until managed file cleanup is available.
+`src-tauri/src/books/` provides native list/get/create/update/delete with validated metadata and real SQLite transactions. Create/list/get/update and confirmed delete are exposed through typed Tauri commands. The library uses a basic list for selecting metadata to edit; cards/grid remain planned. UUIDs/timestamps are generated natively; update/delete require the loaded updatedAt token and return Conflict if stale. Malformed stored data is reported rather than silently filtered or rewritten. Covered-book deletion queues cleanup transactionally and reports deferred cleanup separately from committed deletion.
 
-Focused native tests: `cargo test --manifest-path src-tauri/Cargo.toml --locked books::tests`. Existing migration SQL is unchanged. Shared test fixtures in tests/fixtures/book-details.json exercise Rust/TypeScript normalization and dates; no test writes to the actual user library. Cover upload and safe managed-file cleanup are the next task.
+Focused native tests: `cargo test --manifest-path src-tauri/Cargo.toml --locked books::tests`. Existing migration SQL is unchanged. Shared test fixtures in tests/fixtures/book-details.json exercise Rust/TypeScript normalization and dates; no test writes to the actual user library. Cover selection, preview, replacement/removal and safe cleanup are implemented; book cards are next.

@@ -1,6 +1,14 @@
 import { beforeEach, expect, test, vi } from 'vitest'
 import { invoke, isTauri } from '@tauri-apps/api/core'
-import { createBook, deleteBook, getBook, listBooks, updateBook } from './books'
+import {
+  createBook,
+  deleteBook,
+  getBook,
+  listBooks,
+  updateBook,
+  setCover,
+  readCover,
+} from './books'
 
 vi.mock('@tauri-apps/api/core', () => ({ invoke: vi.fn(), isTauri: vi.fn() }))
 const details = {
@@ -64,9 +72,11 @@ test('read and update refuse browser persistence', async () => {
 test('confirmed deletion sends identity and revision, propagates failure and refuses browser persistence', async () => {
   vi.mocked(isTauri).mockReturnValue(true)
   vi.mocked(invoke)
-    .mockResolvedValueOnce(undefined)
+    .mockResolvedValueOnce({ cleanupPending: false })
     .mockRejectedValueOnce({ code: 'conflict' })
-  await expect(deleteBook('selected', 'revision')).resolves.toBeUndefined()
+  await expect(deleteBook('selected', 'revision')).resolves.toEqual({
+    cleanupPending: false,
+  })
   expect(invoke).toHaveBeenCalledWith('delete_book', {
     id: 'selected',
     expectedUpdatedAt: 'revision',
@@ -80,4 +90,33 @@ test('confirmed deletion sends identity and revision, propagates failure and ref
     code: 'desktop_required',
   })
   expect(invoke).toHaveBeenCalledTimes(2)
+})
+
+test('cover commands expose bounded image bytes and book identity rather than arbitrary filesystem paths', async () => {
+  vi.mocked(isTauri).mockReturnValue(true)
+  vi.mocked(invoke).mockResolvedValue({ cleanupPending: true })
+  await setCover('book-id', 'revision', [1, 2, 3])
+  await setCover('book-id', 'revision', null)
+  await readCover('book-id', 'covers/reference.png')
+  expect(invoke).toHaveBeenNthCalledWith(1, 'set_cover', {
+    id: 'book-id',
+    expectedUpdatedAt: 'revision',
+    bytes: [1, 2, 3],
+  })
+  expect(invoke).toHaveBeenNthCalledWith(2, 'set_cover', {
+    id: 'book-id',
+    expectedUpdatedAt: 'revision',
+    bytes: null,
+  })
+  expect(invoke).toHaveBeenNthCalledWith(3, 'read_cover', {
+    id: 'book-id',
+    expectedPath: 'covers/reference.png',
+  })
+  vi.mocked(isTauri).mockReturnValue(false)
+  await expect(setCover('id', 'token', [])).rejects.toEqual({
+    code: 'desktop_required',
+  })
+  await expect(readCover('id', 'path')).rejects.toEqual({
+    code: 'desktop_required',
+  })
 })

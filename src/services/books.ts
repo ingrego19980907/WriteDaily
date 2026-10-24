@@ -35,7 +35,25 @@ export function bookErrorCode(error: unknown): unknown {
 export function deleteBook(
   id: string,
   expectedUpdatedAt: string,
-): Promise<void> {
+): Promise<{ cleanupPending: boolean }> {
   if (!isTauri()) return Promise.reject({ code: 'desktop_required' })
-  return invoke<void>('delete_book', { id, expectedUpdatedAt, confirmed: true })
+  return invoke<{ cleanupPending: boolean }>('delete_book', {
+    id,
+    expectedUpdatedAt,
+    confirmed: true,
+  })
+}
+
+export type CoverResult = { book: Book; cleanupPending: boolean }
+export function setCover(
+  id: string,
+  expectedUpdatedAt: string,
+  bytes: number[] | null,
+): Promise<CoverResult> {
+  if (!isTauri()) return Promise.reject({ code: 'desktop_required' })
+  return invoke<CoverResult>('set_cover', { id, expectedUpdatedAt, bytes })
+}
+export function readCover(id: string, expectedPath: string): Promise<number[]> {
+  if (!isTauri()) return Promise.reject({ code: 'desktop_required' })
+  return invoke<number[]>('read_cover', { id, expectedPath })
 }

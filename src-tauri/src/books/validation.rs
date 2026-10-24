@@ -109,7 +109,7 @@ pub(super) fn validate_expected(value: &str) -> Result<(), BookError> {
     }
 }
 
-pub(super) fn timestamp(after: Option<&str>) -> Result<String, BookError> {
+pub(crate) fn timestamp(after: Option<&str>) -> Result<String, BookError> {
     let mut time = Utc::now();
     if let Some(previous) = after {
         let previous =
@@ -125,7 +125,7 @@ pub(super) fn timestamp(after: Option<&str>) -> Result<String, BookError> {
     Ok(time.to_rfc3339_opts(SecondsFormat::Millis, true))
 }
 
-fn valid_cover(value: &str) -> bool {
+pub(crate) fn valid_cover(value: &str) -> bool {
     value
         .strip_prefix("covers/")
         .and_then(|file| file.rsplit_once('.'))

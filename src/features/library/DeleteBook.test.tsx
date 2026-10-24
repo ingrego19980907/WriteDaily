@@ -54,8 +54,8 @@ test('pending deletion blocks duplicate calls and dismissal and reports success 
   const user = userEvent.setup()
   let resolve!: () => void
   vi.mocked(deleteBook).mockReturnValue(
-    new Promise<void>((done) => {
-      resolve = done
+    new Promise<{ cleanupPending: boolean }>((done) => {
+      resolve = () => done({ cleanupPending: false })
     }),
   )
   const onDeleted = vi.fn()
@@ -83,7 +83,7 @@ test('conflict retains the book, failed reload keeps confirmation blocked, succe
   }
   vi.mocked(deleteBook)
     .mockRejectedValueOnce({ code: 'conflict' })
-    .mockResolvedValueOnce(undefined)
+    .mockResolvedValueOnce({ cleanupPending: false })
   vi.mocked(getBook)
     .mockRejectedValueOnce(new Error('disk'))
     .mockResolvedValueOnce(latest)

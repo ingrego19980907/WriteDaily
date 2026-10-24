@@ -6,6 +6,7 @@ import type { Book } from './book'
 import { CreateBook } from './CreateBook'
 import { BookDetailsDialog } from './BookDetailsDialog'
 import { DeleteBook } from './DeleteBook'
+import { BookCover } from './BookCover'
 
 const copy = en.library
 
@@ -17,6 +18,7 @@ export function Library() {
   const deletedIds = useRef(new Set<string>())
   const heading = useRef<HTMLHeadingElement>(null)
   const [deleted, setDeleted] = useState('')
+  const [cleanupPending, setCleanupPending] = useState(false)
 
   const load = useCallback(() => {
     const current = ++request.current
@@ -68,10 +70,11 @@ export function Library() {
     )
   }
 
-  function removed(book: Book) {
+  function removed(book: Book, pendingCleanup = false) {
     deletedIds.current.add(book.id)
     setBooks((previous) => previous.filter((item) => item.id !== book.id))
     setDeleted(book.title)
+    setCleanupPending(pendingCleanup)
     requestAnimationFrame(() => heading.current?.focus())
   }
 
@@ -82,6 +85,7 @@ export function Library() {
         {copy.books}
       </h2>
       <p role="status">{deleted ? `${copy.deleted} ${deleted}` : ''}</p>
+      {cleanupPending && <p role="status">{copy.coverCleanupPending}</p>}
       {loading && <p role="status">{copy.loading}</p>}
       {failure && (
         <div className="space-y-2">
@@ -108,6 +112,7 @@ export function Library() {
               {book.title}
             </h3>
             <BookDetailsDialog book={book} onSaved={saved} />
+            <BookCover book={book} onSaved={saved} />
             <DeleteBook book={book} onDeleted={removed} />
           </li>
         ))}

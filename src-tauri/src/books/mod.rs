@@ -1,7 +1,8 @@
 mod repository;
-mod validation;
+pub(crate) mod validation;
 
 pub use repository::BookRepository;
+pub(crate) use repository::load;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

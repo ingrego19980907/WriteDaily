@@ -1,5 +1,11 @@
 # Decision log
 
+## 2026-10-24 - Managed covers (2.7)
+
+Use image 0.25.10 (Rust 1.88 minimum, compatible with project 1.95) with default features disabled and PNG/JPEG/WebP only. Decode content natively, reject oversized/invalid input and normalize to bounded PNG with generated UUID names. Transfer selected bytes through typed IPC, with no filesystem plugin or broad asset permissions. Persist relative references; returned data URLs are display-only.
+
+Append migration 002 for durable cleanup. Register file intent before writing, write/sync before committing a new reference, queue old files inside the change/deletion transaction and clean unreferenced validated paths after commit. Return cleanupPending separately and retry on startup/cover operations. Refuse symlinks/reparse points and retain uncertain targets. Cover selection follows creation as a separate commit. Limits/assumptions are documented in COVER_STORAGE.md.
+
 ## 2026-10-24 - Confirmed book deletion (2.6)
 
 Reuse Modal with initial focus on Cancel, an explicit permanent-deletion warning naming the book, and a separate unchecked acknowledgement. Require the loaded revision and a true confirmation argument at the native boundary. Never auto-retry a conflict or remove a row on failure/not-found. Reload displays the current snapshot and requires confirmation again. Remove only after commit, retain other drafts, guard late listings, and focus a surviving library heading. Keep covered books blocked until safe managed-file cleanup in 2.7. Test future cascade/history-retention policy through disposable synthetic tables, without prematurely creating product schemas or editing migration 001.
