@@ -1,6 +1,6 @@
 # Design system
 
-Status: colors/typography implemented in 1.1 and application shell in 1.2; navigation implemented in 1.3 and Button in 1.4; other reusable controls remain future tasks. `src/styles/tokens.css` defines centralized Tailwind theme variables; `src/styles/global.css` imports them and applies base styling.
+Status: colors/typography implemented in 1.1 and application shell in 1.2; navigation implemented in 1.3 and Button in 1.4 and Input in 1.5; other reusable controls remain future tasks. `src/styles/tokens.css` defines centralized Tailwind theme variables; `src/styles/global.css` imports them and applies base styling.
 
 | Token               | Value   |
 | ------------------- | ------- |
@@ -14,6 +14,7 @@ Status: colors/typography implemented in 1.1 and application shell in 1.2; navig
 | Secondary text      | #706B62 |
 | Strong accent       | #6F583F |
 | Strong accent hover | #5C4732 |
+| Error               | #9B443A |
 
 ## Token usage
 
@@ -76,3 +77,13 @@ Navigation buttons use foreground text on surface/background, a visible foregrou
 Primary text contrast is 6.62:1, increasing to 8.66:1 on hover. Primary fill has at least 6.04:1 contrast against page surfaces. Secondary/ghost text and secondary borders retain the documented accessible foreground/secondary pairings. Original accent remains a decorative color, not primary button text/fill pairing.
 
 All variants have minimum 2.75rem height, wrapping labels, 2px foreground focus-visible outline with 3px offset, native pointer/Enter/Space activation and disabled styling (opacity 0.5, unavailable cursor, no hover change). Native disabled removes the control from tab order and blocks activation; aria-disabled alone is not a substitute. No loading behavior, link rendering or destructive-action semantics are introduced. Navigation uses the ghost variant with existing layout/current-page utilities. Full visual state review remains task 1.9.
+
+## Input
+
+`src/components/ui/Input.tsx` is a labelled single-line field. Required label is a visible string; optional hint and error are strings supplied by the consumer's localized copy. It accepts native input props/ref plus text, email, password, search, tel, url, number and date/time types; it is not a checkbox, file picker, select or textarea.
+
+A generated useId connects label and input unless the caller supplies a unique explicit ID. Hint/error IDs derive from the field ID; aria-describedby merges those with caller-provided IDs. Error sets aria-invalid=true even if the caller supplied false; when error clears, the supplied aria-invalid value is restored or omitted. Error text is visible and described, so invalid state does not rely on color. No automatic validation timing or live announcement policy is introduced; forms own those decisions.
+
+Input defaults to type=text, supports controlled or uncontrolled usage, and forwards required, disabled, readOnly, name, min/max, autocomplete and other native attributes. Disabled skips Tab and blocks editing; read-only stays focusable. className applies to the input itself; field layout is a full-width grid with wrapping labels/messages.
+
+The surface field has a secondary-colored border, foreground text, 2.75rem minimum height, 2px foreground focus-visible outline/3px offset and an accessible secondary placeholder. Placeholder never replaces the visible label. Error #9B443A has 6.34:1 contrast on surface and 5.79:1 on background. Read-only uses background fill; disabled uses opacity 0.5. Native date/time chrome may vary by platform. No form screen currently imports Input; real visual integration and full accessibility review remain later tasks.

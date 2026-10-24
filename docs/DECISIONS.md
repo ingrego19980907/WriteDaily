@@ -79,3 +79,9 @@ Add only @testing-library/user-event 14.6.8 as a development dependency for real
 Use a small native button wrapper with primary/secondary/ghost variants and React 19 native ref/prop forwarding; no extra library. Default type=button, with explicit submit support. CSS component layer allows navigation utilities to retain existing layout/current-page styles. Replace navigation's raw buttons with the ghost variant and remove the UI folder marker now real code exists.
 
 Add strong accent #6F583F and hover #5C4732 rather than using the original accent for insufficient-contrast light button text. Ratios are 6.62:1 and 8.66:1. Verify pointer/keyboard, native disabled/Tab behavior, form submission and ref/aria forwarding; retain all navigation tests. Thirteen tests plus typecheck/lint/build pass. No new dependency or product action; visual state review remains 1.9.
+
+## 2026-10-24 - Shared Input (1.5)
+
+Use a native single-line input wrapper with visible label and optional hint/error strings, useId connections, merged caller descriptions and error-driven aria-invalid. Preserve native ref/props and controlled/uncontrolled behavior; no form state/validation abstraction or dependency. Restrict the type API to text/numeric/date-like fields rather than trying to style checkboxes/file controls with one component.
+
+Add error #9B443A as a semantic token (6.34:1 surface, 5.79:1 background), keeping the original palette. Do not insert an unused field into the product UI; the component's styling loads with a future real form consumer. Six tests plus all existing regressions pass (19 total), alongside TypeScript/lint/build and a Vite CSS transformation smoke check. Full visual form integration remains later work.

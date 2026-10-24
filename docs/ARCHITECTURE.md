@@ -4,7 +4,7 @@ Status: Foundation complete through task 0.9, including Windows development-wind
 
 ## Technology direction
 
-Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs thirteen shell/navigation/Button tests; domain and persistence tests will accompany their feature implementations. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
+Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs nineteen shell/navigation/Button/Input tests; domain and persistence tests will accompany their feature implementations. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
 
 ## Organization
 
@@ -19,7 +19,7 @@ src/
     app-shell.css      shell layout and responsive navigation area
     App.test.tsx       colocated render smoke test
     i18n/en.ts         centralized English UI copy
-  components/ui/       shared Button and future accessible primitives
+  components/ui/       shared Button/Input and future accessible primitives
   features/
     library/           books and covers
     editor/            chapters and writing
@@ -96,3 +96,7 @@ This desktop foundation needs no URL router or persistence for navigation. Reloa
 ## Shared Button (1.4)
 
 Button wraps a native button with typed primary/secondary/ghost variants and component-layer CSS. Native props and React 19 refs pass through; default type=button prevents implicit form submission. AppNavigation consumes its ghost variant with current-page/layout utilities. No form state abstraction, styling dependency or routing behavior added. UI directory now contains real code and its .gitkeep was removed. Strong accent tokens supply accessible primary-button text contrast without changing the original palette. Tests verify behavior, native disabled semantics, submission and forwarding; CSS build/contrast checks verify styling integration.
+
+## Shared Input (1.5)
+
+Input is a native single-line field wrapper with a required visible label and optional hint/error. useId supplies stable distinct field IDs; helper IDs are joined with caller descriptions. An error marks the field invalid, but form state, validation rules and timing remain the consuming feature's responsibility. Native props/ref and controlled/uncontrolled values pass through; no form library is added. Component CSS imports with Input when consumed and uses shared palette/error tokens. The application does not import it yet because no actual form feature exists. Six tests verify labeling, accessibility descriptions/error recovery, unique IDs, keyboard/read-only/disabled behavior, controlled values and native constraints/ref forwarding.

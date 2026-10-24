@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.4 (colors, typography, shell, navigation and Button) are complete; awaiting approval before 1.5 (Input).
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.5 (colors, typography, shell, navigation, Button and Input) are complete; awaiting approval before 1.6 (Modal).
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -28,7 +28,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [x]  | 1.2 | Create application shell        | Completed (2026-10-24) | 1.1          | Shell adapts to supported window sizes                   |
 | [x]  | 1.3 | Create navigation               | Completed (2026-10-24) | 1.2          | All section navigation works by keyboard                 |
 | [x]  | 1.4 | Implement Button                | Completed (2026-10-24) | 1.3          | Accessible button variants render with focus states      |
-| [ ]  | 1.5 | Implement Input                 | Not started            | 1.4          | Labels, errors and keyboard entry work                   |
+| [x]  | 1.5 | Implement Input                 | Completed (2026-10-24) | 1.4          | Labels, errors and keyboard entry work                   |
 | [ ]  | 1.6 | Implement Modal                 | Not started            | 1.5          | Focus trap, dismissal and focus restoration work         |
 | [ ]  | 1.7 | Implement Card                  | Not started            | 1.6          | Reusable card respects design tokens                     |
 | [ ]  | 1.8 | Implement ProgressBar           | Not started            | 1.7          | Clamped values and accessible progress semantics work    |
@@ -274,3 +274,12 @@ Verification: `git check-ignore --no-index` assertions passed for 19 ignored pat
 - `npm.cmd run test:run`: 3 files, 13 tests passed. Four new Button tests cover pointer/Enter/Space, disabled interaction and Tab skipping, accidental form submission prevention/explicit submit, ref and native accessible attribute forwarding. All navigation keyboard regressions pass.
 - Typecheck, lint and production build passed. Production CSS includes all variants and focus/disabled styles. Formatting and git diff checks passed after documentation updates.
 - No native window/screenshot repeated for this component-only change; full visual/accessibility review remains 1.9. To inspect the integrated ghost variant, run npm.cmd run tauri -- dev and Tab through navigation.
+
+## Verification evidence: 1.5
+
+- Added components/ui/Input.tsx and input.css: required visible label, generated or explicit unique ID, optional hint/error, merged external aria-describedby, error-driven aria-invalid, native props/ref and single-line text/numeric/date input types. State and validation stay with the consumer; no form feature or dependency added.
+- Styled minimum 2.75rem field height, accessible boundary, focus-visible outline, placeholder, read-only/disabled and error states using shared tokens. Added error #9B443A: contrast 6.34:1 on surface and 5.79:1 on background; normal border/helper contrast remains at least 4.78:1.
+- Added six behavioral tests: label focus/keyboard entry, merged descriptions/error removal, unique IDs, disabled Tab skipping/read-only behavior, controlled input and native numeric/ref/required attributes. Corrected the error-removal test fixture to preserve the mounted input when rerendering.
+- `npm.cmd run test:run`: 4 files, 19 tests passed. Typecheck, lint and production build passed. A Vite transform smoke check verified Input CSS including label, focus, disabled and error rules.
+- Input is not yet used by a product screen, so its component CSS will load when a real consumer imports it. No fake form/search control or visual desktop claim added. Full visual accessibility review remains 1.9 and real form validation remains feature work.
+- Formatting and git diff checks passed after documentation updates. Run npm.cmd run test:run -- src/components/ui/Input.test.tsx for focused verification.
