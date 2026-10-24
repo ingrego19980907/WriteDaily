@@ -73,3 +73,9 @@ AppShell owns a semantic masthead/main, skip link and optional navigation slot; 
 Use typed section IDs, native buttons and local React state for five desktop sections; no routing dependency or history/persistence behavior is needed yet. My Library is the initial section. aria-current, visible active styles, skip link and heading focus support keyboard navigation. All destination content is explicitly Coming soon, without fake data or unfinished feature controls. Real feature workflows remain in their approved milestones.
 
 Add only @testing-library/user-event 14.6.8 as a development dependency for realistic keyboard/pointer tests. Nine tests pass, including all five keyboard destinations. Verified actual Tauri sidebar/compact layouts and a native Tab/Enter transition. DPI-aware screenshot capture is required at Windows 125% scaling; the initial clipped captures were superseded, with no application layout fix needed.
+
+## 2026-10-24 - Shared Button (1.4)
+
+Use a small native button wrapper with primary/secondary/ghost variants and React 19 native ref/prop forwarding; no extra library. Default type=button, with explicit submit support. CSS component layer allows navigation utilities to retain existing layout/current-page styles. Replace navigation's raw buttons with the ghost variant and remove the UI folder marker now real code exists.
+
+Add strong accent #6F583F and hover #5C4732 rather than using the original accent for insufficient-contrast light button text. Ratios are 6.62:1 and 8.66:1. Verify pointer/keyboard, native disabled/Tab behavior, form submission and ref/aria forwarding; retain all navigation tests. Thirteen tests plus typecheck/lint/build pass. No new dependency or product action; visual state review remains 1.9.

@@ -8,7 +8,7 @@ WriteDaily is a planned free, offline-first Windows writing application, with fu
 
 Foundation tasks 0.1-0.9 are complete: environment inspection, React/strict TypeScript/Vite, Tauri 2, Tailwind, ESLint/Prettier, Vitest, application structure, synchronized documentation and verified Windows desktop startup. The UI currently shows a responsive application shell with the WriteDaily brand and five navigable sections. Each section displays a Coming soon message. Feature folders are reserved; no library, editor, database, autosave, export or backup is implemented.
 
-Frontend checks, the React DOM smoke test and native development build passed. The Windows Tauri window was opened and its React heading, tagline and status visually verified in task 0.9. Milestone 0 is complete; tasks 1.1-1.3 colors/typography, application shell and navigation are complete; task 1.4 (Button) awaits approval. See [task status and verification evidence](docs/TASKS.md).
+Frontend checks, the React DOM smoke test and native development build passed. The Windows Tauri window was opened and its React heading, tagline and status visually verified in task 0.9. Milestone 0 is complete; tasks 1.1-1.4 colors/typography, shell, navigation and Button are complete; task 1.5 (Input) awaits approval. See [task status and verification evidence](docs/TASKS.md).
 
 ## Prerequisites
 
@@ -66,7 +66,7 @@ The build checks the frontend and compiles `src-tauri/target/debug/write-daily.e
 
 ## Styling
 
-Tailwind CSS 4.3.3 is integrated using @tailwindcss/vite, following the [official Vite setup](https://tailwindcss.com/docs/installation/using-vite). `src/styles/global.css` imports Tailwind; use static utility class names in React components. No separate Tailwind or PostCSS configuration is needed for this setup. The shell and navigation use semantic utility classes. Palette and typography tokens are centralized in `src/styles/tokens.css`; the existing page uses the warm background, readable text colors and local UI/serif fonts. The responsive AppShell is implemented; reusable controls remain later milestone 1 work. See [design system](docs/DESIGN_SYSTEM.md) for token usage and contrast limits.
+Tailwind CSS 4.3.3 is integrated using @tailwindcss/vite, following the [official Vite setup](https://tailwindcss.com/docs/installation/using-vite). `src/styles/global.css` imports Tailwind; use static utility class names in React components. No separate Tailwind or PostCSS configuration is needed for this setup. The shell and navigation use semantic utility classes. Palette and typography tokens are centralized in `src/styles/tokens.css`; the existing page uses the warm background, readable text colors and local UI/serif fonts. The responsive AppShell is implemented; Button is implemented; the remaining reusable controls are later milestone 1 work. See [design system](docs/DESIGN_SYSTEM.md) for token usage and contrast limits.
 
 ## Linting and formatting
 
@@ -90,7 +90,7 @@ npm.cmd test          # Watch mode in an interactive terminal; press q to exit
 
 Vitest 5 uses the shared Vite configuration and jsdom for DOM tests. React Testing Library checks rendered UI through accessible queries; jest-dom adds DOM assertions. Tests are colocated as `src/**/*.test.ts` or `src/**/*.test.tsx`. Import `test`, `expect` and hooks explicitly from `vitest`; test globals are disabled. `src/test/setup.ts` registers matchers and cleans up mounted React trees after each test. Strict TypeScript checks include tests and setup code.
 
-The current nine tests cover shell landmarks/skip target, initial My Library section, all five keyboard navigation destinations, active-item uniqueness, heading focus and pointer return to the library. This simulated DOM test does not verify browser layout, Tauri startup or native persistence. Coverage, browser automation and native testing will be added only when their tasks require them.
+The current thirteen tests cover Button interactions/native semantics plus shell landmarks/skip target, initial My Library section, all five keyboard navigation destinations, active-item uniqueness, heading focus and pointer return to the library. This simulated DOM test does not verify browser layout, Tauri startup or native persistence. Coverage, browser automation and native testing will be added only when their tasks require them.
 
 ## Application structure
 
@@ -98,7 +98,7 @@ The current nine tests cover shell landmarks/skip target, initial My Library sec
 - `src/app/`: App composition, colocated smoke test and centralized English copy in `i18n/en.ts`.
 - `src/styles/`: Tailwind entry and global CSS.
 - `src/features/`: reserved library, editor, goals, activity and achievements modules.
-- `src/components/ui/`, `hooks/`, `services/`, `types/`, `utils/`: reserved shared code boundaries.
+- `src/components/ui/`: shared Button component; `src/hooks/`, `services/`, `types/`, `utils/`: reserved shared code boundaries.
 - `src/test/`: shared test setup.
 - `src-tauri/`: Rust desktop host and Tauri configuration.
 
@@ -121,10 +121,14 @@ Data model, autosave, streak and backup policies remain proposals until their im
 
 ## Application shell
 
-`src/app/AppShell.tsx` provides the masthead, keyboard skip link and main content area. App supplies five section buttons through its optional navigation slot. Main content adapts to the supported minimum desktop size (640x480); the layout was visually checked in Tauri at minimum and wider sizes. Reusable Button is the next task. Run `npm.cmd run tauri -- dev` with Cargo on PATH to inspect the current shell.
+`src/app/AppShell.tsx` provides the masthead, keyboard skip link and main content area. App supplies five section buttons through its optional navigation slot. Main content adapts to the supported minimum desktop size (640x480); the layout was visually checked in Tauri at minimum and wider sizes. Reusable Input is the next task. Run `npm.cmd run tauri -- dev` with Cargo on PATH to inspect the current shell.
 
 ## Section navigation
 
 My Library opens by default. Use Tab/Shift+Tab to reach section buttons, then Enter or Space to select one. After changing sections, focus moves to the new main heading. The active item is emphasized visually and marked aria-current=page. Navigation appears as a sidebar on wide windows and a two-column group above content on compact windows. The keyboard skip link bypasses navigation.
 
 Section selection is local React state; restarting/reloading returns to My Library. No URL routing, history or persistent navigation setting is introduced. Each destination is an explicitly unfinished presentation view; real book/editor/goals/activity/achievement workflows belong to later milestones.
+
+## Shared Button
+
+Import Button from `src/components/ui/Button.tsx`. Choose primary, secondary or ghost using variant, and pass native props such as onClick, disabled, aria-label and ref. Default type is button; explicitly pass type=submit for form submission. Text labels and keyboard focus are supported; no loading or link behavior is built in. Navigation already uses ghost. See [design system](docs/DESIGN_SYSTEM.md) for colors, contrast and state rules.

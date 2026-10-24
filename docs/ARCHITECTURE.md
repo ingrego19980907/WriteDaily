@@ -4,7 +4,7 @@ Status: Foundation complete through task 0.9, including Windows development-wind
 
 ## Technology direction
 
-Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs nine shell/navigation tests; domain and persistence tests will accompany their feature implementations. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
+Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs thirteen shell/navigation/Button tests; domain and persistence tests will accompany their feature implementations. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
 
 ## Organization
 
@@ -19,7 +19,7 @@ src/
     app-shell.css      shell layout and responsive navigation area
     App.test.tsx       colocated render smoke test
     i18n/en.ts         centralized English UI copy
-  components/ui/       reserved for reusable accessible primitives
+  components/ui/       shared Button and future accessible primitives
   features/
     library/           books and covers
     editor/            chapters and writing
@@ -92,3 +92,7 @@ App composes AppShell with section navigation and the current section presentati
 A small ordered section ID list defines the SectionId union. App owns useState for the current section and renders centralized English title/subtitle/Coming soon copy. AppNavigation receives the active ID and typed selection callback; its native buttons use aria-current=page, visible focus outlines and standard keyboard activation. An effect moves focus to the new page heading after section changes without stealing initial mount focus. All five sections have explicit unfinished views; feature folders remain reserved.
 
 This desktop foundation needs no URL router or persistence for navigation. Reload/restart returns to library; browser history behavior is not implemented. Future unsaved-editor guards must be added before navigation can leave real editable content. Tests use user-event to cover keyboard and pointer interactions. Actual Windows navigation layout and one native keyboard transition were also visually verified.
+
+## Shared Button (1.4)
+
+Button wraps a native button with typed primary/secondary/ghost variants and component-layer CSS. Native props and React 19 refs pass through; default type=button prevents implicit form submission. AppNavigation consumes its ghost variant with current-page/layout utilities. No form state abstraction, styling dependency or routing behavior added. UI directory now contains real code and its .gitkeep was removed. Strong accent tokens supply accessible primary-button text contrast without changing the original palette. Tests verify behavior, native disabled semantics, submission and forwarding; CSS build/contrast checks verify styling integration.

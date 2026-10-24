@@ -1,17 +1,19 @@
 # Design system
 
-Status: colors/typography implemented in 1.1 and application shell in 1.2; navigation implemented in 1.3; reusable controls remain future tasks. `src/styles/tokens.css` defines centralized Tailwind theme variables; `src/styles/global.css` imports them and applies base styling.
+Status: colors/typography implemented in 1.1 and application shell in 1.2; navigation implemented in 1.3 and Button in 1.4; other reusable controls remain future tasks. `src/styles/tokens.css` defines centralized Tailwind theme variables; `src/styles/global.css` imports them and applies base styling.
 
-| Token          | Value   |
-| -------------- | ------- |
-| Background     | #F7F3EC |
-| Surface        | #FFFEFA |
-| Primary text   | #38352F |
-| Accent brown   | #8B7355 |
-| Sage green     | #A8B5A2 |
-| Muted text     | #89847B |
-| Border         | #E8E2D9 |
-| Secondary text | #706B62 |
+| Token               | Value   |
+| ------------------- | ------- |
+| Background          | #F7F3EC |
+| Surface             | #FFFEFA |
+| Primary text        | #38352F |
+| Accent brown        | #8B7355 |
+| Sage green          | #A8B5A2 |
+| Muted text          | #89847B |
+| Border              | #E8E2D9 |
+| Secondary text      | #706B62 |
+| Strong accent       | #6F583F |
+| Strong accent hover | #5C4732 |
 
 ## Token usage
 
@@ -60,3 +62,17 @@ A localized skip link appears on keyboard focus with foreground-colored outline 
 ## Section navigation
 
 Navigation buttons use foreground text on surface/background, a visible foreground outline on keyboard focus and generous padding. Current selection combines weight, background and a decorative accent border, with aria-current=page for assistive technology. Do not rely on the accent border alone to identify selection. Selecting a different section moves focus to its heading. At the supported minimum window size, vertical page scrolling is expected rather than hiding sections behind a menu. Native title-bar behavior remains unchanged.
+
+## Button
+
+`src/components/ui/Button.tsx` accepts native React button props (including ref, disabled, type and aria attributes) plus variant: primary (default), secondary or ghost. CSS lives in button.css in the components layer; className can add layout utilities. Native type defaults to button to avoid accidental submission; form actions explicitly request type=submit. Give every button visible text or an accessible aria-label. Icon-only buttons still require a label.
+
+| Variant   | Appearance                                                                 | Use                          |
+| --------- | -------------------------------------------------------------------------- | ---------------------------- |
+| primary   | Surface text on strong accent; darker strong-accent hover                  | Primary action               |
+| secondary | Foreground text on surface with secondary-colored border; background hover | Supporting action            |
+| ghost     | Foreground text with transparent background; background hover              | Navigation and quiet actions |
+
+Primary text contrast is 6.62:1, increasing to 8.66:1 on hover. Primary fill has at least 6.04:1 contrast against page surfaces. Secondary/ghost text and secondary borders retain the documented accessible foreground/secondary pairings. Original accent remains a decorative color, not primary button text/fill pairing.
+
+All variants have minimum 2.75rem height, wrapping labels, 2px foreground focus-visible outline with 3px offset, native pointer/Enter/Space activation and disabled styling (opacity 0.5, unavailable cursor, no hover change). Native disabled removes the control from tab order and blocks activation; aria-disabled alone is not a substitute. No loading behavior, link rendering or destructive-action semantics are introduced. Navigation uses the ghost variant with existing layout/current-page utilities. Full visual state review remains task 1.9.

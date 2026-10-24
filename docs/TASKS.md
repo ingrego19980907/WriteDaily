@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.3 (colors, typography, application shell and navigation) are complete; awaiting approval before 1.4 (Button).
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.4 (colors, typography, shell, navigation and Button) are complete; awaiting approval before 1.5 (Input).
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -27,7 +27,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [x]  | 1.1 | Define colors and typography    | Completed (2026-10-24) | 0.9          | Central tokens and local font stacks render consistently |
 | [x]  | 1.2 | Create application shell        | Completed (2026-10-24) | 1.1          | Shell adapts to supported window sizes                   |
 | [x]  | 1.3 | Create navigation               | Completed (2026-10-24) | 1.2          | All section navigation works by keyboard                 |
-| [ ]  | 1.4 | Implement Button                | Not started            | 1.3          | Accessible button variants render with focus states      |
+| [x]  | 1.4 | Implement Button                | Completed (2026-10-24) | 1.3          | Accessible button variants render with focus states      |
 | [ ]  | 1.5 | Implement Input                 | Not started            | 1.4          | Labels, errors and keyboard entry work                   |
 | [ ]  | 1.6 | Implement Modal                 | Not started            | 1.5          | Focus trap, dismissal and focus restoration work         |
 | [ ]  | 1.7 | Implement Card                  | Not started            | 1.6          | Reusable card respects design tokens                     |
@@ -265,3 +265,12 @@ Verification: `git check-ignore --no-index` assertions passed for 19 ignored pat
 - Tauri dev visual inspection passed for sidebar and compact layouts. DPI-aware screenshots at 125% Windows scaling covered approximately 1306x862 and 640x481 logical client sizes; all navigation labels remained visible, with vertical scrolling available in compact mode. Local ignored evidence: .cache/desktop-verification/navigation-wide-dpi.png and navigation-compact-dpi.png. Initial non-DPI-aware captures were clipped by the capture tool and superseded.
 - Sent Tab/Enter only after confirming WriteDaily was foreground; visually confirmed actual native keyboard transition to Writing Editor. All five destinations additionally verified in DOM keyboard tests.
 - Closed the test window gracefully and stopped the dev session. Formatting and git diff checks passed after documentation updates. No router, history persistence or new product feature data added.
+
+## Verification evidence: 1.4
+
+- Added components/ui/Button.tsx and button.css with primary, secondary and ghost variants. Uses native button props/ref, default type=button, explicit submit support, native disabled semantics, visible focus outline, minimum 2.75rem height and wrapping labels. Removed the now-unneeded UI directory .gitkeep marker.
+- Navigation uses Button variant=ghost while keeping its active-item styles. No new runtime dependency, demo screen or product action added.
+- Added stronger accent/hover tokens to preserve original palette while supporting surface-colored primary-button text. Measured text contrast: 6.62:1 default, 8.66:1 hover. Secondary/ghost text is at least 11.05:1 on supported surfaces; secondary border contrast is at least 4.78:1. Disabled opacity is intentionally distinct; disabled controls remain unavailable to activation/tabbing.
+- `npm.cmd run test:run`: 3 files, 13 tests passed. Four new Button tests cover pointer/Enter/Space, disabled interaction and Tab skipping, accidental form submission prevention/explicit submit, ref and native accessible attribute forwarding. All navigation keyboard regressions pass.
+- Typecheck, lint and production build passed. Production CSS includes all variants and focus/disabled styles. Formatting and git diff checks passed after documentation updates.
+- No native window/screenshot repeated for this component-only change; full visual/accessibility review remains 1.9. To inspect the integrated ghost variant, run npm.cmd run tauri -- dev and Tab through navigation.
