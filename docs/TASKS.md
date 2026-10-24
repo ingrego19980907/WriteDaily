@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.8 completed; awaiting approval before 0.9. Milestone 0 remains incomplete until the desktop startup acceptance criteria are verified.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.2 (colors, typography and application shell) are complete; awaiting approval before 1.3 (navigation).
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -18,21 +18,21 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [x]  | 0.6 | Configure Vitest                     | Completed (2026-10-24) | 0.5          | A meaningful render smoke test passes                                 |
 | [x]  | 0.7 | Create application structure         | Completed (2026-10-24) | 0.6          | Feature boundaries and application entry are documented and build     |
 | [x]  | 0.8 | Create project documentation         | Completed (2026-10-24) | 0.7          | All required documents exist and match the initialized configuration  |
-| [ ]  | 0.9 | Verify desktop startup               | Not started            | 0.8          | Observe Tauri window with React rendered; typecheck and tests pass    |
+| [x]  | 0.9 | Verify desktop startup               | Completed (2026-10-24) | 0.8          | Observe Tauri window with React rendered; typecheck and tests pass    |
 
 ## Milestone 1: Design System
 
-| Done | ID  | Description                     | Status      | Dependencies | Acceptance criteria                                      |
-| ---- | --- | ------------------------------- | ----------- | ------------ | -------------------------------------------------------- |
-| [ ]  | 1.1 | Define colors and typography    | Not started | 0.9          | Central tokens and local font stacks render consistently |
-| [ ]  | 1.2 | Create application shell        | Not started | 1.1          | Shell adapts to supported window sizes                   |
-| [ ]  | 1.3 | Create navigation               | Not started | 1.2          | All section navigation works by keyboard                 |
-| [ ]  | 1.4 | Implement Button                | Not started | 1.3          | Accessible button variants render with focus states      |
-| [ ]  | 1.5 | Implement Input                 | Not started | 1.4          | Labels, errors and keyboard entry work                   |
-| [ ]  | 1.6 | Implement Modal                 | Not started | 1.5          | Focus trap, dismissal and focus restoration work         |
-| [ ]  | 1.7 | Implement Card                  | Not started | 1.6          | Reusable card respects design tokens                     |
-| [ ]  | 1.8 | Implement ProgressBar           | Not started | 1.7          | Clamped values and accessible progress semantics work    |
-| [ ]  | 1.9 | Verify accessibility and layout | Not started | 1.8          | Keyboard, contrast and responsive checks documented      |
+| Done | ID  | Description                     | Status                 | Dependencies | Acceptance criteria                                      |
+| ---- | --- | ------------------------------- | ---------------------- | ------------ | -------------------------------------------------------- |
+| [x]  | 1.1 | Define colors and typography    | Completed (2026-10-24) | 0.9          | Central tokens and local font stacks render consistently |
+| [x]  | 1.2 | Create application shell        | Completed (2026-10-24) | 1.1          | Shell adapts to supported window sizes                   |
+| [ ]  | 1.3 | Create navigation               | Not started            | 1.2          | All section navigation works by keyboard                 |
+| [ ]  | 1.4 | Implement Button                | Not started            | 1.3          | Accessible button variants render with focus states      |
+| [ ]  | 1.5 | Implement Input                 | Not started            | 1.4          | Labels, errors and keyboard entry work                   |
+| [ ]  | 1.6 | Implement Modal                 | Not started            | 1.5          | Focus trap, dismissal and focus restoration work         |
+| [ ]  | 1.7 | Implement Card                  | Not started            | 1.6          | Reusable card respects design tokens                     |
+| [ ]  | 1.8 | Implement ProgressBar           | Not started            | 1.7          | Clamped values and accessible progress semantics work    |
+| [ ]  | 1.9 | Verify accessibility and layout | Not started            | 1.8          | Keyboard, contrast and responsive checks documented      |
 
 ## Milestone 2: My Library
 
@@ -227,3 +227,31 @@ Verification: `git check-ignore --no-index` assertions passed for 19 ignored pat
 - Local Markdown links, documented file paths, npm commands, dependency/version references, task IDs/dependencies and milestone totals passed consistency checks.
 - `npm.cmd run format:check` and `git diff --check`: passed. No application tests or native rebuild repeated for documentation/metadata changes.
 - Desktop window and React visual verification remain task 0.9; installer/fresh-machine validation remains milestone 8.
+
+## Verification evidence: 0.9
+
+- `npm.cmd run tauri -- dev` (Cargo added to the current session PATH): Vite started at 127.0.0.1:5173; native dev compilation passed in 29.86s; Tauri ran target/debug/write-daily.exe.
+- Confirmed the live native window is responsive. Captured only the WriteDaily window through Windows PrintWindow and inspected the screenshot: title bar WriteDaily, React heading WriteDaily, tagline and bootstrap status text are visible; Tailwind spacing/typography is applied. Windows UI Automation also identified WriteDaily web content.
+- Local screenshot evidence: `.cache/desktop-verification/writedaily-window.png` (ignored by Git, not a release screenshot). This is visual verification of the actual desktop window, not a simulated DOM test.
+- `npm.cmd run test:run`: 1 file, 1 test passed.
+- `npm.cmd run typecheck`, `npm.cmd run lint`, `npm.cmd run format:check`, `npm.cmd run build`: passed.
+- Requested graceful window closure; stopped the development session after inspection. Confirmed WriteDaily process exited.
+- Documentation updated and final formatting/diff checks passed. No application behavior or dependency changes were needed.
+- Foundation acceptance is complete. Installer, packaged release, macOS, native persistence and extended accessibility checks remain future milestones; only the Windows development window was verified here.
+
+## Verification evidence: 1.1
+
+- Added src/styles/tokens.css with the seven requested palette tokens, accessible secondary text, local UI/writing font stacks and UI/display/writing size/line-height tokens. Imported through global.css and applied semantic utilities to the existing bootstrap page. No font/network dependencies or component features added.
+- Calculated sRGB contrast: foreground/background 11.05:1, secondary/background 4.78:1; foreground/surface 12.11:1, secondary/surface 5.24:1. Documented limited use of original muted, accent and sage colors, which do not reach 4.5:1 on these surfaces.
+- `npm.cmd run test:run`: 1 file, 1 test passed. Typecheck, lint and production build passed.
+- Checked production CSS includes all palette/font variables and the used typography/secondary utilities; CSS imports resolved.
+- Ran Tauri dev and inspected a capture of the actual desktop window: warm background, primary text, serif heading/tagline and readable secondary UI copy visible. Local ignored evidence: .cache/desktop-verification/colors-typography.png. Closed window gracefully and stopped test dev session.
+- Formatting and git diff checks passed after documentation updates. Application shell remains task 1.2; editor font-size settings remain task 3.11.
+
+## Verification evidence: 1.2
+
+- Added app/AppShell.tsx and app/app-shell.css: semantic header/main, localized keyboard skip link and focusable target, centered readable content, flexible page height and optional navigation slot. Existing bootstrap content renders within the shell.
+- Optional sidebar is absent when no navigation is supplied. CSS stacks supplied navigation above content below 48rem; at/above that breakpoint uses a 14rem sidebar and flexible main. No section navigation, fake feature screens or dependencies added.
+- Added two shell tests checking skip target/landmarks, absence of empty sidebar and separation of supplied navigation/content. `npm.cmd run test:run`: 2 files, 3 tests passed. Typecheck and lint passed.
+- Inspected actual Tauri window at client sizes 1285x812 and minimum 640x480: header/content readable without clipping or visible horizontal overflow. Screenshots ignored locally under .cache/desktop-verification/shell-wide.png and shell-compact.png. Live sidebar navigation remains unimplemented; its keyboard/responsive integration is task 1.3.
+- Closed test window gracefully and stopped dev session. Production build, formatting and git diff checks passed after final changes.

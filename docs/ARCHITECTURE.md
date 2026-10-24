@@ -1,6 +1,6 @@
 # Architecture
 
-Status: documentation synchronized in task 0.8; application structure established in task 0.7. React/Vite, Tauri, Tailwind, lint/format tooling and Vitest are configured. No product features or persistence layer exist. Runtime entry is `src/main.tsx`, application composition is `src/app/App.tsx`, and global CSS is `src/styles/global.css`.
+Status: Foundation complete through task 0.9, including Windows development-window visual verification; application structure established in task 0.7. React/Vite, Tauri, Tailwind, lint/format tooling and Vitest are configured. No product features or persistence layer exist. Runtime entry is `src/main.tsx`, application composition is `src/app/App.tsx`, and global CSS is `src/styles/global.css`.
 
 ## Technology direction
 
@@ -13,6 +13,8 @@ src/
   main.tsx             React DOM mounting and global CSS import
   app/
     App.tsx            application composition (bootstrap page for now)
+    AppShell.tsx       responsive header/main and optional navigation slot
+    app-shell.css      shell layout and responsive navigation area
     App.test.tsx       colocated render smoke test
     i18n/en.ts         centralized English UI copy
   components/ui/       reserved for reusable accessible primitives
@@ -25,6 +27,7 @@ src/
   hooks/               shared React behavior when needed
   services/            future typed persistence boundary
   styles/global.css    Tailwind entry and global styles
+  styles/tokens.css    palette, fonts and typography theme variables
   types/               genuinely shared types when needed
   utils/               small shared pure functions when needed
   test/setup.ts        test matchers and DOM cleanup
@@ -70,6 +73,14 @@ Persistence belongs behind `services` and native Tauri code, with UI consuming t
 
 npm 11.19.1 is the declared package manager; package-lock.json and src-tauri/Cargo.lock are the dependency resolution records. package.json requires Node ^22.22.2, ^24.15.0 or >=26.0.0; installed Node 24.22.1 meets that range. The Rust manifest uses edition 2024 and minimum Rust 1.90; native compilation passed with Rust/Cargo 1.99.1 in task 0.3.
 
-Tauri identifies the application as app.writedaily.desktop, version 0.0.0 (matching npm and Cargo manifests). The main window defaults to 1100 by 760, minimum 640 by 480. Dev hooks use npm run dev at http://127.0.0.1:5173; build hooks use npm run build and embed ../dist relative to src-tauri. Bundling is configured but installer creation/testing is not verified. Scaffold icons are temporary. Windows GUI startup remains task 0.9; no production-ready or macOS validation is claimed.
+Tauri identifies the application as app.writedaily.desktop, version 0.0.0 (matching npm and Cargo manifests). The main window defaults to 1100 by 760, minimum 640 by 480. Dev hooks use npm run dev at http://127.0.0.1:5173; build hooks use npm run build and embed ../dist relative to src-tauri. Bundling is configured but installer creation/testing is not verified. Scaffold icons are temporary. Windows GUI startup and React rendering were visually verified in task 0.9; no production-ready or macOS validation is claimed.
 
 This document distinguishes installed foundation tooling from proposed product architecture. Database schema, native persistence API, autosave recovery journal, precise streak rules and restore transaction strategy must be finalized and tested in their respective tasks.
+
+## Colors and typography (1.1)
+
+Central CSS theme variables live in src/styles/tokens.css using Tailwind 4 @theme static; global.css imports them and applies base styles in @layer base. Components reference semantic utility classes. Local UI and serif font stacks keep typography offline. The original palette is preserved with one darker secondary text token to meet normal-text contrast on background/surface. Size/line-height tokens define baseline UI, display and writing styles; editor settings are not yet implemented. Design system documentation contains measured contrast and usage limits. The running Windows Tauri window was visually checked after application of the tokens.
+
+## Application shell (1.2)
+
+App composes AppShell with the existing bootstrap content. AppShell owns the semantic header, skip-to-content link and single focusable main landmark. It accepts children and an optional navigation ReactNode; no router or section state is added. Without navigation the sidebar is omitted. With navigation the body stacks at narrow widths and switches at 48rem to a 14rem sidebar plus minmax(0,1fr) content. Main content is centered at max-w-3xl with fluid padding; intrinsic min-width and long text wrapping protect compact layouts. Styling remains in Tailwind's component layer and uses existing tokens. Navigation and page features remain separate tasks.

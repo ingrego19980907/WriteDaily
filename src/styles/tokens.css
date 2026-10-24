@@ -1,0 +1,21 @@
+@theme static {
+  --color-background: #f7f3ec;
+  --color-surface: #fffefa;
+  --color-foreground: #38352f;
+  --color-accent: #8b7355;
+  --color-sage: #a8b5a2;
+  --color-muted: #89847b;
+  --color-border: #e8e2d9;
+  --color-secondary: #706b62;
+
+  --font-sans:
+    'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-writing: Georgia, 'Times New Roman', serif;
+
+  --text-ui: 1rem;
+  --text-ui--line-height: 1.6;
+  --text-display: 2.5rem;
+  --text-display--line-height: 1.2;
+  --text-writing: 1.125rem;
+  --text-writing--line-height: 1.8;
+}

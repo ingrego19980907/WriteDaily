@@ -55,3 +55,15 @@ Moved App and its existing test together into src/app; moved global CSS into src
 Reconciled documentation with current source/configuration, task status and lockfiles. Clarified which product behavior remains proposed; distinguished historical native compilation from pending GUI startup and installer validation. Added milestone completion gates and document navigation. Fixed damaged separators and historical/current wording without rewriting past verification evidence.
 
 Corrected package.json packageManager from inherited Yarn metadata to npm@11.19.1, matching the existing npm workflow and package-lock.json. No dependency versions, application behavior or native permissions changed. No new dependency installation was required.
+
+## 2026-10-24 - Desktop startup verification (0.9)
+
+Ran the actual Tauri development workflow on Windows and visually inspected a capture of the native WriteDaily window. React heading, tagline and status rendered with Tailwind styles. Native build, unit smoke test, TypeScript, lint, formatting and frontend build passed. Closed the test window gracefully and stopped development processes afterward. No implementation changes required. Local screenshot evidence is ignored under .cache/desktop-verification; it is not a release asset. Foundation acceptance is now complete; installer, macOS and persistence verification remain outside this subtask.
+
+## 2026-10-24 - Colors and typography (1.1)
+
+Define theme tokens in a dedicated tokens.css using Tailwind @theme static, imported by the existing global entry. Preserve the requested palette and add secondary #706B62 because original muted is only 3.36:1 against background. Use local Segoe UI/system UI and Georgia/Times serif stacks with rem-based UI/display/writing sizes; no remote fonts or dependencies. Apply tokens to bootstrap content without starting the shell or editor tasks. Verified compiled utilities, text contrast, frontend checks and actual Tauri appearance. Editor font-size preferences remain 3.11.
+
+## 2026-10-24 - Application shell (1.2)
+
+AppShell owns a semantic masthead/main, skip link and optional navigation slot; App supplies existing bootstrap content. Hide the absent sidebar rather than adding inactive section links before task 1.3. Use a 48rem breakpoint for stacked/side-by-side navigation and existing surface/background tokens. No routing, icons, persistence or extra dependency. Two structural accessibility tests and the existing render test pass. Actual Tauri screenshots verified minimum 640x480 and wide 1285x812 client layouts; future navigation integration still needs its own keyboard/responsive checks.

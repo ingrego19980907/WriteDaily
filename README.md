@@ -6,9 +6,9 @@ WriteDaily is a planned free, offline-first Windows writing application, with fu
 
 ## Current status
 
-Foundation tasks 0.1-0.8 are complete: environment inspection, React/strict TypeScript/Vite, Tauri 2, Tailwind, ESLint/Prettier, Vitest, application structure and synchronized documentation. The UI currently shows only the WriteDaily name, tagline and bootstrap status. Feature folders are reserved; no library, editor, database, autosave, export or backup is implemented.
+Foundation tasks 0.1-0.9 are complete: environment inspection, React/strict TypeScript/Vite, Tauri 2, Tailwind, ESLint/Prettier, Vitest, application structure, synchronized documentation and verified Windows desktop startup. The UI currently shows a responsive application shell with the WriteDaily name, tagline and bootstrap status. Feature folders are reserved; no library, editor, database, autosave, export or backup is implemented.
 
-Frontend build and the React DOM smoke test have passed. A native debug build passed in task 0.3. Desktop window launch and visual React verification are still pending in task 0.9, so Milestone 0 is not yet complete. See [task status and verification evidence](docs/TASKS.md).
+Frontend checks, the React DOM smoke test and native development build passed. The Windows Tauri window was opened and its React heading, tagline and status visually verified in task 0.9. Milestone 0 is complete; tasks 1.1-1.2 colors/typography and application shell are complete; task 1.3 (navigation) awaits approval. See [task status and verification evidence](docs/TASKS.md).
 
 ## Prerequisites
 
@@ -41,9 +41,9 @@ npm.cmd run preview
 
 The official create-vite 9.3.1 React/TypeScript template was generated in a temporary workspace directory. Selected files were merged without replacing documentation; the temporary scaffold was removed. Template demo assets and its Oxlint setup were omitted: the approved linting choice is ESLint in task 0.5. Both TypeScript projects explicitly enable `strict`.
 
-## Remaining foundation verification
+## Verification status
 
-Tauri 2 debug executable compilation is verified using the existing Windows C++ tools and updated Rust. GUI launch and installer verification remain pending; details are tracked in docs/TASKS.md. Task 0.9 must observe the desktop window and React rendering, then rerun the required frontend checks. Browser development does not verify desktop startup or persistence.
+Tauri 2 compilation and Windows development-window startup are verified using the existing Windows C++ tools, Rust 1.99.1 and Node 24.22.1. React content was visually inspected in the native window, and frontend checks passed. Installer and packaged release verification remain pending; details are tracked in docs/TASKS.md. This foundation verification does not establish native persistence or macOS support.
 
 ## Desktop development
 
@@ -66,7 +66,7 @@ The build checks the frontend and compiles `src-tauri/target/debug/write-daily.e
 
 ## Styling
 
-Tailwind CSS 4.3.3 is integrated using @tailwindcss/vite, following the [official Vite setup](https://tailwindcss.com/docs/installation/using-vite). `src/styles/global.css` imports Tailwind; use static utility class names in React components. No separate Tailwind or PostCSS configuration is needed for this setup. The bootstrap page uses utility classes as an integration check. Product colors, typography tokens and reusable components remain milestone 1 work.
+Tailwind CSS 4.3.3 is integrated using @tailwindcss/vite, following the [official Vite setup](https://tailwindcss.com/docs/installation/using-vite). `src/styles/global.css` imports Tailwind; use static utility class names in React components. No separate Tailwind or PostCSS configuration is needed for this setup. The bootstrap page uses utility classes as an integration check. Palette and typography tokens are centralized in `src/styles/tokens.css`; the existing page uses the warm background, readable text colors and local UI/serif fonts. The responsive AppShell is implemented; navigation and reusable controls remain later milestone 1 work. See [design system](docs/DESIGN_SYSTEM.md) for token usage and contrast limits.
 
 ## Linting and formatting
 
@@ -110,7 +110,7 @@ Reserved folders use `.gitkeep` markers; product feature implementations come la
 | -------------------------------------- | ---------------------------------------------------------------- |
 | [PRODUCT](docs/PRODUCT.md)             | Product vision, version 1 scope and exclusions                   |
 | [ARCHITECTURE](docs/ARCHITECTURE.md)   | Current structure, module boundaries and proposed persistence    |
-| [DESIGN_SYSTEM](docs/DESIGN_SYSTEM.md) | Planned tokens, typography and component rules                   |
+| [DESIGN_SYSTEM](docs/DESIGN_SYSTEM.md) | Implemented tokens/typography and planned component rules        |
 | [DATA_MODEL](docs/DATA_MODEL.md)       | Proposed entities, activity policy and backup design             |
 | [ROADMAP](docs/ROADMAP.md)             | Milestone goals and completion gates                             |
 | [TASKS](docs/TASKS.md)                 | Progress source of truth, dependencies and verification evidence |
@@ -118,3 +118,7 @@ Reserved folders use `.gitkeep` markers; product feature implementations come la
 | [AGENTS](AGENTS.md)                    | Concise instructions for future agent sessions                   |
 
 Data model, autosave, streak and backup policies remain proposals until their implementation tasks verify them. Historical decisions describe the environment at the time of each task; current prerequisites are listed above. Fresh-machine setup and Windows installer validation remain release tasks.
+
+## Application shell
+
+`src/app/AppShell.tsx` provides the masthead, keyboard skip link and main content area. It accepts optional navigation but no section links exist yet. Main content adapts to the supported minimum desktop size (640x480); the layout was visually checked in Tauri at minimum and wider sizes. Navigation is the next task. Run `npm.cmd run tauri -- dev` with Cargo on PATH to inspect the current shell.
