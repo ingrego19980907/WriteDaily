@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.5 (colors, typography, shell, navigation, Button and Input) are complete; awaiting approval before 1.6 (Modal).
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.6 (colors, typography, shell, navigation, Button, Input and Modal) are complete; awaiting approval before 1.7 (Card).
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -29,7 +29,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [x]  | 1.3 | Create navigation               | Completed (2026-10-24) | 1.2          | All section navigation works by keyboard                 |
 | [x]  | 1.4 | Implement Button                | Completed (2026-10-24) | 1.3          | Accessible button variants render with focus states      |
 | [x]  | 1.5 | Implement Input                 | Completed (2026-10-24) | 1.4          | Labels, errors and keyboard entry work                   |
-| [ ]  | 1.6 | Implement Modal                 | Not started            | 1.5          | Focus trap, dismissal and focus restoration work         |
+| [x]  | 1.6 | Implement Modal                 | Completed (2026-10-24) | 1.5          | Focus trap, dismissal and focus restoration work         |
 | [ ]  | 1.7 | Implement Card                  | Not started            | 1.6          | Reusable card respects design tokens                     |
 | [ ]  | 1.8 | Implement ProgressBar           | Not started            | 1.7          | Clamped values and accessible progress semantics work    |
 | [ ]  | 1.9 | Verify accessibility and layout | Not started            | 1.8          | Keyboard, contrast and responsive checks documented      |
@@ -283,3 +283,13 @@ Verification: `git check-ignore --no-index` assertions passed for 19 ignored pat
 - `npm.cmd run test:run`: 4 files, 19 tests passed. Typecheck, lint and production build passed. A Vite transform smoke check verified Input CSS including label, focus, disabled and error rules.
 - Input is not yet used by a product screen, so its component CSS will load when a real consumer imports it. No fake form/search control or visual desktop claim added. Full visual accessibility review remains 1.9 and real form validation remains feature work.
 - Formatting and git diff checks passed after documentation updates. Run npm.cmd run test:run -- src/components/ui/Input.test.tsx for focused verification.
+
+## Verification evidence: 1.6
+
+- Added @radix-ui/react-dialog 1.3.1 after checking official docs and npm React 19 peer compatibility; npm audit reported zero vulnerabilities. Radix owns modal focus trapping, Escape/outside dismissal, portal, outside interaction blocking and trigger focus restoration.
+- Added Modal.tsx/modal.css with controlled open/onOpenChange, required semantic trigger/title/closeLabel, optional accessible description, shared Button close action, surface/overlay/shadow tokens, scrollable body and persistent visible header. No product dialog or form workflow added.
+- Added seven tests covering keyboard open/name/description/initial focus, forward/reverse focus loop, Escape/focus restoration in StrictMode, close/reopen, backdrop dismissal, caller refusal of dismissal while retaining entered data and description omission without Radix warnings.
+- `npm.cmd run test:run`: 5 files, 26 tests passed. Typecheck, lint and frontend production build passed.
+- Actual Tauri visual preview verified on wide and minimum-size windows with long scrollable content. Compact capture confirms Close remains visible and body scrolling is available. Focus and dismissal behavior are established by automated tests; native SendKeys screenshots were inconclusive and are not counted as additional keyboard evidence.
+- Preview HTML/TSX/config were isolated under ignored .cache/modal-preview and removed after closing the window and stopping dev. No permanent demo route or product controls added. Local screenshots remain ignored under .cache/desktop-verification/modal-*.png. Standard debug build without bundling restored the normal desktop configuration afterward.
+- Formatting and git diff checks passed after documentation updates. Consumers must decide whether closing an unsaved form is allowed; this component does not implement saving or discard confirmation.

@@ -10,6 +10,9 @@
   --color-accent-strong: #6f583f;
   --color-accent-strong-hover: #5c4732;
   --color-error: #9b443a;
+  --color-overlay: color-mix(in srgb, var(--color-foreground) 40%, transparent);
+  --shadow-modal: 0 1rem 3rem
+    color-mix(in srgb, var(--color-foreground) 20%, transparent);
 
   --font-sans:
     'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;

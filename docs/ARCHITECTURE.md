@@ -4,7 +4,7 @@ Status: Foundation complete through task 0.9, including Windows development-wind
 
 ## Technology direction
 
-Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs nineteen shell/navigation/Button/Input tests; domain and persistence tests will accompany their feature implementations. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
+Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs twenty-six shell/navigation/Button/Input/Modal tests; domain and persistence tests will accompany their feature implementations. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
 
 ## Organization
 
@@ -19,7 +19,7 @@ src/
     app-shell.css      shell layout and responsive navigation area
     App.test.tsx       colocated render smoke test
     i18n/en.ts         centralized English UI copy
-  components/ui/       shared Button/Input and future accessible primitives
+  components/ui/       shared Button/Input/Modal and future accessible primitives
   features/
     library/           books and covers
     editor/            chapters and writing
@@ -100,3 +100,9 @@ Button wraps a native button with typed primary/secondary/ghost variants and com
 ## Shared Input (1.5)
 
 Input is a native single-line field wrapper with a required visible label and optional hint/error. useId supplies stable distinct field IDs; helper IDs are joined with caller descriptions. An error marks the field invalid, but form state, validation rules and timing remain the consuming feature's responsibility. Native props/ref and controlled/uncontrolled values pass through; no form library is added. Component CSS imports with Input when consumed and uses shared palette/error tokens. The application does not import it yet because no actual form feature exists. Six tests verify labeling, accessibility descriptions/error recovery, unique IDs, keyboard/read-only/disabled behavior, controlled values and native constraints/ref forwarding.
+
+## Shared Modal (1.6)
+
+Modal wraps @radix-ui/react-dialog rather than implementing a focus trap manually. The component owns presentation (portal, overlay, title/optional description, header Close and scrollable content); the consumer owns open state and whether a dismissal request may proceed. A required semantic trigger provides deterministic focus restoration. Shared Button's ref/prop forwarding supports Radix asChild composition. No app-to-UI imports or localization dependency are added: callers supply text. Like Input, Modal is not yet used by a product feature; styles/dependency load with its eventual consumer.
+
+Seven behavioral tests cover focus, description and dismissal boundaries, including StrictMode and a refused dismissal retaining form input. A temporary ignored Tauri preview verified layout/scrolling, then was removed. Native keyboard capture was inconclusive and is not substituted for test evidence. The normal desktop configuration was rebuilt after preview. Future destructive confirmations may need a dedicated alert-dialog pattern; unsaved-form decisions remain explicit feature responsibilities.

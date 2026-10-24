@@ -85,3 +85,9 @@ Add strong accent #6F583F and hover #5C4732 rather than using the original accen
 Use a native single-line input wrapper with visible label and optional hint/error strings, useId connections, merged caller descriptions and error-driven aria-invalid. Preserve native ref/props and controlled/uncontrolled behavior; no form state/validation abstraction or dependency. Restrict the type API to text/numeric/date-like fields rather than trying to style checkboxes/file controls with one component.
 
 Add error #9B443A as a semantic token (6.34:1 surface, 5.79:1 background), keeping the original palette. Do not insert an unused field into the product UI; the component's styling loads with a future real form consumer. Six tests plus all existing regressions pass (19 total), alongside TypeScript/lint/build and a Vite CSS transformation smoke check. Full visual form integration remains later work.
+
+## 2026-10-24 - Shared Modal (1.6)
+
+Choose @radix-ui/react-dialog 1.3.1 (React 19 compatible) for established focus trapping, keyboard/outside dismissal and trigger restoration; avoid custom accessibility machinery. See https://www.radix-ui.com/primitives/docs/components/dialog . Modal supplies WriteDaily presentation with required title/closeLabel/semantic trigger, optional description and caller-owned open state. A caller may refuse closing rather than discard unsaved input. No product flow added.
+
+Seven tests cover accessible opening, focus loop, StrictMode Escape/restore, close/reopen, overlay dismissal, refused closing and optional descriptions (26 total tests). Temporary ignored Tauri preview visually verified wide/compact scrolling and visible Close; removed afterward and restored normal debug configuration. Native SendKeys captures were inconclusive, so keyboard assertions rely on behavioral tests. No custom animation, data saving or destructive confirmation policy introduced.
