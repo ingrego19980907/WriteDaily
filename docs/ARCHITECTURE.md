@@ -4,7 +4,7 @@ Status: Foundation complete through task 0.9, including Windows development-wind
 
 ## Technology direction
 
-Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs one React render smoke test; domain and persistence tests will accompany their feature implementations. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
+Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs nine shell/navigation tests; domain and persistence tests will accompany their feature implementations. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
 
 ## Organization
 
@@ -12,7 +12,9 @@ Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for st
 src/
   main.tsx             React DOM mounting and global CSS import
   app/
-    App.tsx            application composition (bootstrap page for now)
+    App.tsx            application composition and current-section state
+    AppNavigation.tsx  accessible section navigation
+    navigation.ts      ordered section IDs and SectionId type
     AppShell.tsx       responsive header/main and optional navigation slot
     app-shell.css      shell layout and responsive navigation area
     App.test.tsx       colocated render smoke test
@@ -83,4 +85,10 @@ Central CSS theme variables live in src/styles/tokens.css using Tailwind 4 @them
 
 ## Application shell (1.2)
 
-App composes AppShell with the existing bootstrap content. AppShell owns the semantic header, skip-to-content link and single focusable main landmark. It accepts children and an optional navigation ReactNode; no router or section state is added. Without navigation the sidebar is omitted. With navigation the body stacks at narrow widths and switches at 48rem to a 14rem sidebar plus minmax(0,1fr) content. Main content is centered at max-w-3xl with fluid padding; intrinsic min-width and long text wrapping protect compact layouts. Styling remains in Tailwind's component layer and uses existing tokens. Navigation and page features remain separate tasks.
+App composes AppShell with section navigation and the current section presentation. AppShell owns the semantic header, skip-to-content link and single focusable main landmark. It accepts children and an optional navigation ReactNode; no router is added; App owns current-section state as of task 1.3. Without navigation the sidebar is omitted. With navigation the body stacks at narrow widths and switches at 48rem to a 14rem sidebar plus minmax(0,1fr) content. Main content is centered at max-w-3xl with fluid padding; intrinsic min-width and long text wrapping protect compact layouts. Styling remains in Tailwind's component layer and uses existing tokens. Navigation is implemented in 1.3; actual product page features remain later milestone work.
+
+## Navigation (1.3)
+
+A small ordered section ID list defines the SectionId union. App owns useState for the current section and renders centralized English title/subtitle/Coming soon copy. AppNavigation receives the active ID and typed selection callback; its native buttons use aria-current=page, visible focus outlines and standard keyboard activation. An effect moves focus to the new page heading after section changes without stealing initial mount focus. All five sections have explicit unfinished views; feature folders remain reserved.
+
+This desktop foundation needs no URL router or persistence for navigation. Reload/restart returns to library; browser history behavior is not implemented. Future unsaved-editor guards must be added before navigation can leave real editable content. Tests use user-event to cover keyboard and pointer interactions. Actual Windows navigation layout and one native keyboard transition were also visually verified.

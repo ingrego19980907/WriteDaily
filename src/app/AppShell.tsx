@@ -18,6 +18,7 @@ export function AppShell({ children, navigation }: AppShellProps) {
       </a>
       <header className="border-b border-border bg-surface px-6 py-4">
         <p className="font-writing text-2xl">{en.app.name}</p>
+        <p className="text-sm text-secondary">{en.app.tagline}</p>
       </header>
       <div
         className={

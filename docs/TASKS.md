@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.2 (colors, typography and application shell) are complete; awaiting approval before 1.3 (navigation).
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.3 (colors, typography, application shell and navigation) are complete; awaiting approval before 1.4 (Button).
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -26,7 +26,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | ---- | --- | ------------------------------- | ---------------------- | ------------ | -------------------------------------------------------- |
 | [x]  | 1.1 | Define colors and typography    | Completed (2026-10-24) | 0.9          | Central tokens and local font stacks render consistently |
 | [x]  | 1.2 | Create application shell        | Completed (2026-10-24) | 1.1          | Shell adapts to supported window sizes                   |
-| [ ]  | 1.3 | Create navigation               | Not started            | 1.2          | All section navigation works by keyboard                 |
+| [x]  | 1.3 | Create navigation               | Completed (2026-10-24) | 1.2          | All section navigation works by keyboard                 |
 | [ ]  | 1.4 | Implement Button                | Not started            | 1.3          | Accessible button variants render with focus states      |
 | [ ]  | 1.5 | Implement Input                 | Not started            | 1.4          | Labels, errors and keyboard entry work                   |
 | [ ]  | 1.6 | Implement Modal                 | Not started            | 1.5          | Focus trap, dismissal and focus restoration work         |
@@ -255,3 +255,13 @@ Verification: `git check-ignore --no-index` assertions passed for 19 ignored pat
 - Added two shell tests checking skip target/landmarks, absence of empty sidebar and separation of supplied navigation/content. `npm.cmd run test:run`: 2 files, 3 tests passed. Typecheck and lint passed.
 - Inspected actual Tauri window at client sizes 1285x812 and minimum 640x480: header/content readable without clipping or visible horizontal overflow. Screenshots ignored locally under .cache/desktop-verification/shell-wide.png and shell-compact.png. Live sidebar navigation remains unimplemented; its keyboard/responsive integration is task 1.3.
 - Closed test window gracefully and stopped dev session. Production build, formatting and git diff checks passed after final changes.
+
+## Verification evidence: 1.3
+
+- Added typed section IDs and AppNavigation for My Library, Writing Editor, Goals & Deadlines, Activity Calendar and Achievements. App owns in-memory section state, defaults to My Library and moves focus to the section heading on change. Active button has aria-current=page plus visual weight/background/border cues; native buttons support Tab, Enter and Space.
+- Responsive navigation uses two columns above content below 48rem and one sidebar column on larger windows. Brand/tagline remain in the masthead. All section copy is centralized in English messages. Destination views explicitly say Coming soon; no library/editor/statistics/persistence features are claimed or implemented.
+- Added @testing-library/user-event 14.6.8 after checking official guidance and npm metadata; npm audit reported zero vulnerabilities. Updated App tests for default section, each of five keyboard destinations, current-item uniqueness, heading focus and pointer return to library.
+- `npm.cmd run test:run`: 2 files, 9 tests passed. Typecheck, lint and production build passed.
+- Tauri dev visual inspection passed for sidebar and compact layouts. DPI-aware screenshots at 125% Windows scaling covered approximately 1306x862 and 640x481 logical client sizes; all navigation labels remained visible, with vertical scrolling available in compact mode. Local ignored evidence: .cache/desktop-verification/navigation-wide-dpi.png and navigation-compact-dpi.png. Initial non-DPI-aware captures were clipped by the capture tool and superseded.
+- Sent Tab/Enter only after confirming WriteDaily was foreground; visually confirmed actual native keyboard transition to Writing Editor. All five destinations additionally verified in DOM keyboard tests.
+- Closed the test window gracefully and stopped the dev session. Formatting and git diff checks passed after documentation updates. No router, history persistence or new product feature data added.

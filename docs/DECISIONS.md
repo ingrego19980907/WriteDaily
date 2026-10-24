@@ -67,3 +67,9 @@ Define theme tokens in a dedicated tokens.css using Tailwind @theme static, impo
 ## 2026-10-24 - Application shell (1.2)
 
 AppShell owns a semantic masthead/main, skip link and optional navigation slot; App supplies existing bootstrap content. Hide the absent sidebar rather than adding inactive section links before task 1.3. Use a 48rem breakpoint for stacked/side-by-side navigation and existing surface/background tokens. No routing, icons, persistence or extra dependency. Two structural accessibility tests and the existing render test pass. Actual Tauri screenshots verified minimum 640x480 and wide 1285x812 client layouts; future navigation integration still needs its own keyboard/responsive checks.
+
+## 2026-10-24 - Section navigation (1.3)
+
+Use typed section IDs, native buttons and local React state for five desktop sections; no routing dependency or history/persistence behavior is needed yet. My Library is the initial section. aria-current, visible active styles, skip link and heading focus support keyboard navigation. All destination content is explicitly Coming soon, without fake data or unfinished feature controls. Real feature workflows remain in their approved milestones.
+
+Add only @testing-library/user-event 14.6.8 as a development dependency for realistic keyboard/pointer tests. Nine tests pass, including all five keyboard destinations. Verified actual Tauri sidebar/compact layouts and a native Tab/Enter transition. DPI-aware screenshot capture is required at Windows 125% scaling; the initial clipped captures were superseded, with no application layout fix needed.

@@ -1,6 +1,6 @@
 # Design system
 
-Status: colors/typography implemented in 1.1 and application shell in 1.2; navigation and reusable controls remain future tasks. `src/styles/tokens.css` defines centralized Tailwind theme variables; `src/styles/global.css` imports them and applies base styling.
+Status: colors/typography implemented in 1.1 and application shell in 1.2; navigation implemented in 1.3; reusable controls remain future tasks. `src/styles/tokens.css` defines centralized Tailwind theme variables; `src/styles/global.css` imports them and applies base styling.
 
 | Token          | Value   |
 | -------------- | ------- |
@@ -43,7 +43,7 @@ No font downloads or font dependencies are needed. Fonts resolve locally, with U
 | --text-display / text-display | 2.5rem, line-height 1.2                                            | Bootstrap heading                                    |
 | --text-writing / text-writing | 1.125rem, line-height 1.8                                          | Comfortable serif text                               |
 
-Root font size remains 1rem so system/browser scaling is respected. Base styles live in Tailwind's base layer so utilities can override them. The bootstrap heading and tagline demonstrate the serif stack; status copy demonstrates the UI stack and secondary color. No editor or adjustable-font-size control exists yet; implement that in task 3.11.
+Root font size remains 1rem so system/browser scaling is respected. Base styles live in Tailwind's base layer so utilities can override them. Section headings/subtitles use the serif stack; navigation and descriptive copy use the UI stack. No editor or adjustable-font-size control exists yet; implement that in task 3.11.
 
 ## Later component guidance
 
@@ -53,6 +53,10 @@ Reusable Button, Input, Modal, Card and ProgressBar need visible focus states, s
 
 ## Application shell
 
-The shell uses a surface-colored masthead with a decorative border and a warm background main area. Content is limited to 48rem with fluid 1.5-3rem padding. Supplied navigation uses a surface sidebar, stacked above main below 48rem and 14rem wide alongside it on larger windows. It is omitted until supplied in task 1.3. Native title bar is unchanged.
+The shell uses a surface-colored masthead with a decorative border and a warm background main area. Content is limited to 48rem with fluid 1.5-3rem padding. Supplied navigation uses a surface sidebar, stacked above main below 48rem and 14rem wide alongside it on larger windows. Task 1.3 supplies five navigation buttons: a two-column grid in compact mode and one column in the sidebar. Native title bar is unchanged.
 
-A localized skip link appears on keyboard focus with foreground-colored outline and border; its main target has tabindex=-1 for focus without adding a normal Tab stop. Main/aside content can wrap long text. Visual checks passed at actual Windows client sizes 1285x812 and 640x480. Full keyboard navigation and accessibility review remain subsequent tasks.
+A localized skip link appears on keyboard focus with foreground-colored outline and border; its main target has tabindex=-1 for focus without adding a normal Tab stop. Main/aside content can wrap long text. Visual checks passed at actual Windows client sizes 1285x812 and 640x480. Section keyboard navigation is verified in 1.3; the full accessibility review remains task 1.9.
+
+## Section navigation
+
+Navigation buttons use foreground text on surface/background, a visible foreground outline on keyboard focus and generous padding. Current selection combines weight, background and a decorative accent border, with aria-current=page for assistive technology. Do not rely on the accent border alone to identify selection. Selecting a different section moves focus to its heading. At the supported minimum window size, vertical page scrolling is expected rather than hiding sections behind a menu. Native title-bar behavior remains unchanged.
