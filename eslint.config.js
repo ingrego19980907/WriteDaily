@@ -7,7 +7,16 @@ import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
 export default defineConfig([
-  globalIgnores(['dist/**', 'src-tauri/target/**', 'src-tauri/gen/**']),
+  globalIgnores([
+    'dist/**',
+    'src-tauri/target/**',
+    'src-tauri/gen/**',
+    'coverage/**',
+    'playwright-report/**',
+    'test-results/**',
+    'blob-report/**',
+    '.cache/**',
+  ]),
   {
     files: ['**/*.{js,ts,tsx}'],
     extends: [js.configs.recommended, tseslint.configs.recommended],

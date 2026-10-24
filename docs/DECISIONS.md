@@ -103,3 +103,9 @@ Existing App/navigation/component tests remain green (26 tests); updated App's n
 Use a labelled read-only progressbar role with a token-styled fill, explicit min/max/current semantics and no keyboard/live-region behavior. Clamp finite current values; treat missing/nonfinite values as unknown rather than claiming completion. Invalid maxima fall back to 100. Unknown state uses a static centered segment, not an animated or fake percentage. No new dependency and no example progress in product screens. Reference: https://www.w3.org/TR/wai-aria/#progressbar .
 
 Strong accent fill on the light border track measures 5.19:1; secondary boundary contrasts with both supported surfaces. Fourteen parameterized range/semantics/transition tests bring the suite to 40 passing tests. TypeScript/lint/build and Vite CSS transformation pass. Full visual/accessibility review is the next approved task (1.9).
+
+## 2026-10-24 - Accessibility and responsive review (1.9)
+
+Add Playwright 1.64.1 and @axe-core/playwright 4.14.0 for real browser checks, using existing Edge rather than downloading/updating a browser. Keep a committed test-only primitive fixture, dedicated port 5174 and strict e2e TypeScript project; no demo route is bundled with the app. Official guidance: https://playwright.dev/docs/accessibility-testing and https://playwright.dev/docs/browsers .
+
+A failing forced-colors regression exposed ProgressBar fill/track becoming identical; fix it with scoped system colors and a decorative-fill-only adjustment exception. Screenshot review exposed incorrect global/component CSS order in the test fixture; correct that order and guard actual styled rendering before rescanning. All 12 browser tests and 40 component tests pass; no axe rules disabled. Review report documents limits rather than claiming complete WCAG conformance. Milestone 1 current keyboard/contrast/responsive acceptance is complete; Milestone 2 still requires approval.

@@ -4,7 +4,7 @@ Status: Foundation complete through task 0.9, including Windows development-wind
 
 ## Technology direction
 
-Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs forty shell/navigation/shared-component tests; domain and persistence tests will accompany their feature implementations. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
+Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs forty shell/navigation/shared-component tests plus twelve Edge browser accessibility/layout tests; domain and persistence tests will accompany their feature implementations. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
 
 ## Organization
 
@@ -113,4 +113,10 @@ Card is a small native div wrapper with component-layer styles and native props/
 
 ## Shared ProgressBar (1.8)
 
-ProgressBar normalizes a configurable range and synchronizes its read-only progressbar ARIA values with a token-styled fill. The visible label stays outside the progressbar node and is linked through useId. Unknown current values omit aria-valuenow; invalid maximum falls back to 100. This presentation primitive does not calculate manuscript totals or daily activity and adds no feature data, polling, live region or persistence. Static unknown-state styling avoids motion requirements. Consumers supply actual values and optional localized aria-valuetext. Fourteen boundary/semantics tests accompany the component; CSS transformation/contrast checks pass. Full visual/accessibility review remains 1.9.
+ProgressBar normalizes a configurable range and synchronizes its read-only progressbar ARIA values with a token-styled fill. The visible label stays outside the progressbar node and is linked through useId. Unknown current values omit aria-valuenow; invalid maximum falls back to 100. This presentation primitive does not calculate manuscript totals or daily activity and adds no feature data, polling, live region or persistence. Static unknown-state styling avoids motion requirements. Consumers supply actual values and optional localized aria-valuetext. Fourteen boundary/semantics tests accompany the component; CSS transformation/contrast checks pass. Current visual/accessibility review passed in 1.9.
+
+## Browser accessibility/layout verification (1.9)
+
+Playwright tests run the actual Vite frontend in installed Edge (channel msedge) with a dedicated port-5174 server owned by the test runner. Axe scans all current sections and a test-only component fixture; no rules are disabled. Browser/config/fixture TypeScript lives under tsconfig.e2e.json, referenced by the main typecheck/build. Vitest still collects only src test files; the test fixture is not a production route or JS entry. Generated screenshots/traces/reports are excluded from Git, lint and formatting.
+
+The fixture imports global styles before component modules to establish Tailwind cascade layers, matching main.tsx. Integration guards confirm styles are applied before accessibility assumptions. ProgressBar's forced-colors fill uses system Highlight with a narrow forced-color-adjust exception; no native permissions or desktop configuration changed. Current responsive/keyboard acceptance passed; the detailed review records remaining screen-reader/native/macOS limits.

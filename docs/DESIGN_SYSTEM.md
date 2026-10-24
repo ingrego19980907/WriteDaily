@@ -1,6 +1,6 @@
 # Design system
 
-Status: colors/typography implemented in 1.1 and application shell in 1.2; navigation implemented in 1.3 and Button in 1.4, Input in 1.5 and Modal in 1.6; Card implemented in 1.7; ProgressBar implemented in 1.8; full accessibility/layout review remains 1.9. `src/styles/tokens.css` defines centralized Tailwind theme variables; `src/styles/global.css` imports them and applies base styling.
+Status: colors/typography implemented in 1.1 and application shell in 1.2; navigation implemented in 1.3 and Button in 1.4, Input in 1.5 and Modal in 1.6; Card implemented in 1.7; ProgressBar implemented in 1.8; accessibility/layout review completed in 1.9. `src/styles/tokens.css` defines centralized Tailwind theme variables; `src/styles/global.css` imports them and applies base styling.
 
 | Token               | Value   |
 | ------------------- | ------- |
@@ -58,7 +58,7 @@ Reusable Button, Input, Modal, Card and ProgressBar need visible focus states, s
 
 The shell uses a surface-colored masthead with a decorative border and a warm background main area. Content is limited to 48rem with fluid 1.5-3rem padding. Supplied navigation uses a surface sidebar, stacked above main below 48rem and 14rem wide alongside it on larger windows. Task 1.3 supplies five navigation buttons: a two-column grid in compact mode and one column in the sidebar. Native title bar is unchanged.
 
-A localized skip link appears on keyboard focus with foreground-colored outline and border; its main target has tabindex=-1 for focus without adding a normal Tab stop. Main/aside content can wrap long text. Visual checks passed at actual Windows client sizes 1285x812 and 640x480. Section keyboard navigation is verified in 1.3; the full accessibility review remains task 1.9.
+A localized skip link appears on keyboard focus with foreground-colored outline and border; its main target has tabindex=-1 for focus without adding a normal Tab stop. Main/aside content can wrap long text. Visual checks passed at actual Windows client sizes 1285x812 and 640x480. Section keyboard navigation is verified in 1.3; the current accessibility/layout audit passed in 1.9.
 
 ## Section navigation
 
@@ -76,7 +76,7 @@ Navigation buttons use foreground text on surface/background, a visible foregrou
 
 Primary text contrast is 6.62:1, increasing to 8.66:1 on hover. Primary fill has at least 6.04:1 contrast against page surfaces. Secondary/ghost text and secondary borders retain the documented accessible foreground/secondary pairings. Original accent remains a decorative color, not primary button text/fill pairing.
 
-All variants have minimum 2.75rem height, wrapping labels, 2px foreground focus-visible outline with 3px offset, native pointer/Enter/Space activation and disabled styling (opacity 0.5, unavailable cursor, no hover change). Native disabled removes the control from tab order and blocks activation; aria-disabled alone is not a substitute. No loading behavior, link rendering or destructive-action semantics are introduced. Navigation uses the ghost variant with existing layout/current-page utilities. Full visual state review remains task 1.9.
+All variants have minimum 2.75rem height, wrapping labels, 2px foreground focus-visible outline with 3px offset, native pointer/Enter/Space activation and disabled styling (opacity 0.5, unavailable cursor, no hover change). Native disabled removes the control from tab order and blocks activation; aria-disabled alone is not a substitute. No loading behavior, link rendering or destructive-action semantics are introduced. Navigation uses the ghost variant with existing layout/current-page utilities. Current visual/browser state review passed in 1.9.
 
 ## Input
 
@@ -86,7 +86,7 @@ A generated useId connects label and input unless the caller supplies a unique e
 
 Input defaults to type=text, supports controlled or uncontrolled usage, and forwards required, disabled, readOnly, name, min/max, autocomplete and other native attributes. Disabled skips Tab and blocks editing; read-only stays focusable. className applies to the input itself; field layout is a full-width grid with wrapping labels/messages.
 
-The surface field has a secondary-colored border, foreground text, 2.75rem minimum height, 2px foreground focus-visible outline/3px offset and an accessible secondary placeholder. Placeholder never replaces the visible label. Error #9B443A has 6.34:1 contrast on surface and 5.79:1 on background. Read-only uses background fill; disabled uses opacity 0.5. Native date/time chrome may vary by platform. No form screen currently imports Input; real visual integration and full accessibility review remain later tasks.
+The surface field has a secondary-colored border, foreground text, 2.75rem minimum height, 2px foreground focus-visible outline/3px offset and an accessible secondary placeholder. Placeholder never replaces the visible label. Error #9B443A has 6.34:1 contrast on surface and 5.79:1 on background. Read-only uses background fill; disabled uses opacity 0.5. Native date/time chrome may vary by platform. No form screen currently imports Input; real feature-form integration remains later work; shared states were audited in 1.9.
 
 ## Modal
 
@@ -94,7 +94,7 @@ The surface field has a secondary-colored border, foreground text, 2.75rem minim
 
 Radix portals the modal into document.body, blocks outside interaction, traps focus, handles Escape/backdrop/Close requests and restores focus to its trigger. The controlled onOpenChange callback lets a caller refuse a close request while an unsaved form needs confirmation. Default focus follows Radix's first-focusable policy (the header Close action in the tested content); forms can manage their own initial field focus. No automatic saving, discard confirmation or destructive alert-dialog behavior is included.
 
-Content uses a surface background, secondary border, 1rem radius and a soft --shadow-modal. The --color-overlay token mixes foreground at 40% opacity; the shadow mixes foreground at 20%. Width is min(32rem, 100vw - 2rem), maximum height 100dvh - 2rem. The body scrolls independently while header/Close stay visible. No animation or runtime font request is introduced. Compact and wide visual previews were inspected in actual Tauri; temporary preview sources were removed. Full application accessibility review remains 1.9.
+Content uses a surface background, secondary border, 1rem radius and a soft --shadow-modal. The --color-overlay token mixes foreground at 40% opacity; the shadow mixes foreground at 20%. Width is min(32rem, 100vw - 2rem), maximum height 100dvh - 2rem. The body scrolls independently while header/Close stay visible. No animation or runtime font request is introduced. Compact and wide visual previews were inspected in actual Tauri; temporary preview sources were removed. Current application accessibility/layout review passed in 1.9.
 
 ## Card
 
@@ -102,7 +102,7 @@ Content uses a surface background, secondary border, 1rem radius and a soft --sh
 
 Card uses surface background, foreground text, decorative border, 0.75rem radius and 1.5rem padding. The --shadow-card token is a subtle 0 2px 8px shadow using foreground at 4% opacity. min-width:0 and overflow-wrap:anywhere let it fit compact grids and long content; focus outlines of child controls are not clipped. Component-layer CSS permits utility overrides without a variants library.
 
-Existing Coming soon notices now use Card with a level-two heading. This is a shared presentation primitive; library-specific covers, book progress and book actions remain milestone 2. Full visual review remains 1.9.
+Existing Coming soon notices now use Card with a level-two heading. This is a shared presentation primitive; library-specific covers, book progress and book actions remain milestone 2. Current visual review passed in 1.9.
 
 ## ProgressBar
 
@@ -118,4 +118,12 @@ Existing Coming soon notices now use Card with a level-two heading. This is a sh
 
 The bar is 0.75rem high, rounded and full-width in its grid wrapper. Shared border color is the track, secondary is its visible boundary and strong accent is the fill (5.19:1 fill/track contrast). Known fill width follows normalized value/max; unknown state uses a static centered 30% segment, which is not a percentage completion claim. No animation is needed, including in reduced-motion mode. Do not use the pale sage as a low-contrast progress fill on the light track.
 
-See [WAI-ARIA progressbar guidance](https://www.w3.org/TR/wai-aria/#progressbar). The component is not yet used by a real progress feature; do not insert example counts into product screens. Visual review remains 1.9 and actual book/daily aggregation remains feature work.
+See [WAI-ARIA progressbar guidance](https://www.w3.org/TR/wai-aria/#progressbar). The component is not yet used by a real progress feature; do not insert example counts into product screens. Visual/browser review passed in 1.9; actual book/daily aggregation remains feature work.
+
+## Accessibility/layout audit (1.9)
+
+Current foundation passed 12 Edge browser checks and 40 component tests. Axe WCAG A/AA-tagged scans found zero violations on all section views, the correctly styled component fixture and the open modal, with no disabled rules. Keyboard navigation, visible skip/focus, modal trapping/restoration, compact reflow and 200% text enlargement passed. See [review report](ACCESSIBILITY_REVIEW.md) for the full matrix and limits.
+
+ProgressBar has a forced-colors override: Canvas track, CanvasText boundary, Highlight fill. Only its decorative fill uses forced-color-adjust:none so the chosen system Highlight remains visible; the rest of the interface follows the user's forced palette. Static progress has no motion to suppress.
+
+Global Tailwind/base CSS must be imported before component modules at an application/test entry point to establish cascade layer order. The browser fixture now follows this rule and guards actual button fills/padding and field borders. Recheck real feature screens and manual assistive-technology behavior as they are added; release accessibility remains task 8.3.

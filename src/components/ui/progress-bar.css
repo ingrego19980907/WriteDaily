@@ -29,4 +29,16 @@
     width: 30%;
     margin-inline: auto;
   }
+
+  @media (forced-colors: active) {
+    .progress-bar {
+      border-color: CanvasText;
+      background-color: Canvas;
+    }
+
+    .progress-bar__fill {
+      forced-color-adjust: none;
+      background-color: Highlight;
+    }
+  }
 }

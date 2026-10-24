@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.8 (tokens, shell, navigation and shared UI primitives) are complete; awaiting approval before 1.9 (accessibility and layout verification).
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Awaiting approval before 2.1 (book data model); no library feature has been implemented.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -32,7 +32,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [x]  | 1.6 | Implement Modal                 | Completed (2026-10-24) | 1.5          | Focus trap, dismissal and focus restoration work         |
 | [x]  | 1.7 | Implement Card                  | Completed (2026-10-24) | 1.6          | Reusable card respects design tokens                     |
 | [x]  | 1.8 | Implement ProgressBar           | Completed (2026-10-24) | 1.7          | Clamped values and accessible progress semantics work    |
-| [ ]  | 1.9 | Verify accessibility and layout | Not started            | 1.8          | Keyboard, contrast and responsive checks documented      |
+| [x]  | 1.9 | Verify accessibility and layout | Completed (2026-10-24) | 1.8          | Keyboard, contrast and responsive checks documented      |
 
 ## Milestone 2: My Library
 
@@ -310,3 +310,13 @@ Verification: `git check-ignore --no-index` assertions passed for 19 ignored pat
 - Checked Vite CSS transformation and contrast: strong-accent fill against border track 5.19:1; secondary track boundary against background/surface 4.78:1/5.24:1. Semantics checked against WAI-ARIA progressbar guidance.
 - Component is ready for real library/goal consumers; no fictional progress inserted into Coming soon screens. No native visual preview in this task; shared visual/accessibility review remains 1.9.
 - Formatting and git diff checks passed after documentation updates. Focused tests: npm.cmd run test:run -- src/components/ui/ProgressBar.test.tsx.
+
+## Verification evidence: 1.9
+
+- Added Playwright 1.64.1 and @axe-core/playwright 4.14.0 after verifying official guidance/npm compatibility. Tests use existing Edge 156.0.4314.42, headless, with an isolated Vite server on 127.0.0.1:5174. No browser download or native configuration change.
+- Added typed browser config/tests and a test-only component fixture, included in strict TypeScript through tsconfig.e2e.json. Fixture is not a product route or production JS entry. Generated results/traces are ignored by Git, Prettier and ESLint.
+- Browser tests cover all five keyboard destinations, visible skip link/main focus, component disabled/read-only/focus behavior, modal forward/reverse Tab/scroll/Escape/restore, 320/640/1100/1440px layouts, 200% text size and forced colors/reduced-motion media.
+- Axe WCAG A/AA tagged scans found zero violations for all five sections, styled shared components and the open modal. No rules were disabled. Browser fixture reported no runtime errors.
+- Found/fixed ProgressBar forced-colors contrast loss using scoped Canvas/CanvasText/Highlight rules. Found/fixed test fixture stylesheet import order so scans include actual styled controls; added rendering guards and reran the audit. Reviewed final compact screenshots.
+- `npm.cmd run test:e2e`: 12 browser tests passed. `npm.cmd run test:run`: 40 unit/component tests passed. Typecheck, lint, format:check, production build and git diff checks passed.
+- Detailed scope/results/limits: [ACCESSIBILITY_REVIEW.md](ACCESSIBILITY_REVIEW.md). No manual screen-reader session, macOS or new native-layer review in this subtask; full release accessibility remains 8.3. Current Milestone 1 keyboard/contrast/responsive acceptance is satisfied.

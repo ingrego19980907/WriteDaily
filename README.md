@@ -8,7 +8,7 @@ WriteDaily is a planned free, offline-first Windows writing application, with fu
 
 Foundation tasks 0.1-0.9 are complete: environment inspection, React/strict TypeScript/Vite, Tauri 2, Tailwind, ESLint/Prettier, Vitest, application structure, synchronized documentation and verified Windows desktop startup. The UI currently shows a responsive application shell with the WriteDaily brand and five navigable sections. Each section displays a Coming soon message. Feature folders are reserved; no library, editor, database, autosave, export or backup is implemented.
 
-Frontend checks, the React DOM smoke test and native development build passed. The Windows Tauri window was opened and its React heading, tagline and status visually verified in task 0.9. Milestone 0 is complete; tasks 1.1-1.8 tokens, shell, navigation and shared UI primitives are complete; task 1.9 (accessibility/layout review) awaits approval. See [task status and verification evidence](docs/TASKS.md).
+Frontend checks, the React DOM smoke test and native development build passed. The Windows Tauri window was opened and its React heading, tagline and status visually verified in task 0.9. Milestone 0 is complete; Milestone 1 (design system, navigation and accessibility/layout review) is also complete; task 2.1 (book data model) awaits approval. See [task status and verification evidence](docs/TASKS.md).
 
 ## Prerequisites
 
@@ -66,7 +66,7 @@ The build checks the frontend and compiles `src-tauri/target/debug/write-daily.e
 
 ## Styling
 
-Tailwind CSS 4.3.3 is integrated using @tailwindcss/vite, following the [official Vite setup](https://tailwindcss.com/docs/installation/using-vite). `src/styles/global.css` imports Tailwind; use static utility class names in React components. No separate Tailwind or PostCSS configuration is needed for this setup. The shell and navigation use semantic utility classes. Palette and typography tokens are centralized in `src/styles/tokens.css`; the existing page uses the warm background, readable text colors and local UI/serif fonts. The responsive AppShell is implemented; Button, Input, Modal, Card and ProgressBar are implemented; full accessibility/layout review is task 1.9. See [design system](docs/DESIGN_SYSTEM.md) for token usage and contrast limits.
+Tailwind CSS 4.3.3 is integrated using @tailwindcss/vite, following the [official Vite setup](https://tailwindcss.com/docs/installation/using-vite). `src/styles/global.css` imports Tailwind; use static utility class names in React components. No separate Tailwind or PostCSS configuration is needed for this setup. The shell and navigation use semantic utility classes. Palette and typography tokens are centralized in `src/styles/tokens.css`; the existing page uses the warm background, readable text colors and local UI/serif fonts. The responsive AppShell is implemented; Button, Input, Modal, Card and ProgressBar are implemented; accessibility/layout review passed in task 1.9. See [design system](docs/DESIGN_SYSTEM.md) for token usage and contrast limits.
 
 ## Linting and formatting
 
@@ -90,7 +90,7 @@ npm.cmd test          # Watch mode in an interactive terminal; press q to exit
 
 Vitest 5 uses the shared Vite configuration and jsdom for DOM tests. React Testing Library checks rendered UI through accessible queries; jest-dom adds DOM assertions. Tests are colocated as `src/**/*.test.ts` or `src/**/*.test.tsx`. Import `test`, `expect` and hooks explicitly from `vitest`; test globals are disabled. `src/test/setup.ts` registers matchers and cleans up mounted React trees after each test. Strict TypeScript checks include tests and setup code.
 
-The current forty tests cover ProgressBar normalization/semantics, Modal focus/dismissal, Button/Input interactions, native semantics and field accessibility plus shell landmarks/skip target, initial My Library section, all five keyboard navigation destinations, active-item uniqueness, heading focus and pointer return to the library. This simulated DOM test does not verify browser layout, Tauri startup or native persistence. Coverage, browser automation and native testing will be added only when their tasks require them.
+The current forty tests cover ProgressBar normalization/semantics, Modal focus/dismissal, Button/Input interactions, native semantics and field accessibility plus shell landmarks/skip target, initial My Library section, all five keyboard navigation destinations, active-item uniqueness, heading focus and pointer return to the library. These simulated DOM tests are complemented by 12 real Edge browser tests. Native persistence and release accessibility testing remain future work.
 
 ## Application structure
 
@@ -106,22 +106,23 @@ Reserved folders use `.gitkeep` markers; product feature implementations come la
 
 ## Documentation
 
-| Document                               | Purpose                                                          |
-| -------------------------------------- | ---------------------------------------------------------------- |
-| [PRODUCT](docs/PRODUCT.md)             | Product vision, version 1 scope and exclusions                   |
-| [ARCHITECTURE](docs/ARCHITECTURE.md)   | Current structure, module boundaries and proposed persistence    |
-| [DESIGN_SYSTEM](docs/DESIGN_SYSTEM.md) | Implemented tokens/typography and planned component rules        |
-| [DATA_MODEL](docs/DATA_MODEL.md)       | Proposed entities, activity policy and backup design             |
-| [ROADMAP](docs/ROADMAP.md)             | Milestone goals and completion gates                             |
-| [TASKS](docs/TASKS.md)                 | Progress source of truth, dependencies and verification evidence |
-| [DECISIONS](docs/DECISIONS.md)         | Dated decisions and historical environment changes               |
-| [AGENTS](AGENTS.md)                    | Concise instructions for future agent sessions                   |
+| Document                                             | Purpose                                                          |
+| ---------------------------------------------------- | ---------------------------------------------------------------- |
+| [PRODUCT](docs/PRODUCT.md)                           | Product vision, version 1 scope and exclusions                   |
+| [ARCHITECTURE](docs/ARCHITECTURE.md)                 | Current structure, module boundaries and proposed persistence    |
+| [DESIGN_SYSTEM](docs/DESIGN_SYSTEM.md)               | Implemented tokens/typography and planned component rules        |
+| [DATA_MODEL](docs/DATA_MODEL.md)                     | Proposed entities, activity policy and backup design             |
+| [ROADMAP](docs/ROADMAP.md)                           | Milestone goals and completion gates                             |
+| [TASKS](docs/TASKS.md)                               | Progress source of truth, dependencies and verification evidence |
+| [DECISIONS](docs/DECISIONS.md)                       | Dated decisions and historical environment changes               |
+| [ACCESSIBILITY_REVIEW](docs/ACCESSIBILITY_REVIEW.md) | Audit matrix, findings, reproduction and limits                  |
+| [AGENTS](AGENTS.md)                                  | Concise instructions for future agent sessions                   |
 
 Data model, autosave, streak and backup policies remain proposals until their implementation tasks verify them. Historical decisions describe the environment at the time of each task; current prerequisites are listed above. Fresh-machine setup and Windows installer validation remain release tasks.
 
 ## Application shell
 
-`src/app/AppShell.tsx` provides the masthead, keyboard skip link and main content area. App supplies five section buttons through its optional navigation slot. Main content adapts to the supported minimum desktop size (640x480); the layout was visually checked in Tauri at minimum and wider sizes. Accessibility/layout verification is the next task. Run `npm.cmd run tauri -- dev` with Cargo on PATH to inspect the current shell.
+`src/app/AppShell.tsx` provides the masthead, keyboard skip link and main content area. App supplies five section buttons through its optional navigation slot. Main content adapts to the supported minimum desktop size (640x480); the layout was visually checked in Tauri at minimum and wider sizes. Accessibility/layout verification passed in 1.9; book data model design is next. Run `npm.cmd run tauri -- dev` with Cargo on PATH to inspect the current shell.
 
 ## Section navigation
 
@@ -177,3 +178,15 @@ Import ProgressBar from `src/components/ui/ProgressBar.tsx`, provide label and a
 ```
 
 The visible label names the progressbar for assistive technology. Optional aria-valuetext can provide localized word-count wording. No real progress feature is wired yet, so no example values appear on product screens. Focused verification: `npm.cmd run test:run -- src/components/ui/ProgressBar.test.tsx`.
+
+## Browser accessibility and layout checks
+
+```powershell
+npm.cmd run test:e2e
+```
+
+Requires a supported installed Microsoft Edge (tested with 156.0.4314.42). Playwright uses channel msedge, starts/stops Vite on port 5174 and runs headless; no browser download is performed. Keep that port free. Playwright/axe checks real keyboard interaction, modal focus, responsive reflow, 200% text size, rendered contrast and forced colors. There are 12 passing browser tests in addition to the 40 passing Vitest tests.
+
+`tests/fixtures/components.html` and its TSX entry are test infrastructure covering otherwise unconnected primitives. Global CSS must load before component imports, as in src/main.tsx. The fixture is absent from the production JS entry bundle. Screenshots and failure traces are generated under ignored test-results directories. Browser test/config/fixture code is strictly checked by tsconfig.e2e.json.
+
+See [accessibility/layout review](docs/ACCESSIBILITY_REVIEW.md) for evidence and limits. Automated passes do not establish full WCAG conformance or replace future manual screen-reader and release checks.

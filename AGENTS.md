@@ -11,3 +11,5 @@
 - Keep English UI copy centralized for future Ukrainian localization. Use local calendar dates for activity.
 - Use npm and retain package-lock.json plus src-tauri/Cargo.lock. Current setup and supported toolchains are documented in README.md.
 - After frontend changes, run `npm.cmd run lint`, `npm.cmd run format:check`, `npm.cmd run typecheck`, relevant tests via `npm.cmd run test:run`, and the build when relevant. Use Prettier for supported files and `cargo fmt` for Rust; exclude generated files.
+
+- For UI accessibility/layout changes, run `npm.cmd run test:e2e` (installed Edge required; port 5174 must be free). Load global CSS before component imports in test entry points. See docs/ACCESSIBILITY_REVIEW.md for coverage and limits.
