@@ -1,6 +1,6 @@
 # Architecture
 
-Status: Foundation complete through task 0.9, including Windows development-window visual verification; application structure established in task 0.7. React/Vite, Tauri, Tailwind, lint/format tooling and Vitest are configured. No product features or persistence layer exist. Runtime entry is `src/main.tsx`, application composition is `src/app/App.tsx`, and global CSS is `src/styles/global.css`.
+Status: Foundation complete through task 0.9, including Windows development-window visual verification; application structure established in task 0.7. React/Vite, Tauri, Tailwind, lint/format tooling and Vitest are configured. Book metadata domain and native SQLite initialization/migration are implemented through 2.2; book CRUD/UI and other product features remain absent. Runtime entry is `src/main.tsx`, application composition is `src/app/App.tsx`, and global CSS is `src/styles/global.css`.
 
 ## Technology direction
 
@@ -49,7 +49,7 @@ Resolve storage paths via Tauri application directories, never hardcode user pat
 
 ## Desktop bootstrap (0.3)
 
-`src-tauri` contains the Rust entry point, Tauri build script, configuration, generated scaffold icons and default core capability for the main window. No filesystem, shell, database or custom application commands are exposed. The frontend does not yet need @tauri-apps/api; add it when an approved feature invokes native functionality. Removed unused logging/serialization scaffold dependencies.
+`src-tauri` contains the Rust entry point, Tauri build script, configuration, generated scaffold icons and default core capability for the main window. No filesystem, shell, SQL or custom application commands are exposed to the frontend. Native SQLite initialization now runs internally (2.2). The frontend does not yet need @tauri-apps/api; add it when an approved feature invokes native functionality. Removed unused logging/serialization scaffold dependencies.
 
 Desktop hooks run the existing npm dev/build scripts. Vite uses fixed loopback port 5173 and ignores Rust changes; Tauri owns Rust rebuilds. Production CSP restricts scripts to bundled code; development CSP additionally permits Vite's loopback HTTP/WebSocket endpoint and React refresh preamble. No remote content is loaded.
 
@@ -73,7 +73,7 @@ Persistence belongs behind `services` and native Tauri code, with UI consuming t
 
 ## Current configuration and pending gates
 
-npm 11.19.1 is the declared package manager; package-lock.json and src-tauri/Cargo.lock are the dependency resolution records. package.json requires Node ^22.22.2, ^24.15.0 or >=26.0.0; installed Node 24.22.1 meets that range. The Rust manifest uses edition 2024 and minimum Rust 1.90; native compilation passed with Rust/Cargo 1.99.1 in task 0.3.
+npm 11.19.1 is the declared package manager; package-lock.json and src-tauri/Cargo.lock are the dependency resolution records. package.json requires Node ^22.22.2, ^24.15.0 or >=26.0.0; installed Node 24.22.1 meets that range. The Rust manifest uses edition 2024 and minimum Rust 1.95; native compilation passed with Rust/Cargo 1.99.1 in task 0.3.
 
 Tauri identifies the application as app.writedaily.desktop, version 0.0.0 (matching npm and Cargo manifests). The main window defaults to 1100 by 760, minimum 640 by 480. Dev hooks use npm run dev at http://127.0.0.1:5173; build hooks use npm run build and embed ../dist relative to src-tauri. Bundling is configured but installer creation/testing is not verified. Scaffold icons are temporary. Windows GUI startup and React rendering were visually verified in task 0.9; no production-ready or macOS validation is claimed.
 
@@ -123,6 +123,14 @@ The fixture imports global styles before component modules to establish Tailwind
 
 ## Book domain model (2.1)
 
-Library owns book.ts: readonly persisted snapshot and editable metadata types plus pure validation from unknown input. UI and persistence are not implemented. The validator normalizes title/optional nulls and returns localized-message codes, not UI strings; storage-owned identity, paths and timestamps do not enter its output. Native persistence must enforce the same contract before writing; this frontend type/validator is not a security or database boundary by itself.
+Library owns book.ts: readonly persisted snapshot and editable metadata types plus pure validation from unknown input. Book CRUD/UI is not implemented; native SQLite initialization is provided in 2.2. The validator normalizes title/optional nulls and returns localized-message codes, not UI strings; storage-owned identity, paths and timestamps do not enter its output. Native persistence must enforce the same contract before writing; this frontend type/validator is not a security or database boundary by itself.
 
 DATA_MODEL.md defines canonical local deadlines versus UTC instants, safe numeric counts, nonduplicated derived progress, SQL mapping and future delete/reference behavior. No validation library, repository interface or SQL migration is introduced prematurely. Code stays feature-local rather than adding generic shared entity abstractions.
+
+## Native SQLite and migrations (2.2)
+
+Rust owns rusqlite (bundled SQLite) and rusqlite_migration. Tauri setup resolves app_data_dir, adds a development subdirectory for debug builds, and manages a Mutex<Connection>. No frontend SQL/plugin permission or IPC command is added. Future repositories use this native state and validate authoritative inputs; frontend validation alone cannot authorize a write.
+
+The database module sets per-connection FK/timeout/FULL sync, checks ownership marker and schema version, rejects foreign/future databases, checks integrity and applies ordered SQL atomically before enabling verified WAL. Migration 1 creates STRICT books; user_version is the migration index and the application marker is set transactionally. Errors propagate from setup without reset/fallback or empty-library claims. No custom repair/recovery UI yet.
+
+Native tests isolate temporary files and cover data retention, constraints, atomic rollback, upgrade/refusal and unchanged invalid files. SQL steps must remain append-only after release. WAL files stay under SQLite control; snapshot backups remain milestone 7 and are a prerequisite to future destructive production schema changes. Current Rust floor is 1.95 due to the migration dependency, verified on Rust 1.99.1.

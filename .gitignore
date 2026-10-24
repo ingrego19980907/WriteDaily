@@ -35,6 +35,11 @@ playwright/.cache/
 test-results/
 blob-report/
 
+# Local SQLite files (SQL migration sources stay tracked)
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

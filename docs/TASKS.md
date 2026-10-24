@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Task 2.1 (book data model) is complete; awaiting approval before 2.2 (SQLite and migrations). Library UI/repository/persistence remain unimplemented.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Tasks 2.1-2.2 (book model, native SQLite and migration v1) are complete; awaiting approval before 2.3 (book repository). Library CRUD/UI and cover storage remain unimplemented.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -39,7 +39,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | Done | ID   | Description                        | Status                 | Dependencies | Acceptance criteria                                                      |
 | ---- | ---- | ---------------------------------- | ---------------------- | ------------ | ------------------------------------------------------------------------ |
 | [x]  | 2.1  | Design book data model             | Completed (2026-10-24) | 1.9          | Fields, constraints and deletion relationships reviewed                  |
-| [ ]  | 2.2  | Configure SQLite and migrations    | Not started            | 2.1          | Database opens and migrations apply safely on fresh and existing schemas |
+| [x]  | 2.2  | Configure SQLite and migrations    | Completed (2026-10-24) | 2.1          | Database opens and migrations apply safely on fresh and existing schemas |
 | [ ]  | 2.3  | Implement book repository          | Not started            | 2.2          | Validated CRUD operations pass real database tests                       |
 | [ ]  | 2.4  | Implement book creation            | Not started            | 2.3          | Valid books persist and invalid input shows errors                       |
 | [ ]  | 2.5  | Implement book editing             | Not started            | 2.4          | Changes persist after reopening                                          |
@@ -329,3 +329,13 @@ Verification: `git check-ignore --no-index` assertions passed for 19 ignored pat
 - Added 32 domain tests covering normalization/Unicode/title bounds, invalid payloads/counts, safe integer endpoints, real/invalid dates, accumulated errors, input immutability and exclusion of persistence-owned properties.
 - `npm.cmd run test:run`: 7 files, 72 tests passed. Typecheck, lint, production build, format:check and git diff checks passed.
 - UI/browser tests were not rerun because there is no UI/layout change; the prior 12 browser checks remain recorded in 1.9. No persistence safety or schema execution claim: authoritative native validation and database constraints still require implementation/testing in 2.2/2.3.
+
+## Verification evidence: 2.2
+
+- Added rusqlite 0.40.2 (bundled SQLite), rusqlite_migration 2.6.0, direct thiserror error handling and dev-only tempfile 3.27.0; Cargo.lock updated. Verified dependency compatibility/docs; manifest Rust floor raised from 1.90 to 1.95 for the migration library, with actual checks on installed Rust 1.99.1.
+- Added database module and migration 001_books.sql, connected at Tauri setup with app-managed Mutex connection. Debug/release directories are separate. Connection config enables FK, 5s timeout, FULL sync and verified WAL; identity/version/integrity checks precede use. No SQL or CRUD frontend commands added.
+- Ten real SQLite native tests passed: fresh/reopen retention/settings, schema constraints, cover uniqueness/title duplication, FK enforcement, initial/upgrade rollback, successful upgrade preserving data/future rejection, unchanged unknown/corrupt files and invalid-directory errors. All test data lives in disposable temp directories.
+- `cargo test --manifest-path src-tauri/Cargo.toml --locked --offline`: 10 passed. `cargo fmt --manifest-path src-tauri/Cargo.toml -- --check` and `cargo clippy --manifest-path src-tauri/Cargo.toml --locked --offline --all-targets -- -D warnings`: passed.
+- `npm.cmd run test:run`: 72 passed; typecheck, lint and production build passed. UI/browser tests were not repeated because UI/layout did not change.
+- Tauri dev rebuilt/launched with responsive WriteDaily window. A read-only inspection of the actual development DB confirmed user_version=1, application_id=1464090969, journal_mode=wal and zero books. No real books were inserted/deleted and release DB was not selected. Closed the app gracefully and stopped dev; the empty development DB remains for normal use.
+- Added Git ignore rules for local .sqlite3 files/sidecars; migration SQL and both dependency lockfiles remain versioned. Documentation/format/diff checks passed. Native repository validation, CRUD and cover imports remain 2.3 onward.

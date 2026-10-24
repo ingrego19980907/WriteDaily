@@ -13,3 +13,5 @@
 - After frontend changes, run `npm.cmd run lint`, `npm.cmd run format:check`, `npm.cmd run typecheck`, relevant tests via `npm.cmd run test:run`, and the build when relevant. Use Prettier for supported files and `cargo fmt` for Rust; exclude generated files.
 
 - For UI accessibility/layout changes, run `npm.cmd run test:e2e` (installed Edge required; port 5174 must be free). Load global CSS before component imports in test entry points. See docs/ACCESSIBILITY_REVIEW.md for coverage and limits.
+
+- For native persistence changes, run Cargo tests/fmt/Clippy from README. Use disposable databases in tests, never the real library. Released SQL migrations are append-only; never reset a database on initialization failure.

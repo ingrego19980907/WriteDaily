@@ -3,7 +3,7 @@ name = "write-daily"
 version = "0.0.0"
 description = "A little writing, every day."
 edition = "2024"
-rust-version = "1.90"
+rust-version = "1.95"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -16,3 +16,9 @@ tauri-build = { version = "2.7.4", features = [] }
 
 [dependencies]
 tauri = { version = "2.12.5", features = [] }
+rusqlite = { version = "0.40.2", default-features = false, features = ["bundled"] }
+rusqlite_migration = "2.6.0"
+thiserror = "2"
+
+[dev-dependencies]
+tempfile = "3.27.0"

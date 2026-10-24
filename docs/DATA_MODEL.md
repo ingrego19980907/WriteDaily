@@ -1,6 +1,6 @@
 # Data model
 
-Status: the book metadata contract, TypeScript types and pure validation are implemented in task 2.1. No database, migration, repository or cover storage exists. SQLite and Tiptap are not installed yet. The books storage mapping below guides task 2.2; other entities/activity policies remain proposals for their implementation tasks.
+Status: book metadata types/validation (2.1) and native SQLite initialization/migration v1 (2.2) are implemented. No book repository, CRUD command/UI or cover file storage exists. SQLite is bundled with the Rust application; Tiptap remains uninstalled. Other entities and their relationship policies remain planned.
 
 | Entity              | Proposed fields and constraints                                                                                                                                         |
 | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -17,7 +17,7 @@ Foreign keys must be enabled. Use ordered migrations and transactional schema ch
 
 Code: src/features/library/book.ts. BookDetails contains only editable metadata. Book adds persistence-owned identity, managed cover reference and lifecycle timestamps. Both types expose readonly snapshots; updates will go through repositories rather than mutating saved objects.
 
-| TypeScript field | Planned SQLite column/type   | Nullability and rules                                                                                                                                                             |
+| TypeScript field | SQLite column/type           | Nullability and rules                                                                                                                                                             |
 | ---------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | id               | id TEXT PRIMARY KEY NOT NULL | Persistence-generated lowercase UUID v4; immutable. Title is not identity and duplicate titles are allowed.                                                                       |
 | title            | title TEXT NOT NULL          | Trim Unicode edge whitespace, normalize NFC; 1-200 Unicode code points; no embedded Unicode control characters. Preserve internal ordinary spaces/punctuation and Ukrainian text. |
@@ -39,12 +39,12 @@ Missing/null optional counts/date normalize to null. Numeric strings, blank stri
 
 Extra input properties are excluded from the returned metadata, so ID, timestamps, coverPath and completedAt cannot enter the editable result by spreading a form payload. The TypeScript validator does not yet validate complete persisted rows or authorize file references; native persistence must implement matching validation before accepting writes. Existing TypeScript interfaces are not runtime proof that a row/path is safe.
 
-### Persistence constraints to implement in 2.2/2.3
+### Persistence boundary and remaining work
 
 - Enable foreign keys on every connection; use migrations, transactions and parameterized statements.
 - Add database checks for nonempty/max-length titles and nullable positive safe-integer counts. Date column checks should enforce canonical shape; real calendar validity and Unicode normalization also need native validation. SQL affinity alone is insufficient for this contract; see [SQLite datatypes](https://www.sqlite.org/datatype3.html).
 - Enforce UUID and canonical timestamp formats at the native boundary; map snake_case SQL to camelCase domain fields in the repository. No database-specific type leaks into UI components.
-- Generate IDs and timestamps in trusted persistence code. Metadata validation accepts no persistence-owned values. Decide exact connection/migration ownership in 2.2, preserving the approved typed service/native boundary.
+- Generate IDs and timestamps in trusted persistence code. Metadata validation accepts no persistence-owned values. Connection/migration ownership is implemented in the Rust database module (2.2); native CRUD validation and DTO mapping remain 2.3.
 - covers/<generated-uuid>.<validated-image-extension> is the managed reference shape planned for 2.7. Resolve it beneath the application's managed cover directory and verify containment; reject traversal, absolute paths, URI schemes and unexpected separators. Native import/cleanup implementation and allowed formats are not present yet.
 - Cover references are unique per book; importing the same source for another book creates an independently owned file. No SQL default timestamp or completion based on current target is assumed.
 
@@ -59,7 +59,46 @@ Extra input properties are excluded from the returned metadata, so ID, timestamp
 | Preferences            | Clear a deleted selected-book reference; do not leave a dangling active-book ID.                                                                                                                                              |
 | Cover file             | No SQL cascade can delete a file. Delete only this book's owned file after the database transaction commits; failed file cleanup leaves a retryable orphan, not a rolled-back manuscript deletion or a false successful save. |
 
-Deletion requires explicit user confirmation (task 2.6). The transaction removes only the selected book and its owned dependent manuscript/settings. Never delete retained history/achievements, unrelated covers or backup archives. Cancel or database failure must leave the book/cover intact. Coordinate recoverable file cleanup in 2.6/2.7; no deletion is performed by this task. See [SQLite foreign-key actions](https://www.sqlite.org/foreignkeys.html#fk_actions) for CASCADE/SET NULL semantics. This is a contract for future migrations, not a claim that those tables or operations exist.
+Deletion requires explicit user confirmation (task 2.6). The transaction removes only the selected book and its owned dependent manuscript/settings. Never delete retained history/achievements, unrelated covers or backup archives. Cancel or database failure must leave the book/cover intact. Coordinate recoverable file cleanup in 2.6/2.7; no deletion is performed by this task. See [SQLite foreign-key actions](https://www.sqlite.org/foreignkeys.html#fk_actions) for CASCADE/SET NULL semantics. Only books currently exists. The dependent-table relationships are a contract for future migrations, not a claim that those tables or deletion operations exist.
+
+## SQLite and migration v1 (2.2)
+
+Rust module: src-tauri/src/database/. Versioned SQL: src-tauri/migrations/001_books.sql. rusqlite 0.40.2 uses bundled SQLite (libsqlite3-sys 0.38.2 ships SQLite 3.53.2), and rusqlite_migration 2.6.0 applies all pending steps atomically with PRAGMA user_version. Only one production migration exists; version 2 appears only in isolated tests. SQL migrations are append-only after shipment.
+
+### Location and startup
+
+Tauri resolves app_data_dir using the application identifier. Release database: <app_data_dir>/write-daily.sqlite3. Debug database: <app_data_dir>/development/write-daily.sqlite3. On Windows the debug path is normally %APPDATA%/app.writedaily.desktop/development/write-daily.sqlite3. No browser storage, working-directory database or hardcoded username is used. Debug startup never selects the release database.
+
+The setup hook creates the directory, opens the file and manages a Mutex<Connection> in Tauri state. Future native repositories share this serialized connection; no arbitrary SQL command or filesystem/database permission is exposed to JavaScript. Initialization errors propagate and stop startup, rather than replacing files or pretending the library is empty. Current dev errors are reported through the native startup error/terminal; no recovery UI is implemented yet.
+
+### Open sequence and protection
+
+1. Set a 5-second busy timeout and enable foreign keys on the connection.
+2. Read application_id, user_version and schema objects before any migration or persistent journal-mode change. Only an empty unversioned database with marker 0 can be initialized. A versioned database must have WriteDaily marker 0x57444159 (decimal 1464090969). This marker identifies format, not authentication.
+3. Refuse unknown nonempty/unversioned schemas and schemas newer than the registered migration list. No automatic downgrade, deletion, repair or reset.
+4. Run quick_check(1), set synchronous=FULL and apply pending migrations in one atomic migration transaction. Migration 1 creates the STRICT books table and application marker; user_version is managed by the migration library. Failed first migrations roll back the marker/table/version; failed upgrades preserve earlier data/schema.
+5. Check expected books columns and foreign-key integrity, then enable WAL and verify SQLite reports wal. Unsupported locations/errors fail explicitly. Do not silently fall back to MEMORY/OFF journaling or recreate the file.
+
+Identity/schema checks are structural safeguards, not proof that every row meets all domain invariants. No migration checksum/history table is implemented; reviewed SQL files must remain immutable once released. Existing data backups and destructive schema changes require explicit design/testing before future production upgrades.
+
+### What migration 1 enforces
+
+- STRICT column types; required lowercase UUID-v4 identity, primary key and unique nullable cover references.
+- Nonempty title of at most 200 SQLite Unicode code points, ASCII edge trimming and no embedded NUL.
+- Nullable positive INTEGER word targets/goals within JavaScript's safe-integer range.
+- Canonical date shape/range plus real calendar date check through SQLite date normalization; leap-year cases are tested.
+- Coarse managed-cover reference containment (covers/ prefix; no traversal, extra directory separator, backslash or URI colon).
+- UTC timestamp string shape and basic created/updated/completed ordering.
+
+SQLite may coerce numeric text even in STRICT tables. NFC normalization, complete Unicode whitespace/control handling, timestamp calendar/time validity, image extension/content/path ownership and native DTO validation still require the authoritative repository/import boundary in 2.3/2.7. The TypeScript validator is not a substitute. No frontend write operations are exposed before that work.
+
+### Durability and test evidence
+
+Foreign keys, WAL, FULL synchronous and timeout settings are verified by native tests; WAL is persistent and foreign-key settings must be reapplied for each connection. Never copy just a live .sqlite3 file as a backup: uncheckpointed data may be in -wal. Consistent snapshot/restore remains milestone 7. Normal connection close lets SQLite handle WAL lifecycle; application code never manually deletes sidecars.
+
+Ten Rust tests use disposable tempfile directories, never actual application data. They cover fresh/reopened databases, constraints, duplicate titles/unique cover references, effective foreign keys, failed initial/upgrade rollback, preserved data after upgrade and future-version rejection, unchanged foreign/corrupt files and invalid directory errors. Real Tauri startup separately created the empty development database and read-only inspection confirmed version 1, matching marker and WAL. Book persistence through actual CRUD remains later tasks.
+
+Official references: [rusqlite bundled SQLite](https://docs.rs/rusqlite/0.40.2/rusqlite/), [atomic migrations](https://docs.rs/rusqlite_migration/2.6.0/rusqlite_migration/struct.Migrations.html), [SQLite PRAGMAs](https://www.sqlite.org/pragma.html), [WAL](https://www.sqlite.org/wal.html).
 
 ## Proposed activity rules
 

@@ -6,15 +6,15 @@ WriteDaily is a planned free, offline-first Windows writing application, with fu
 
 ## Current status
 
-Foundation tasks 0.1-0.9 are complete: environment inspection, React/strict TypeScript/Vite, Tauri 2, Tailwind, ESLint/Prettier, Vitest, application structure, synchronized documentation and verified Windows desktop startup. The UI currently shows a responsive application shell with the WriteDaily brand and five navigable sections. Each section displays a Coming soon message. Library now contains book domain types/validation; its UI/repository and the editor, database, autosave, export and backup are not implemented.
+Foundation tasks 0.1-0.9 are complete: environment inspection, React/strict TypeScript/Vite, Tauri 2, Tailwind, ESLint/Prettier, Vitest, application structure, synchronized documentation and verified Windows desktop startup. The UI currently shows a responsive application shell with the WriteDaily brand and five navigable sections. Each section displays a Coming soon message. Library has book domain types/validation and native SQLite initialization/migration v1. Its CRUD/UI/repository, editor, cover file storage, autosave, export and backup are not implemented.
 
-Frontend checks, the React DOM smoke test and native development build passed. The Windows Tauri window was opened and its React heading, tagline and status visually verified in task 0.9. Milestone 0 is complete; Milestone 1 (design system, navigation and accessibility/layout review) is also complete; task 2.1 (book data model) is complete; task 2.2 (SQLite and migrations) awaits approval. See [task status and verification evidence](docs/TASKS.md).
+Frontend checks, the React DOM smoke test and native development build passed. The Windows Tauri window was opened and its React heading, tagline and status visually verified in task 0.9. Milestone 0 is complete; Milestone 1 (design system, navigation and accessibility/layout review) is also complete; tasks 2.1-2.2 (book model and SQLite/migrations) are complete; task 2.3 (book repository) awaits approval. See [task status and verification evidence](docs/TASKS.md).
 
 ## Prerequisites
 
 - Node.js compatible with all tooling: ^22.22.2, ^24.15.0, or >=26.0.0. Installed LTS version: 24.22.1.
 - npm; installed version: 11.19.1. Use `npm.cmd` in this PowerShell environment because its execution policy blocks npm.ps1.
-- Rust MSVC toolchain and Cargo on PATH. The manifest minimum is Rust 1.90; the verified installed toolchain is 1.99.1. Use the recorded working toolchain or recheck compatibility before updating.
+- Rust MSVC toolchain and Cargo on PATH. The manifest minimum is Rust 1.95 (required by the migration library); the verified installed toolchain is 1.99.1. Use the recorded working toolchain or recheck compatibility before updating.
 - Supported Microsoft C++ Build Tools with Desktop development with C++ and a Windows SDK.
 - Microsoft Edge WebView2 Runtime (detected).
 
@@ -122,7 +122,7 @@ Data model, autosave, streak and backup policies remain proposals until their im
 
 ## Application shell
 
-`src/app/AppShell.tsx` provides the masthead, keyboard skip link and main content area. App supplies five section buttons through its optional navigation slot. Main content adapts to the supported minimum desktop size (640x480); the layout was visually checked in Tauri at minimum and wider sizes. Accessibility/layout verification passed in 1.9; book metadata is defined and SQLite/migrations are next. Run `npm.cmd run tauri -- dev` with Cargo on PATH to inspect the current shell.
+`src/app/AppShell.tsx` provides the masthead, keyboard skip link and main content area. App supplies five section buttons through its optional navigation slot. Main content adapts to the supported minimum desktop size (640x480); the layout was visually checked in Tauri at minimum and wider sizes. Accessibility/layout verification passed in 1.9; book metadata and SQLite/migrations are implemented; book repository is next. Run `npm.cmd run tauri -- dev` with Cargo on PATH to inspect the current shell.
 
 ## Section navigation
 
@@ -195,4 +195,21 @@ See [accessibility/layout review](docs/ACCESSIBILITY_REVIEW.md) for evidence and
 
 `src/features/library/book.ts` defines BookDetails, Book and validateBookDetails. The validator normalizes valid editable metadata or returns field/error codes; it never saves a book or accepts system-owned fields into its output. Titles support Unicode, nullable goals use positive safe integers, and deadlines remain local YYYY-MM-DD dates. See [data model](docs/DATA_MODEL.md) for limits, planned SQL mapping and deletion relationships.
 
-Focused verification: `npm.cmd run test:run -- src/features/library/book.test.ts`. SQLite/migrations are the next task; no book data is persisted yet.
+Focused verification: `npm.cmd run test:run -- src/features/library/book.test.ts`. Native SQLite/migration v1 is implemented; the repository is next. There is no book creation/editing UI or CRUD persistence API yet.
+
+## SQLite and native tests
+
+SQLite is bundled through rusqlite; no separate SQLite installation or server is needed. On startup the Rust database module opens/migrates an app-managed database. Debug uses <app_data_dir>/development/write-daily.sqlite3; release uses <app_data_dir>/write-daily.sqlite3. On Windows app_data_dir normally resolves to %APPDATA%/app.writedaily.desktop. Keep the application identifier stable to preserve storage location.
+
+```powershell
+$env:Path = "$env:USERPROFILE\.cargo\bin;" + $env:Path
+cargo test --manifest-path src-tauri/Cargo.toml --locked
+cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
+cargo clippy --manifest-path src-tauri/Cargo.toml --locked --all-targets -- -D warnings
+```
+
+Ten native SQLite tests use isolated temporary directories and never the actual library. Both npm and native tests matter; Vitest does not exercise native persistence. First native build/test requires network access for Cargo packages; subsequent runs can use --offline when cached. Rust 1.99.1 was verified; older manifest-compatible toolchains were not separately tested.
+
+Database startup enables foreign keys, a 5-second busy timeout, synchronous FULL and WAL, and refuses foreign/newer/corrupt schemas without resetting data. Current initialization failures stop startup and report the native error in the development terminal; there is no recovery UI yet. No arbitrary SQL interface is exposed to React.
+
+Migration SQL under src-tauri/migrations is source code: commit it and never edit released steps; append new ones. Local .sqlite3/-wal/-shm artifacts are ignored. Do not copy a live database file alone for backup because WAL may contain recent commits; snapshot backup/restore is planned in milestone 7. See [data model](docs/DATA_MODEL.md) for constraints, migration behavior and remaining native validation work.
