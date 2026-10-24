@@ -1,4 +1,5 @@
 pub mod books;
+mod commands;
 mod database;
 
 use tauri::Manager;
@@ -6,6 +7,7 @@ use tauri::Manager;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .invoke_handler(tauri::generate_handler![commands::create_book])
         .setup(|app| {
             let mut data_directory = app.path().app_data_dir()?;
             if cfg!(debug_assertions) {

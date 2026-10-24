@@ -1,5 +1,7 @@
 # Accessibility and layout review
 
+Task 2.4 follow-up: all 15 Edge tests pass, including the creation dialog at 320/640/1100px, linked invalid-title feedback/first-field focus, Escape/trigger focus restoration, retained draft, explicit desktop-only persistence feedback and axe WCAG scans. These browser tests do not exercise native SQLite IPC or constitute manual screen-reader verification.
+
 Date: 2026-10-24. Task: 1.9. Scope: current application shell/navigation and shared Button, Input, Modal, Card and ProgressBar. Product features remain unimplemented.
 
 ## Method and results

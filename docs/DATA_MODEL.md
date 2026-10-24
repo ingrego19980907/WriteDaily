@@ -1,6 +1,8 @@
 # Data model
 
-Status: book metadata types/validation (2.1), native SQLite/migration v1 (2.2) and Rust book repository (2.3) are implemented. No Tauri book command, book CRUD UI or cover file import/cleanup exists. SQLite is bundled; Tiptap remains uninstalled. Other entities remain planned.
+Creation (2.4) accepts only BookDetails through create_book. Form blanks become null for optional fields; goal strings must contain decimal digits and pass the safe-integer domain validator. Native DTO decoding and repository validation remain authoritative. The command runs blocking persistence outside the UI thread and resolves only after commit; no schema change. A disposable-database command-boundary test verifies reopen retention and serializable validation/persistence errors. Real desktop IPC interaction/restart verification is not claimed by these tests; full desktop restart acceptance remains 2.12.
+
+Status: book metadata types/validation (2.1), native SQLite/migration v1 (2.2) and Rust book repository (2.3) are implemented. Book creation has a Tauri command/dialog (2.4). Editing/deletion UI, library cards/grid and cover import/cleanup remain planned. SQLite is bundled; Tiptap remains uninstalled. Other entities remain planned.
 
 | Entity              | Proposed fields and constraints                                                                                                                                         |
 | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -90,7 +92,7 @@ Identity/schema checks are structural safeguards, not proof that every row meets
 - Coarse managed-cover reference containment (covers/ prefix; no traversal, extra directory separator, backslash or URI colon).
 - UTC timestamp string shape and basic created/updated/completed ordering.
 
-SQLite may coerce numeric text even in STRICT tables. Native repository 2.3 additionally enforces NFC/Unicode trimming and controls, complete dates/timestamps and DTO constraints. Cover references are checked structurally; actual file content, physical containment and ownership remain the importer boundary in 2.7. The TypeScript validator is not a substitute. No frontend book write operations are exposed yet.
+SQLite may coerce numeric text even in STRICT tables. Native repository 2.3 additionally enforces NFC/Unicode trimming and controls, complete dates/timestamps and DTO constraints. Cover references are checked structurally; actual file content, physical containment and ownership remain the importer boundary in 2.7. The TypeScript validator is not a substitute. Only the create_book command is exposed to the frontend.
 
 ### Durability and test evidence
 
@@ -114,7 +116,7 @@ Module: src-tauri/src/books/. Public Rust types: BookRepository, Book, BookDetai
 
 ### Validation and JSON contract
 
-Book serializes camelCase keys matching the TypeScript Book shape. BookDetails deserializes camelCase metadata and rejects unknown fields, wrong types, fractional counts and attempts to pass system-owned fields. Missing Option fields become null equivalents. Native business validation returns field/code issues matching the frontend for representable metadata; shared tests/fixtures/book-details.json examples exercise both implementations. Invalid JSON/types fail decoding before repository calls; the UI command adapter is not implemented yet.
+Book serializes camelCase keys matching the TypeScript Book shape. BookDetails deserializes camelCase metadata and rejects unknown fields, wrong types, fractional counts and attempts to pass system-owned fields. Missing Option fields become null equivalents. Native business validation returns field/code issues matching the frontend for representable metadata; shared tests/fixtures/book-details.json examples exercise both implementations. Invalid JSON/types fail decoding before repository calls; the creation adapter maps validation issues and persistence failures to serializable codes.
 
 Unicode normalization uses unicode-normalization; the edge whitespace set intentionally matches ECMAScript trim (BOM is trimmed; NEL remains a rejected control). Count code points, not UTF-8 bytes/UTF-16 units. Chrono validates actual dates and canonical UTC millisecond instants; offset timestamps, alternate precision, year zero and leap seconds are not accepted as stored tokens. UUID uses an established generator/parser rather than a custom regex.
 

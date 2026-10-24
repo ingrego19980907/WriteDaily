@@ -14,9 +14,7 @@ test('opens My Library with one current section and the product identity', () =>
   expect(
     main.getByText('Every great story begins with a single word.'),
   ).toBeVisible()
-  expect(
-    main.getByRole('heading', { level: 2, name: 'Coming soon' }),
-  ).toBeVisible()
+  expect(main.getByRole('button', { name: 'Create book' })).toBeVisible()
   expect(
     within(screen.getByRole('banner')).getByText('WriteDaily'),
   ).toBeVisible()

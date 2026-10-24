@@ -1,10 +1,12 @@
 # Architecture
 
-Status: Foundation complete through task 0.9, including Windows development-window visual verification; application structure established in task 0.7. React/Vite, Tauri, Tailwind, lint/format tooling and Vitest are configured. Book metadata, native SQLite/migration and Rust repository are implemented through 2.3; book IPC/UI and other product features remain absent. Runtime entry is `src/main.tsx`, application composition is `src/app/App.tsx`, and global CSS is `src/styles/global.css`.
+Book creation (2.4): CreateBook owns an in-memory draft that stays mounted across section changes. Closing/Escape preserves it for the current app session; restart recovery is not promised. The form validates metadata and uses services/books.ts to invoke create_book. Browser preview explicitly reports that desktop is required and never simulates saving. The async native command moves database locking and repository work into spawn_blocking, returns a committed snapshot, and maps failures to codes without exposing SQL/path details. Pending submission blocks duplicate activation and dialog dismissal. Success clears the draft and closes the dialog. Listing/cards, editing, deletion and cover selection remain subsequent tasks.
+
+Status: Foundation complete through task 0.9, including Windows development-window visual verification; application structure established in task 0.7. React/Vite, Tauri, Tailwind, lint/format tooling and Vitest are configured. Book metadata, native SQLite/migration and Rust repository are implemented through 2.4, including the book creation command/dialog. Other product features remain planned. Runtime entry is `src/main.tsx`, application composition is `src/app/App.tsx`, and global CSS is `src/styles/global.css`.
 
 ## Technology direction
 
-Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs eighty-six domain/component tests plus twelve Edge browser accessibility/layout tests; native persistence is additionally covered by 25 Rust tests. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
+Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs ninety-one domain/component tests plus fifteen Edge browser accessibility/layout tests; native persistence is additionally covered by 26 Rust tests. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
 
 ## Organization
 
@@ -21,13 +23,13 @@ src/
     i18n/en.ts         centralized English UI copy
   components/ui/       shared Button/Input/Modal/Card/ProgressBar
   features/
-    library/           book metadata types/validation; future books and covers
+    library/           book metadata validation and creation dialog; future cards/covers
     editor/            chapters and writing
     goals/             targets and deadlines
     activity/          writing events, calendar and streaks
     achievements/      achievement evaluation and presentation
   hooks/               shared React behavior when needed
-  services/            future typed persistence boundary
+  services/            typed native book creation boundary
   styles/global.css    Tailwind entry and global styles
   styles/tokens.css    palette, fonts and typography theme variables
   types/               genuinely shared types when needed
@@ -49,7 +51,7 @@ Resolve storage paths via Tauri application directories, never hardcode user pat
 
 ## Desktop bootstrap (0.3)
 
-`src-tauri` contains the Rust entry point, Tauri build script, configuration, generated scaffold icons and default core capability for the main window. No filesystem, shell, SQL or custom application commands are exposed to the frontend. Native SQLite initialization now runs internally (2.2). The frontend does not yet need @tauri-apps/api; add it when an approved feature invokes native functionality. Removed unused logging/serialization scaffold dependencies.
+`src-tauri` contains the Rust entry point, Tauri build script, configuration, generated scaffold icons and default core capability for the main window. Only create_book is exposed as a custom application command; no arbitrary filesystem, shell or SQL commands are exposed. Native SQLite initialization now runs internally (2.2). The frontend uses @tauri-apps/api 2.12.4 for typed create_book invocation. Removed unused logging/serialization scaffold dependencies.
 
 Desktop hooks run the existing npm dev/build scripts. Vite uses fixed loopback port 5173 and ignores Rust changes; Tauri owns Rust rebuilds. Production CSP restricts scripts to bundled code; development CSP additionally permits Vite's loopback HTTP/WebSocket endpoint and React refresh preamble. No remote content is loaded.
 
@@ -103,7 +105,7 @@ Input is a native single-line field wrapper with a required visible label and op
 
 ## Shared Modal (1.6)
 
-Modal wraps @radix-ui/react-dialog rather than implementing a focus trap manually. The component owns presentation (portal, overlay, title/optional description, header Close and scrollable content); the consumer owns open state and whether a dismissal request may proceed. A required semantic trigger provides deterministic focus restoration. Shared Button's ref/prop forwarding supports Radix asChild composition. No app-to-UI imports or localization dependency are added: callers supply text. Like Input, Modal is not yet used by a product feature; styles/dependency load with its eventual consumer.
+Modal wraps @radix-ui/react-dialog rather than implementing a focus trap manually. The component owns presentation (portal, overlay, title/optional description, header Close and scrollable content); the consumer owns open state and whether a dismissal request may proceed. A required semantic trigger provides deterministic focus restoration. Shared Button's ref/prop forwarding supports Radix asChild composition. No app-to-UI imports or localization dependency are added: callers supply text. Input and Modal are used by book creation.
 
 Seven behavioral tests cover focus, description and dismissal boundaries, including StrictMode and a refused dismissal retaining form input. A temporary ignored Tauri preview verified layout/scrolling, then was removed. Native keyboard capture was inconclusive and is not substituted for test evidence. The normal desktop configuration was rebuilt after preview. Future destructive confirmations may need a dedicated alert-dialog pattern; unsaved-form decisions remain explicit feature responsibilities.
 
@@ -123,7 +125,7 @@ The fixture imports global styles before component modules to establish Tailwind
 
 ## Book domain model (2.1)
 
-Library owns book.ts: readonly persisted snapshot and editable metadata types plus pure validation from unknown input. Book IPC/UI is not implemented; native initialization is in 2.2 and the Rust repository in 2.3. The validator normalizes title/optional nulls and returns localized-message codes, not UI strings; storage-owned identity, paths and timestamps do not enter its output. Native persistence must enforce the same contract before writing; this frontend type/validator is not a security or database boundary by itself.
+Library owns book.ts: readonly persisted snapshot and editable metadata types plus pure validation from unknown input. Book creation IPC/UI is implemented in 2.4; native initialization is in 2.2 and the Rust repository in 2.3. The validator normalizes title/optional nulls and returns localized-message codes, not UI strings; storage-owned identity, paths and timestamps do not enter its output. Native persistence must enforce the same contract before writing; this frontend type/validator is not a security or database boundary by itself.
 
 DATA_MODEL.md defines canonical local deadlines versus UTC instants, safe numeric counts, nonduplicated derived progress, SQL mapping and future delete/reference behavior. No validation library, repository interface or SQL migration is introduced prematurely. Code stays feature-local rather than adding generic shared entity abstractions.
 
@@ -137,6 +139,6 @@ Native tests isolate temporary files and cover data retention, constraints, atom
 
 ## Book repository (2.3)
 
-Public native books module supplies typed DTOs, validation and BookRepository; it borrows the app-managed Connection and does not expose SQL/CRUD commands to JavaScript. List/get validate full stored snapshots; create/update/delete use bound parameters and IMMEDIATE transactions. Success is returned after commit only. Snapshot updatedAt is required for update/delete to prevent stale writes across connections, with monotonically advancing UTC millisecond timestamps.
+Public native books module supplies typed DTOs, validation and BookRepository; it borrows the app-managed Connection and does not expose arbitrary SQL to JavaScript; a separate adapter exposes create only. List/get validate full stored snapshots; create/update/delete use bound parameters and IMMEDIATE transactions. Success is returned after commit only. Snapshot updatedAt is required for update/delete to prevent stale writes across connections, with monotonically advancing UTC millisecond timestamps.
 
 Native validation matches frontend metadata normalization through shared JSON fixtures, and additionally checks UUIDs, full stored timestamps/order and managed cover reference shape. Serde maps camelCase DTOs and rejects unsupported input fields/types. No silent row repair/filtering. Covered-book deletion is explicitly blocked until file cleanup is implemented; no file IO occurs in the repository. Future IPC wraps this blocking API, handles database lock/errors and owns user confirmation policy. Existing migration SQL is unchanged.

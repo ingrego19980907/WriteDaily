@@ -4,6 +4,7 @@ import { AppShell } from './AppShell'
 import { AppNavigation } from './AppNavigation'
 import type { SectionId } from './navigation'
 import { Card } from '../components/ui/Card'
+import { CreateBook } from '../features/library/CreateBook'
 
 export default function App() {
   const [activeSection, setActiveSection] = useState<SectionId>('library')
@@ -36,10 +37,15 @@ export default function App() {
           {section.title}
         </h1>
         <p className="font-writing text-writing">{section.subtitle}</p>
-        <Card className="space-y-2">
-          <h2 className="font-semibold">{en.shell.comingSoon}</h2>
-          <p className="text-ui text-secondary">{section.description}</p>
-        </Card>
+        <div hidden={activeSection !== 'library'}>
+          <CreateBook />
+        </div>
+        {activeSection !== 'library' && (
+          <Card className="space-y-2">
+            <h2 className="font-semibold">{en.shell.comingSoon}</h2>
+            <p className="text-ui text-secondary">{section.description}</p>
+          </Card>
+        )}
       </div>
     </AppShell>
   )

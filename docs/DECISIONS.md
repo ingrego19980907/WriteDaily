@@ -1,5 +1,9 @@
 # Decision log
 
+## 2026-10-24 - Book creation (2.4)
+
+Expose only create_book through the official Tauri 2 API (2.12.4), following [official command guidance](https://v2.tauri.app/develop/calling-rust/). Reuse the native repository and managed Mutex connection on spawn_blocking. Keep the dialog draft in the mounted feature across dismissal/navigation, clear only after commit, and block dismissal/repeated submission during a write. Drafts are session-only. Browser preview reports desktop required; no mock persistence. Cover import and book cards/grid remain their approved later tasks.
+
 Entries record decisions and verification at each task, not current implementation claims. Later entries supersede earlier environment/version assumptions; current setup is in [README](../README.md) and progress in [TASKS](TASKS.md).
 
 ## 2026-10-24 — Product identity and scope

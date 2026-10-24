@@ -1,4 +1,28 @@
 export const en = {
+  library: {
+    create: 'Create book',
+    close: 'Close',
+    description: 'Give your story a title. Goals and a deadline are optional.',
+    title: 'Title',
+    titleHint: 'Up to 200 characters.',
+    targetWordCount: 'Target word count (optional)',
+    dailyWordGoal: 'Daily word goal (optional)',
+    deadline: 'Deadline (optional)',
+    saving: 'Creating…',
+    saved: 'Book created:',
+    draft: 'Your unfinished details are kept when you close this form.',
+    failure:
+      'Could not create the book. Your details are kept. Please try again.',
+    desktop: 'Open the desktop app to save books to your library.',
+    errors: {
+      required: 'Enter a title.',
+      invalid_type: 'Enter a valid value.',
+      too_long: 'Use no more than 200 characters.',
+      invalid_title: 'Remove control characters from the title.',
+      invalid_count: 'Enter a whole number from 1 to 9007199254740991.',
+      invalid_date: 'Enter a valid date (YYYY-MM-DD, years 0001–9999).',
+    },
+  },
   app: {
     name: 'WriteDaily',
     tagline: 'A little writing, every day.',
