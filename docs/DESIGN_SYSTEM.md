@@ -1,5 +1,9 @@
 # Design system
 
+## Book progress (2.10)
+
+BookProgress owns progress labels/descriptions around shared ProgressBar. A known zero has determinate zero semantics; unknown omits aria-valuenow. Reached/exceeded goals cap the bar and percentage at 100 while the visible/accessible description preserves actual words and separately shows excess. Below-target percentages floor to one decimal so 99.999% never appears as reached. A known count without a goal displays the count and a target hint, without a percentage/bar. Counts use English number formatting and all copy stays centralized. Completion badges remain independent; the component does not aggregate or persist words.
+
 ## Library grid (2.9)
 
 The library uses a native list with CSS Grid auto-fit columns, minmax(min(100%, 18rem), 1fr) and 1.5rem gaps. Only library content expands to max 72rem; standard reading sections remain max 48rem. Cards stack their cover/content within each column and preserve full wrapped titles and native actions. Verified column counts are 1 at 320/640px, 2 at 1100px and 3 at 1440px; text enlargement reduces columns naturally without horizontal overflow. Open book is an explicit native button, with disabled pending feedback, not a nested clickable card. Successful loading focuses the editor heading; return navigation focuses the library heading. No arrows/grid widget roles or hover-only controls.

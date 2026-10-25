@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Tasks 2.1-2.9 (book model, SQLite/migrations v1-v2, CRUD, managed covers, cards and responsive library grid) are complete; awaiting approval before 2.10 (book progress). Progress is explicitly unknown until actual word counts are available; no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Tasks 2.1-2.10 (book model, persistence, CRUD, covers, cards/grid and progress calculation/presentation) are complete; awaiting approval before 2.11 (empty states and validation). Progress is explicitly unknown until actual word counts are available; no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -47,7 +47,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [x]  | 2.7  | Implement cover upload and storage | Completed (2026-10-24) | 2.6          | Managed covers survive restart and invalid files are rejected            |
 | [x]  | 2.8  | Design book cards                  | Completed (2026-10-25) | 2.7          | Cover, title and progress render accessibly                              |
 | [x]  | 2.9  | Implement library grid             | Completed (2026-10-25) | 2.8          | Responsive grid opens the correct book                                   |
-| [ ]  | 2.10 | Implement book progress            | Not started            | 2.9          | Zero, missing and exceeded targets handled                               |
+| [x]  | 2.10 | Implement book progress            | Completed (2026-10-25) | 2.9          | Zero, missing and exceeded targets handled                               |
 | [ ]  | 2.11 | Add empty states and validation    | Not started            | 2.10         | Empty, loading and error states work                                     |
 | [ ]  | 2.12 | Test persistence after restart     | Not started            | 2.11         | Books and covers survive a real desktop restart                          |
 
@@ -133,6 +133,14 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [ ]  | 8.10 | Tag version 1.0.0           | Not started | 8.9          | Release gates pass and explicit authorization obtained before Git mutation |
 
 ## Historical verification evidence
+
+## Verification evidence: 2.10
+
+- Added pure calculateBookProgress and reusable BookProgress, integrated into BookCard through an optional external wordCount input. Book DTO/schema are unchanged. Counts must come from manuscript aggregation, never title/targets/completion or fake persistence. Current Library supplies no count and therefore remains explicitly unknown; chapter counting/aggregation belongs to 3.7/4.1.
+- Handles known zero, partial, reached and exceeded goals; bar/percentage saturate at 100 while preserving actual count and nonnegative excess/remaining words. Percentages round down to one decimal and cannot claim 100 below target. Invalid/missing counts remain unknown; a known count without a valid goal displays words without a percentage/bar. Safe-integer validation rejects coercions, fractions, negatives, infinities and unsafe values; no division by zero.
+- 156 frontend tests passed, including safe-integer endpoints, near-target rounding, zero, exceeded and missing/invalid goals/counts, screen-reader range/value text, known/unknown transitions and all prior regressions. Completion remains independent of numerical goal progress.
+- All 34 Edge checks passed. New presentation-only fixtures at 320/640/1100px render zero/partial/reached/exceeded/no-target/unknown counts, verify ARIA bounds/actual count text, axe WCAG scans and 200% text reflow. These explicit fixture counts are not a runtime data source.
+- Lint, formatting, strict typecheck, production build and diff checks passed. No native/schema/dependency changes; prior 39 Rust tests remain historical evidence, not rerun. No new desktop-window/native IPC/restart claim. Next: 2.11, awaiting approval.
 
 ## Verification evidence: 2.9
 

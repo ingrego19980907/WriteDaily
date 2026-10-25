@@ -12,6 +12,13 @@ export const en = {
     manageCover: 'Manage cover',
     writingProgress: 'Writing progress',
     wordCountUnavailable: 'Word count unavailable',
+    wordsWritten: (words: string) => `${words} words written`,
+    progressNoTarget: 'Set a word target to measure progress.',
+    progressSummary: (words: string, target: string, percent: string) =>
+      `${words} / ${target} words · ${percent}% of target`,
+    wordsRemaining: (words: string) => `${words} words remaining`,
+    aboveTarget: (words: string) => `${words} words above target`,
+    targetReached: 'Word target reached',
     noTarget: 'No word target',
     wordTarget: (count: string) => `Target: ${count} words`,
     completed: 'Completed',

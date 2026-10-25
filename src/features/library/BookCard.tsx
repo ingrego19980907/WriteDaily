@@ -1,7 +1,7 @@
 import { useId } from 'react'
 import { en } from '../../app/i18n/en'
 import { Card } from '../../components/ui/Card'
-import { ProgressBar } from '../../components/ui/ProgressBar'
+import { BookProgress } from './BookProgress'
 import { Button } from '../../components/ui/Button'
 import type { Book } from './book'
 import { BookCover } from './BookCover'
@@ -19,12 +19,14 @@ export function BookCard({
   onDeleted,
   onOpen,
   opening = false,
+  wordCount,
 }: {
   book: Book
   onSaved: (book: Book) => void
   onDeleted: (book: Book, cleanupPending?: boolean) => void
   onOpen?: (book: Book) => void
   opening?: boolean
+  wordCount?: number | null
 }) {
   const id = useId()
   return (
@@ -43,16 +45,10 @@ export function BookCard({
               ? copy.noTarget
               : copy.wordTarget(numbers.format(book.targetWordCount))}
           </p>
-          <ProgressBar
-            label={copy.writingProgress}
-            value={null}
-            max={book.targetWordCount ?? 100}
-            aria-valuetext={copy.wordCountUnavailable}
-            aria-describedby={`${id}-progress-hint`}
+          <BookProgress
+            wordCount={wordCount}
+            targetWordCount={book.targetWordCount}
           />
-          <p id={`${id}-progress-hint`} className="text-secondary">
-            {copy.wordCountUnavailable}
-          </p>
           <div className="book-card__actions">
             {onOpen && (
               <Button disabled={opening} onClick={() => onOpen(book)}>

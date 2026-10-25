@@ -1,5 +1,7 @@
 # Accessibility and layout review
 
+Task 2.10 follow-up: all 34 Edge checks pass. Presentation fixtures at 320/640/1100px verify zero versus unknown, partial/reached/exceeded goals, actual counts in accessible text, bounded ARIA ranges, no percentage for a known count without a goal, axe WCAG scans and 200% text reflow. Runtime Library still has unknown counts pending manuscript aggregation. No new native desktop or manual screen-reader claim.
+
 Task 2.9 follow-up: all 31 Edge tests pass. Grid scenarios verify native list/articles and 1/1/2/3 CSS columns at 320/640/1100/1440px, keyboard opening by selected ID with duplicate titles, correct fresh selected-book context, heading focus/return navigation, axe WCAG scans and 200% text reflow. Browser screenshots inspected. Existing card/CRUD/cover/navigation regressions remain covered. IPC fixtures do not establish native desktop restart or manual screen-reader behavior.
 
 Task 2.8 follow-up: all 27 Edge checks pass. New card checks at 320/640/1100px cover full Unicode/unbroken titles, named articles, cover/fallback/error states, unknown progress semantics, no-target/completion labels, axe WCAG scans, native disclosure keyboard access, edit focus restoration and 200% text reflow. Narrow enlarged-text review fixes cover sizing and masthead wrapping. Browser screenshots inspected. Test-only IPC remains separate from native persistence; no manual screen-reader or new desktop-window verification.
