@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Tasks 2.1-2.8 (book model, SQLite/migrations v1-v2, native repository, CRUD, managed covers and book cards) are complete; awaiting approval before 2.9 (library grid). Progress is explicitly unknown until actual word counts are available; no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Tasks 2.1-2.9 (book model, SQLite/migrations v1-v2, CRUD, managed covers, cards and responsive library grid) are complete; awaiting approval before 2.10 (book progress). Progress is explicitly unknown until actual word counts are available; no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -46,7 +46,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [x]  | 2.6  | Implement book deletion            | Completed (2026-10-24) | 2.5          | Confirmation and safe dependent-data policy verified                     |
 | [x]  | 2.7  | Implement cover upload and storage | Completed (2026-10-24) | 2.6          | Managed covers survive restart and invalid files are rejected            |
 | [x]  | 2.8  | Design book cards                  | Completed (2026-10-25) | 2.7          | Cover, title and progress render accessibly                              |
-| [ ]  | 2.9  | Implement library grid             | Not started            | 2.8          | Responsive grid opens the correct book                                   |
+| [x]  | 2.9  | Implement library grid             | Completed (2026-10-25) | 2.8          | Responsive grid opens the correct book                                   |
 | [ ]  | 2.10 | Implement book progress            | Not started            | 2.9          | Zero, missing and exceeded targets handled                               |
 | [ ]  | 2.11 | Add empty states and validation    | Not started            | 2.10         | Empty, loading and error states work                                     |
 | [ ]  | 2.12 | Test persistence after restart     | Not started            | 2.11         | Books and covers survive a real desktop restart                          |
@@ -133,6 +133,15 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [ ]  | 8.10 | Tag version 1.0.0           | Not started | 8.9          | Release gates pass and explicit authorization obtained before Git mutation |
 
 ## Historical verification evidence
+
+## Verification evidence: 2.9
+
+- Replaced the vertical list layout with CSS Grid auto-fit/minmax columns (18rem minimum capped at 100%). Library alone uses a wider 72rem shell content limit; other sections retain 48rem. Cards stack cover/content within columns. Native list/article semantics, DOM order and mounted draft/cover controls remain intact; no ARIA grid widget or fake keyboard navigation added.
+- Added Open book action that loads the latest persisted snapshot through existing get_book by ID before selecting the editor section. The read-only selected-book context shows its title/target and explicitly says chapter editing is coming soon; no chapter editor/autosave is claimed. Back to library restores library navigation/focus without remounting its drafts.
+- Pending opens show disabled feedback. Failures/not-found stay in library without removing rows. Request identity guards prevent older responses replacing newer choices, navigation being reversed by late reads and deleted books being reselected. Metadata updates/deletions keep the selected context synchronized within the session. Selection is not persisted across app reload.
+- 128 frontend tests passed. New integration tests cover duplicate-title identity, fresh persisted details, keyboard activation/focus, failures/retry, out-of-order responses, navigation during loading and clearing/cancelling selected/deleted book contexts.
+- All 31 Edge tests passed. New grid scenarios verify 1/1/2/3 columns at 320/640/1100/1440px, duplicate-title selection through keyboard, correct loaded target/context, return navigation, 200% text reflow and axe WCAG scans. Browser screenshots inspected. Existing CRUD/cards/covers/navigation checks remain passing.
+- Lint, formatting, strict typecheck, production build and diff checks passed. Native code, schema and persistence commands are unchanged; prior 39 native tests remain recorded in 2.7, not rerun. Browser fixtures use isolated test IPC; no new native GUI/restart claim. Next: 2.10, awaiting approval.
 
 ## Verification evidence: 2.8
 

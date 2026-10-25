@@ -8,7 +8,19 @@ import { BookCard } from './BookCard'
 
 const copy = en.library
 
-export function Library() {
+export function Library({
+  onOpenBook,
+  openingId,
+  openFailure,
+  onBookSaved,
+  onBookDeleted,
+}: {
+  onOpenBook?: (book: Book) => void
+  openingId?: string | null
+  openFailure?: string
+  onBookSaved?: (book: Book) => void
+  onBookDeleted?: (id: string) => void
+}) {
   const [books, setBooks] = useState<Book[]>([])
   const [loading, setLoading] = useState(true)
   const [failure, setFailure] = useState('')
@@ -59,6 +71,7 @@ export function Library() {
   }, [load])
 
   function saved(book: Book) {
+    onBookSaved?.(book)
     setLoading(false)
     setFailure('')
     setBooks((previous) =>
@@ -69,6 +82,7 @@ export function Library() {
   }
 
   function removed(book: Book, pendingCleanup = false) {
+    onBookDeleted?.(book.id)
     deletedIds.current.add(book.id)
     setBooks((previous) => previous.filter((item) => item.id !== book.id))
     setDeleted(book.title)
@@ -79,6 +93,11 @@ export function Library() {
   return (
     <div className="space-y-4">
       <CreateBook onSaved={saved} />
+      {openFailure && (
+        <p role="alert" className="text-error">
+          {openFailure}
+        </p>
+      )}
       <h2 ref={heading} tabIndex={-1} className="font-semibold">
         {copy.books}
       </h2>
@@ -103,10 +122,16 @@ export function Library() {
       {!loading && !failure && books.length === 0 && (
         <p className="text-secondary">{copy.empty}</p>
       )}
-      <ul className="space-y-4" aria-label={copy.books}>
+      <ul className="library-grid" aria-label={copy.books}>
         {books.map((book) => (
           <li key={book.id} className="space-y-2">
-            <BookCard book={book} onSaved={saved} onDeleted={removed} />
+            <BookCard
+              book={book}
+              onSaved={saved}
+              onDeleted={removed}
+              onOpen={onOpenBook}
+              opening={openingId === book.id}
+            />
           </li>
         ))}
       </ul>

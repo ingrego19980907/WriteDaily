@@ -1,5 +1,9 @@
 # Decision log
 
+## 2026-10-25 - Library grid and book selection (2.9)
+
+Keep native list/article semantics with CSS auto-fit/minmax layout and a library-only wider shell. Open through a separate native button and existing get_book command by ID, so duplicate titles cannot select the wrong book. Only a successful fresh read enters the editor context. Guard against late responses after selection/navigation/deletion. Keep selection in App memory and preserve mounted library drafts. The editor destination explicitly remains read-only until milestone 3; no writing UI, mock chapters, router or new persistence boundary.
+
 ## 2026-10-25 - Book cards (2.8)
 
 Use shared Card and ProgressBar, full wrapped titles and named article semantics; keep edit/delete as native actions. Show managed cover or a code-native decorative fallback, preserving aspect ratio and text reflow. Extract preview reads from mutation controls so each card reads its cover once. Keep cover controls mounted inside a native disclosure to preserve selection/state while collapsed. Actual manuscript counts are absent, so expose indeterminate progress and an unavailable explanation instead of fabricated zero/percent. Completion is an independent persisted label. No dependency, native or schema changes; grid/open behavior remains 2.9.

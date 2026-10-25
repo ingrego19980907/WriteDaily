@@ -1,4 +1,19 @@
 @layer components {
+  .library-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+    align-items: start;
+    gap: 1.5rem;
+  }
+  .library-grid .book-card__overview {
+    flex-direction: column;
+  }
+  .library-grid .book-card__content {
+    width: 100%;
+  }
+  .library-grid .book-cover-image {
+    align-self: center;
+  }
   .book-card {
     min-width: 0;
   }

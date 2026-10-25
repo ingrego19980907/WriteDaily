@@ -5,9 +5,14 @@ import './app-shell.css'
 type AppShellProps = {
   children: ReactNode
   navigation?: ReactNode
+  wide?: boolean
 }
 
-export function AppShell({ children, navigation }: AppShellProps) {
+export function AppShell({
+  children,
+  navigation,
+  wide = false,
+}: AppShellProps) {
   return (
     <div className="app-shell">
       <a
@@ -36,7 +41,9 @@ export function AppShell({ children, navigation }: AppShellProps) {
           </aside>
         )}
         <main id="main-content" tabIndex={-1} className="app-shell__main">
-          <div className="mx-auto w-full max-w-3xl">{children}</div>
+          <div className={`mx-auto w-full ${wide ? 'max-w-6xl' : 'max-w-3xl'}`}>
+            {children}
+          </div>
         </main>
       </div>
     </div>

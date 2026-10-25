@@ -2,6 +2,7 @@ import { useId } from 'react'
 import { en } from '../../app/i18n/en'
 import { Card } from '../../components/ui/Card'
 import { ProgressBar } from '../../components/ui/ProgressBar'
+import { Button } from '../../components/ui/Button'
 import type { Book } from './book'
 import { BookCover } from './BookCover'
 import { BookDetailsDialog } from './BookDetailsDialog'
@@ -16,10 +17,14 @@ export function BookCard({
   book,
   onSaved,
   onDeleted,
+  onOpen,
+  opening = false,
 }: {
   book: Book
   onSaved: (book: Book) => void
   onDeleted: (book: Book, cleanupPending?: boolean) => void
+  onOpen?: (book: Book) => void
+  opening?: boolean
 }) {
   const id = useId()
   return (
@@ -49,6 +54,11 @@ export function BookCard({
             {copy.wordCountUnavailable}
           </p>
           <div className="book-card__actions">
+            {onOpen && (
+              <Button disabled={opening} onClick={() => onOpen(book)}>
+                {opening ? copy.opening : copy.open}
+              </Button>
+            )}
             <BookDetailsDialog book={book} onSaved={onSaved} />
             <DeleteBook book={book} onDeleted={onDeleted} />
           </div>

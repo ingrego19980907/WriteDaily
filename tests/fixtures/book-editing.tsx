@@ -20,6 +20,22 @@ const original: Book = {
 Object.assign(globalThis, { isTauri: true })
 mockIPC((command, payload) => {
   if (command === 'list_books') {
+    if (new URLSearchParams(location.search).has('grid'))
+      return [
+        original,
+        {
+          ...original,
+          id: 'second',
+          title: original.title,
+          targetWordCount: 2000,
+        },
+        {
+          ...original,
+          id: 'third',
+          title: 'Третя історія',
+          targetWordCount: null,
+        },
+      ]
     if (new URLSearchParams(location.search).has('cards'))
       return [
         { ...original, title: 'ДовгаНазва'.repeat(22) },
@@ -39,6 +55,13 @@ mockIPC((command, payload) => {
         },
       ]
     return [original]
+  }
+  if (
+    command === 'get_book' &&
+    new URLSearchParams(location.search).has('grid')
+  ) {
+    const id = (payload as { id: string }).id
+    return { ...original, id, targetWordCount: id === 'second' ? 2000 : 1000 }
   }
   if (command === 'get_book')
     return {

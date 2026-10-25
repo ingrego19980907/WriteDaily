@@ -1,5 +1,9 @@
 # Design system
 
+## Library grid (2.9)
+
+The library uses a native list with CSS Grid auto-fit columns, minmax(min(100%, 18rem), 1fr) and 1.5rem gaps. Only library content expands to max 72rem; standard reading sections remain max 48rem. Cards stack their cover/content within each column and preserve full wrapped titles and native actions. Verified column counts are 1 at 320/640px, 2 at 1100px and 3 at 1440px; text enlargement reduces columns naturally without horizontal overflow. Open book is an explicit native button, with disabled pending feedback, not a nested clickable card. Successful loading focuses the editor heading; return navigation focuses the library heading. No arrows/grid widget roles or hover-only controls.
+
 ## Book cards (2.8)
 
 BookCard composes the shared surface/border/radius/shadow with a 2:3 managed-cover area, full serif title, optional word target, explicit unknown-progress state, persisted completion label and native edit/delete actions. It is a named article rather than a nested clickable card. Covers use contain to preserve the image; absent/failed covers have a decorative book outline and readable fallback. Narrow layouts stack cover/content; long Unicode/unbroken titles wrap without truncation. Fallbacks grow with text enlargement. Manage cover uses native details/summary, retains mounted controls and has visible focus. No hover-only actions, animation, new colors/fonts or external image assets. The responsive library grid and progress calculations remain 2.9/2.10.

@@ -1,6 +1,13 @@
 export const en = {
   library: {
     create: 'Create book',
+    open: 'Open book',
+    opening: 'Opening…',
+    openFailure: 'Could not open this book. Please try again.',
+    openMissing:
+      'This book is no longer available. Your library has not been changed.',
+    backToLibrary: 'Back to library',
+    editorPending: 'Chapter editing is coming soon.',
     noCover: 'No cover yet',
     manageCover: 'Manage cover',
     writingProgress: 'Writing progress',
