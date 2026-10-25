@@ -1,5 +1,7 @@
 # Architecture
 
+Chapter model (3.1): features/editor/chapter.ts separates readonly persisted summaries/content from editable title and revision-checked mutations. chapter-content.ts defines/validates a bounded versioned JSON subset without installing Tiptap or changing runtime UI. Metadata normalizes titles; body writing is copied without normalization or sanitization. Unknown/invalid content is rejected, never replaced with an empty document. [CHAPTER_MODEL.md](CHAPTER_MODEL.md) records ownership/order/revision/SQL/count contracts for the next native repository task. No chapter table/IPC/editor implementation exists yet.
+
 Desktop restart verification (2.12): a separate Node/Playwright runner builds an isolated Tauri debug variant with CLI-only appDirectoriesOverride, attaches to the actual embedded WebView2 over loopback CDP and exercises native book/cover persistence through real UI controls. Win32 checks/captures prove visible native windows, and process exit/new PIDs prove full restarts. Read-only SQLite checks corroborate committed snapshots/files after shutdown. No production hook, mock IPC, filesystem permission or schema change is added. The ordinary debug build is restored afterward. See [DESKTOP_PERSISTENCE_REVIEW.md](DESKTOP_PERSISTENCE_REVIEW.md).
 
 Library states/validation (2.11): list loading/error/success is independent of mutation success and currently known rows. Only a successful finished list read can establish an empty library; a committed create does not resolve a failed/pending listing. Retry retains failure context, blocks duplicate attempts and restores appropriate focus. Browser-only errors explain the desktop requirement without offering a futile list retry. The service boundary allowlists native metadata field/code issues; BookDetailsDialog renders localized linked errors/summary and focuses the first invalid field after pending ends. Malformed errors stay generic, and drafts survive. Native validation remains authoritative; no schema/persistence change.
@@ -22,7 +24,7 @@ Status: Foundation complete through task 0.9, including Windows development-wind
 
 ## Technology direction
 
-Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs 169 domain/component tests plus 36 Edge browser accessibility/layout tests; native persistence is additionally covered by 39 Rust tests. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
+Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs 213 domain/component tests plus 36 Edge browser accessibility/layout tests; native persistence is additionally covered by 39 Rust tests. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
 
 ## Organization
 

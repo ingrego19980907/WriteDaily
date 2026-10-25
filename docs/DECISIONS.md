@@ -1,5 +1,11 @@
 # Decision log
 
+## 2026-10-25 - Chapter data model (3.1)
+
+Use separate title metadata and versioned Tiptap-compatible JSON content contracts, with native-owned identity/book/position/count/revision/timestamps. Validate/copy body JSON without changing writing; reject unknown schema versions/nodes rather than dropping them. Restrict version 1 to the planned basic formatting/list subset and bound bytes/nodes/depth. Keep empty documents creation-only. Native implementation must mirror validation before writes; exact installed Tiptap compatibility remains 3.4.
+
+Use contiguous zero-based positions and full prior ID/revision vectors for atomic reorder, avoiding another parent ordering counter/table. Advance chapter revisions on every committed change; stale metadata/content/delete/reorder operations must fail without overwriting writing. Store counts as derived nullable values, never caller input; implement counting/aggregation later. Chapter model documentation specifies future SQL mapping/deletion policy without changing migrations 001/002 or exposing new IPC.
+
 ## 2026-10-25 - Real desktop restart verification (2.12)
 
 Use Tauri's supported CLI app-directory override for isolated test builds instead of adding a production environment-variable hook or touching the normal library. Attach existing Playwright to real WebView2 via process-local CDP arguments and use native UI controls for all mutations. Keep read-only native IPC/SQLite/hash comparisons, visible-window captures and distinct PID/clean-exit evidence. Test source remains reusable; artifacts stay ignored. Restore the default debug build in finally. This covers graceful Windows process restarts only, not installer/macOS/power-loss recovery.

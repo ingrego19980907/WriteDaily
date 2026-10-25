@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; awaiting approval before 3.1 (chapter data model). Progress is explicitly unknown until actual word counts are available; no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Task 3.1 (chapter data model) is complete; awaiting approval before 3.2 (chapter repository). Progress is explicitly unknown until actual word counts are available; no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -53,20 +53,20 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 
 ## Milestone 3: Writing Editor
 
-| Done | ID   | Description                   | Status      | Dependencies | Acceptance criteria                                                           |
-| ---- | ---- | ----------------------------- | ----------- | ------------ | ----------------------------------------------------------------------------- |
-| [ ]  | 3.1  | Design chapter data model     | Not started | 2.12         | Ordering, content schema and revisions specified                              |
-| [ ]  | 3.2  | Implement chapter repository  | Not started | 3.1          | Chapter CRUD and revision handling pass persistence checks                    |
-| [ ]  | 3.3  | Implement chapter management  | Not started | 3.2          | Create, rename and confirmed deletion work                                    |
-| [ ]  | 3.4  | Integrate Tiptap              | Not started | 3.3          | Rich text edits and serialization work                                        |
-| [ ]  | 3.5  | Add formatting toolbar        | Not started | 3.4          | Bold, italic, headings, lists and undo/redo work                              |
-| [ ]  | 3.6  | Implement chapter navigation  | Not started | 3.5          | Pending edits preserved when switching chapters                               |
-| [ ]  | 3.7  | Implement word counting       | Not started | 3.6          | Documented counting policy passes Unicode and empty-content tests             |
-| [ ]  | 3.8  | Implement autosave            | Not started | 3.7          | Serialized debounced writes and retry behavior pass failure checks            |
-| [ ]  | 3.9  | Implement save status         | Not started | 3.8          | Saved appears only after successful commit; errors remain visible             |
-| [ ]  | 3.10 | Add focus mode                | Not started | 3.9          | Focus mode can be entered and exited by keyboard                              |
-| [ ]  | 3.11 | Add editor preferences        | Not started | 3.10         | Font size persists within validated limits                                    |
-| [ ]  | 3.12 | Test persistence and recovery | Not started | 3.11         | Formatting, rapid navigation, interrupted saves and restart recovery verified |
+| Done | ID   | Description                   | Status                 | Dependencies | Acceptance criteria                                                           |
+| ---- | ---- | ----------------------------- | ---------------------- | ------------ | ----------------------------------------------------------------------------- |
+| [x]  | 3.1  | Design chapter data model     | Completed (2026-10-25) | 2.12         | Ordering, content schema and revisions specified                              |
+| [ ]  | 3.2  | Implement chapter repository  | Not started            | 3.1          | Chapter CRUD and revision handling pass persistence checks                    |
+| [ ]  | 3.3  | Implement chapter management  | Not started            | 3.2          | Create, rename and confirmed deletion work                                    |
+| [ ]  | 3.4  | Integrate Tiptap              | Not started            | 3.3          | Rich text edits and serialization work                                        |
+| [ ]  | 3.5  | Add formatting toolbar        | Not started            | 3.4          | Bold, italic, headings, lists and undo/redo work                              |
+| [ ]  | 3.6  | Implement chapter navigation  | Not started            | 3.5          | Pending edits preserved when switching chapters                               |
+| [ ]  | 3.7  | Implement word counting       | Not started            | 3.6          | Documented counting policy passes Unicode and empty-content tests             |
+| [ ]  | 3.8  | Implement autosave            | Not started            | 3.7          | Serialized debounced writes and retry behavior pass failure checks            |
+| [ ]  | 3.9  | Implement save status         | Not started            | 3.8          | Saved appears only after successful commit; errors remain visible             |
+| [ ]  | 3.10 | Add focus mode                | Not started            | 3.9          | Focus mode can be entered and exited by keyboard                              |
+| [ ]  | 3.11 | Add editor preferences        | Not started            | 3.10         | Font size persists within validated limits                                    |
+| [ ]  | 3.12 | Test persistence and recovery | Not started            | 3.11         | Formatting, rapid navigation, interrupted saves and restart recovery verified |
 
 ## Milestone 4: Goals & Deadlines
 
@@ -133,6 +133,14 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [ ]  | 8.10 | Tag version 1.0.0           | Not started | 8.9          | Release gates pass and explicit authorization obtained before Git mutation |
 
 ## Historical verification evidence
+
+## Verification evidence: 3.1
+
+- Added editor/chapter.ts: readonly metadata, summary/full snapshots, separate metadata/content change inputs, chapter revision tokens and full expected-order/revision vectors. Native-owned ownership/position/count/system fields cannot enter the validated metadata result. Titles normalize trim/NFC, allow Unicode and enforce the 200-code-point/control/surrogate contract.
+- Added chapter-content.ts: version-1 typed Tiptap-compatible JSON subset, creation-only empty factory, bounded pure validation and detached copy. Supports paragraphs/headings/hard breaks, bold/italic and nested lists. Preserves body text exactly; rejects unsupported versions/fields/nodes/marks, invalid grammar, cycles, sparse/custom-serialization values and oversized/deep trees without repair/truncation. No Tiptap dependency installed; official schema/source docs consulted.
+- [CHAPTER_MODEL.md](CHAPTER_MODEL.md) specifies SQL mapping for a future append-only migration, parent-book ownership/deletion, contiguous ordering, transactional full-vector reorder conflict checks, monotonic chapter revisions, separate content/title writes, derived/unknown word counts and responsibilities of 3.2/3.4/3.7/4.1.
+- 213 frontend tests passed, including 44 new chapter metadata/content cases for Unicode preservation, defaults, supported/invalid grammar, version refusal and resource bounds. Typecheck, lint, formatting, production build and diff checks passed.
+- No runtime UI, native persistence, schema, dependency or real library changes. Existing 36 Edge checks and 39 native tests/real desktop restart evidence remain historical, not repeated. Actual Tiptap roundtrip/native validation and ordering transactions remain future tasks. Next: 3.2, awaiting approval.
 
 ## Verification evidence: 2.12
 
