@@ -80,6 +80,13 @@ export const en = {
     loadFailure: 'Could not load your books. Please try again.',
     retry: 'Retry loading books',
     empty: 'No books yet. Create your first story.',
+    emptyTitle: 'Room for your next story',
+    emptyHint:
+      'Choose Create book to give it a title. Goals and a deadline can wait.',
+    loadErrorTitle: 'Your library could not be loaded',
+    desktopTitle: 'Desktop app required',
+    retrying: 'Retrying…',
+    validationSummary: 'Check the highlighted fields before saving.',
     close: 'Close',
     description: 'Give your story a title. Goals and a deadline are optional.',
     title: 'Title',

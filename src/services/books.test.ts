@@ -8,7 +8,37 @@ import {
   updateBook,
   setCover,
   readCover,
+  bookValidationIssues,
 } from './books'
+
+test('native validation issues are copied from a strict field/code allowlist', () => {
+  const error = {
+    code: 'validation',
+    issues: [
+      { field: 'title', code: 'too_long' },
+      { field: 'deadline', code: 'invalid_date' },
+    ],
+  }
+  expect(bookValidationIssues(error)).toEqual(error.issues)
+  expect(bookValidationIssues(error)[0]).not.toBe(error.issues[0])
+})
+test.each([
+  null,
+  'native error',
+  { code: 'persistence', issues: [{ field: 'title', code: 'required' }] },
+  { code: 'validation', issues: [] },
+  { code: 'validation', issues: [{ field: 'id', code: 'required' }] },
+  {
+    code: 'validation',
+    issues: [{ field: 'title', code: '<unsafe native message>' }],
+  },
+  { code: 'validation', issues: [null] },
+])(
+  'malformed or unrelated native error %j is not treated as field validation',
+  (error) => {
+    expect(bookValidationIssues(error)).toEqual([])
+  },
+)
 
 vi.mock('@tauri-apps/api/core', () => ({ invoke: vi.fn(), isTauri: vi.fn() }))
 const details = {

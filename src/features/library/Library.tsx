@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { en } from '../../app/i18n/en'
 import { Button } from '../../components/ui/Button'
+import { Card } from '../../components/ui/Card'
 import { bookErrorCode, listBooks } from '../../services/books'
 import type { Book } from './book'
 import { CreateBook } from './CreateBook'
@@ -23,10 +24,14 @@ export function Library({
 }) {
   const [books, setBooks] = useState<Book[]>([])
   const [loading, setLoading] = useState(true)
+  const [hasLoaded, setHasLoaded] = useState(false)
+  const [desktopOnly, setDesktopOnly] = useState(false)
   const [failure, setFailure] = useState('')
   const request = useRef(0)
   const deletedIds = useRef(new Set<string>())
   const heading = useRef<HTMLHeadingElement>(null)
+  const retry = useRef<HTMLButtonElement>(null)
+  const retryHadFocus = useRef(false)
   const [deleted, setDeleted] = useState('')
   const [cleanupPending, setCleanupPending] = useState(false)
 
@@ -35,6 +40,11 @@ export function Library({
     return listBooks().then(
       (loaded) => {
         if (request.current !== current) return
+        const restoreFocus =
+          retryHadFocus.current &&
+          (document.activeElement === retry.current ||
+            document.activeElement === document.body)
+        retryHadFocus.current = false
         // A create/update may commit while the initial list request is in flight.
         setBooks((previous) => [
           ...loaded
@@ -50,15 +60,24 @@ export function Library({
           ),
         ])
         setLoading(false)
+        setHasLoaded(true)
+        setFailure('')
+        setDesktopOnly(false)
+        if (restoreFocus) requestAnimationFrame(() => heading.current?.focus())
       },
       (error: unknown) => {
         if (request.current !== current) return
+        const restoreFocus =
+          retryHadFocus.current && document.activeElement === document.body
+        retryHadFocus.current = false
+        setDesktopOnly(bookErrorCode(error) === 'desktop_required')
         setFailure(
           bookErrorCode(error) === 'desktop_required'
             ? copy.desktop
             : copy.loadFailure,
         )
         setLoading(false)
+        if (restoreFocus) requestAnimationFrame(() => retry.current?.focus())
       },
     )
   }, [])
@@ -72,8 +91,6 @@ export function Library({
 
   function saved(book: Book) {
     onBookSaved?.(book)
-    setLoading(false)
-    setFailure('')
     setBooks((previous) =>
       previous.some((item) => item.id === book.id)
         ? previous.map((item) => (item.id === book.id ? book : item))
@@ -105,24 +122,35 @@ export function Library({
       {cleanupPending && <p role="status">{copy.coverCleanupPending}</p>}
       {loading && <p role="status">{copy.loading}</p>}
       {failure && (
-        <div className="space-y-2">
+        <Card className="space-y-2">
+          <h3 className="font-semibold">
+            {desktopOnly ? copy.desktopTitle : copy.loadErrorTitle}
+          </h3>
           <p role="alert">{failure}</p>
-          <Button
-            variant="secondary"
-            onClick={() => {
-              setLoading(true)
-              setFailure('')
-              void load()
-            }}
-          >
-            {copy.retry}
-          </Button>
-        </div>
+          {!desktopOnly && (
+            <Button
+              ref={retry}
+              disabled={loading}
+              variant="secondary"
+              onClick={() => {
+                retryHadFocus.current = document.activeElement === retry.current
+                setLoading(true)
+                void load()
+              }}
+            >
+              {loading ? copy.retrying : copy.retry}
+            </Button>
+          )}
+        </Card>
       )}
-      {!loading && !failure && books.length === 0 && (
-        <p className="text-secondary">{copy.empty}</p>
+      {hasLoaded && !loading && !failure && books.length === 0 && (
+        <Card className="space-y-2">
+          <h3 className="font-writing text-writing">{copy.emptyTitle}</h3>
+          <p className="text-secondary">{copy.empty}</p>
+          <p className="text-secondary">{copy.emptyHint}</p>
+        </Card>
       )}
-      <ul className="library-grid" aria-label={copy.books}>
+      <ul className="library-grid" aria-label={copy.books} aria-busy={loading}>
         {books.map((book) => (
           <li key={book.id} className="space-y-2">
             <BookCard

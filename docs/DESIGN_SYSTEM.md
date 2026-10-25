@@ -1,5 +1,9 @@
 # Design system
 
+## Library states and form feedback (2.11)
+
+Loading is announced through status text while the semantic list is aria-busy. Confirmed empty and failed reads have distinct shared Card presentations with level-three headings and clear guidance. Create book remains the primary action; transient read failures provide a disabled-while-pending retry, while browser preview explains the desktop requirement. Existing committed cards stay visible during unresolved reads. Forms announce one validation summary, associate field messages with inputs and focus the first invalid field; native field focus waits for disabled pending inputs to become editable. File-validation feedback is linked to the picker. These states do not rely on color alone or silently discard entered details.
+
 ## Book progress (2.10)
 
 BookProgress owns progress labels/descriptions around shared ProgressBar. A known zero has determinate zero semantics; unknown omits aria-valuenow. Reached/exceeded goals cap the bar and percentage at 100 while the visible/accessible description preserves actual words and separately shows excess. Below-target percentages floor to one decimal so 99.999% never appears as reached. A known count without a goal displays the count and a target hint, without a percentage/bar. Counts use English number formatting and all copy stays centralized. Completion badges remain independent; the component does not aggregate or persist words.

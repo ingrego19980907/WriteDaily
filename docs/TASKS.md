@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Tasks 2.1-2.10 (book model, persistence, CRUD, covers, cards/grid and progress calculation/presentation) are complete; awaiting approval before 2.11 (empty states and validation). Progress is explicitly unknown until actual word counts are available; no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Tasks 2.1-2.11 (book model, persistence, CRUD, covers, cards/grid, progress presentation and library states/validation) are complete; awaiting approval before 2.12 (desktop persistence after restart). Progress is explicitly unknown until actual word counts are available; no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -48,7 +48,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [x]  | 2.8  | Design book cards                  | Completed (2026-10-25) | 2.7          | Cover, title and progress render accessibly                              |
 | [x]  | 2.9  | Implement library grid             | Completed (2026-10-25) | 2.8          | Responsive grid opens the correct book                                   |
 | [x]  | 2.10 | Implement book progress            | Completed (2026-10-25) | 2.9          | Zero, missing and exceeded targets handled                               |
-| [ ]  | 2.11 | Add empty states and validation    | Not started            | 2.10         | Empty, loading and error states work                                     |
+| [x]  | 2.11 | Add empty states and validation    | Completed (2026-10-25) | 2.10         | Empty, loading and error states work                                     |
 | [ ]  | 2.12 | Test persistence after restart     | Not started            | 2.11         | Books and covers survive a real desktop restart                          |
 
 ## Milestone 3: Writing Editor
@@ -133,6 +133,15 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [ ]  | 8.10 | Tag version 1.0.0           | Not started | 8.9          | Release gates pass and explicit authorization obtained before Git mutation |
 
 ## Historical verification evidence
+
+## Verification evidence: 2.11
+
+- Added explicit library loading/list-busy, confirmed-empty, load-error/retry and desktop-only presentation. Empty state uses shared Card and guidance to the existing Create book action. A failed/unsupported read never claims an empty library. Retry is disabled in flight, preserves actionable error context and restores focus after success/failure without moving initial-load focus.
+- Fixed list-state races: committing creation/update no longer hides an unresolved initial/retry read or clears its failure. Known committed rows remain visible while listing retries; prior new-row/deletion/stale-response guards remain intact. Empty is shown only after a successful completed list read, not guessed from zero currently known rows.
+- Added safe native field-error decoding at the typed service boundary: only known field/code pairs become localized linked form errors. Unknown/malformed responses fall back to generic failure, never raw native text. Local/native field errors announce a summary; focus moves to the first invalid field after native pending state ends. Drafts and values remain intact. Cover errors are linked to their file input and mark invalid-file states specifically.
+- 169 frontend tests passed, including loading versus empty, unsupported preview, disabled retry/focus, retained list failure after a successful create, native validation focus/draft retention and malformed IPC issue rejection, plus all prior persistence-service/form regressions.
+- All 36 Edge checks passed. New 320/1100px state workflows cover pending reads, failure/retry/empty, local and native field validation, first-field focus, retained values after close/reopen, reflow and axe WCAG scans through isolated test IPC responses. Browser preview remains explicitly desktop-only, without fake persistence.
+- Lint, formatting, strict typecheck, production build and diff checks passed. No native/schema/dependency changes or actual library writes; prior 39 native tests remain recorded in 2.7, not rerun. Actual desktop restart verification is the next task, not claimed here. Next: 2.12, awaiting approval.
 
 ## Verification evidence: 2.10
 

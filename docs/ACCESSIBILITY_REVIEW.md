@@ -1,5 +1,7 @@
 # Accessibility and layout review
 
+Task 2.11 follow-up: all 36 Edge checks pass. New 320/1100px workflows verify list busy/loading, failed-read versus confirmed-empty feedback, disabled retry/heading focus, local/native validation summaries and linked errors, first-invalid-field focus after pending, retained drafts and WCAG scans/reflow. File validation is linked to the picker and invalid state. Browser fixtures use isolated IPC; no manual screen-reader or actual desktop persistence/restart claim.
+
 Task 2.10 follow-up: all 34 Edge checks pass. Presentation fixtures at 320/640/1100px verify zero versus unknown, partial/reached/exceeded goals, actual counts in accessible text, bounded ARIA ranges, no percentage for a known count without a goal, axe WCAG scans and 200% text reflow. Runtime Library still has unknown counts pending manuscript aggregation. No new native desktop or manual screen-reader claim.
 
 Task 2.9 follow-up: all 31 Edge tests pass. Grid scenarios verify native list/articles and 1/1/2/3 CSS columns at 320/640/1100/1440px, keyboard opening by selected ID with duplicate titles, correct fresh selected-book context, heading focus/return navigation, axe WCAG scans and 200% text reflow. Browser screenshots inspected. Existing card/CRUD/cover/navigation regressions remain covered. IPC fixtures do not establish native desktop restart or manual screen-reader behavior.

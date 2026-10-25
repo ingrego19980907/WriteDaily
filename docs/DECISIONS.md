@@ -1,5 +1,11 @@
 # Decision log
 
+## 2026-10-25 - Empty/loading/error states and validation (2.11)
+
+Track completed list loading independently from visible rows and mutation success. Never infer an empty library from a failed/pending read, and do not clear that read failure when creating a book succeeds. Preserve known rows, disable retry while pending and manage retry focus without stealing initial-load focus. Treat desktop-only preview separately from retryable read errors.
+
+Validate native metadata error envelopes against known field/code values before translating them. Never display raw native messages or arbitrary issue fields. Reuse domain validation and shared Input error linkage, announce a summary, and focus native-invalid fields only after pending state ends. Preserve drafts across all failures/dismissals. No new validation dependency or native change.
+
 ## 2026-10-25 - Book progress (2.10)
 
 Separate pure calculation from BookProgress rendering and accept an external count rather than adding redundant persisted book totals. Preserve unknown until chapter counting/aggregation (3.7/4.1), validate safe integers and never coerce missing counts to zero. For known counts, show no percentage without a target; cap reached/exceeded bars at 100 and retain actual/excess counts. Floor percentages to one decimal below target to avoid early 100%. Completed status remains explicit and independent. Known-count browser examples are isolated presentation fixtures, not fake application persistence.

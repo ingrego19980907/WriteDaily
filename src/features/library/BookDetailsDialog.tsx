@@ -5,6 +5,7 @@ import { Input } from '../../components/ui/Input'
 import { Modal } from '../../components/ui/Modal'
 import {
   bookErrorCode,
+  bookValidationIssues,
   createBook,
   getBook,
   updateBook,
@@ -121,6 +122,18 @@ export function BookDetailsDialog({
       onSaved?.(committed)
     } catch (error) {
       const code = bookErrorCode(error)
+      const nativeIssues = bookValidationIssues(error)
+      if (nativeIssues.length) {
+        setIssues(nativeIssues)
+        requestAnimationFrame(() =>
+          formRef.current
+            ?.querySelector<HTMLInputElement>(
+              `[name="${nativeIssues[0].field}"]`,
+            )
+            ?.focus(),
+        )
+        return
+      }
       setConflict(code === 'conflict' || code === 'not_found')
       setFailure(
         code === 'desktop_required'
@@ -164,6 +177,11 @@ export function BookDetailsDialog({
           className="space-y-4"
           aria-busy={pending}
         >
+          {issues.length > 0 && (
+            <p role="alert" className="text-error">
+              {copy.validationSummary}
+            </p>
+          )}
           {(Object.keys(empty) as (keyof typeof empty)[]).map((field) => (
             <Input
               key={field}

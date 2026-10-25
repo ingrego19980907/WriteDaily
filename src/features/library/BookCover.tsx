@@ -98,7 +98,12 @@ export function BookCover({
         type="file"
         accept="image/png,image/jpeg,image/webp"
         disabled={pending}
-        aria-describedby={`${id}-hint`}
+        aria-describedby={`${id}-hint${failure ? ` ${id}-error` : ''}`}
+        aria-invalid={
+          failure === copy.coverInvalid || failure === copy.coverTooLarge
+            ? true
+            : undefined
+        }
         className="block min-h-11 w-full min-w-0 max-w-full text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-strong"
         onChange={(event) => {
           setFile(event.target.files?.[0] ?? null)
@@ -140,7 +145,7 @@ export function BookCover({
         )}
       </div>
       {failure && (
-        <p role="alert" className="text-error">
+        <p id={`${id}-error`} role="alert" className="text-error">
           {failure}
         </p>
       )}

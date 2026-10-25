@@ -76,6 +76,94 @@ test('failed loading shows retry and does not claim an empty library', async () 
   ).toBeVisible()
 })
 
+test('initial loading is announced and never presented as an empty library', async () => {
+  let resolve!: (books: Book[]) => void
+  vi.mocked(listBooks).mockReturnValue(
+    new Promise<Book[]>((done) => {
+      resolve = done
+    }),
+  )
+  render(<Library />)
+  expect(screen.getByRole('list', { name: 'Books' })).toHaveAttribute(
+    'aria-busy',
+    'true',
+  )
+  expect(screen.getByText('Loading books…')).toBeVisible()
+  expect(
+    screen.queryByText('No books yet. Create your first story.'),
+  ).not.toBeInTheDocument()
+  await act(async () => resolve([]))
+  expect(
+    screen.getByRole('heading', { name: 'Room for your next story' }),
+  ).toBeVisible()
+  expect(screen.getByRole('list', { name: 'Books' })).toHaveAttribute(
+    'aria-busy',
+    'false',
+  )
+})
+
+test('desktop-only preview explains the limitation without a misleading retry or empty state', async () => {
+  vi.mocked(listBooks).mockRejectedValue({ code: 'desktop_required' })
+  render(<Library />)
+  expect(await screen.findByRole('alert')).toHaveTextContent(
+    'Open the desktop app',
+  )
+  expect(
+    screen.getByRole('heading', { name: 'Desktop app required' }),
+  ).toBeVisible()
+  expect(
+    screen.queryByRole('button', { name: 'Retry loading books' }),
+  ).not.toBeInTheDocument()
+  expect(
+    screen.queryByText('No books yet. Create your first story.'),
+  ).not.toBeInTheDocument()
+})
+
+test('retry stays disabled in flight and focuses the Books heading after success', async () => {
+  const user = userEvent.setup()
+  let resolve!: (books: Book[]) => void
+  vi.mocked(listBooks)
+    .mockRejectedValueOnce(new Error('disk'))
+    .mockReturnValueOnce(
+      new Promise<Book[]>((done) => {
+        resolve = done
+      }),
+    )
+  render(<Library />)
+  await user.click(
+    await screen.findByRole('button', { name: 'Retry loading books' }),
+  )
+  expect(screen.getByRole('button', { name: 'Retrying…' })).toBeDisabled()
+  expect(
+    screen.queryByText('No books yet. Create your first story.'),
+  ).not.toBeInTheDocument()
+  await act(async () => resolve([book]))
+  expect(await screen.findByRole('article', { name: book.title })).toBeVisible()
+  await vi.waitFor(() =>
+    expect(screen.getByRole('heading', { name: /^Books$/ })).toHaveFocus(),
+  )
+})
+
+test('a committed creation after a failed list read does not hide the unresolved loading error', async () => {
+  const user = userEvent.setup()
+  vi.mocked(listBooks).mockRejectedValue(new Error('list failure'))
+  vi.mocked(createBook).mockResolvedValue(book)
+  render(<Library />)
+  await screen.findByRole('alert')
+  await user.click(screen.getByRole('button', { name: 'Create book' }))
+  await user.type(screen.getByLabelText('Title'), book.title)
+  await user.click(
+    within(screen.getByRole('dialog')).getByRole('button', {
+      name: 'Create book',
+    }),
+  )
+  expect(await screen.findByRole('article', { name: book.title })).toBeVisible()
+  expect(screen.getByRole('alert')).toHaveTextContent('Could not load')
+  expect(
+    screen.getByRole('button', { name: 'Retry loading books' }),
+  ).toBeEnabled()
+})
+
 test('a late initial listing cannot erase a newly committed book', async () => {
   const user = userEvent.setup()
   let resolve!: (books: Book[]) => void

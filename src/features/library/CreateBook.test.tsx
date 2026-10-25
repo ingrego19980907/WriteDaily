@@ -98,3 +98,28 @@ test('blocks duplicate submission and dismissal while a commit is pending', asyn
   await act(async () => resolve({ title: 'Story' } as Book))
   expect(screen.getByRole('status')).toHaveTextContent('Book created: Story')
 })
+
+test('native field validation links localized errors, focuses the field after pending ends and retains the draft', async () => {
+  const user = userEvent.setup()
+  vi.mocked(createBook).mockRejectedValue({
+    code: 'validation',
+    issues: [{ field: 'dailyWordGoal', code: 'invalid_count' }],
+  })
+  render(<CreateBook />)
+  await user.click(screen.getByRole('button', { name: 'Create book' }))
+  await user.type(screen.getByLabelText('Title'), 'Retained draft')
+  await user.type(screen.getByLabelText('Daily word goal (optional)'), '500')
+  await user.click(
+    within(screen.getByRole('dialog')).getByRole('button', {
+      name: 'Create book',
+    }),
+  )
+  expect(await screen.findByRole('alert')).toHaveTextContent(
+    'highlighted fields',
+  )
+  const field = screen.getByLabelText('Daily word goal (optional)')
+  expect(field).toHaveAttribute('aria-invalid', 'true')
+  await vi.waitFor(() => expect(field).toHaveFocus())
+  expect(screen.getByLabelText('Title')).toHaveValue('Retained draft')
+  expect(field).toHaveValue('500')
+})

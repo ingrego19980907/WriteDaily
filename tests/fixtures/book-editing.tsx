@@ -18,8 +18,17 @@ const original: Book = {
   updatedAt: '2026-10-24T10:00:00.000Z',
 }
 Object.assign(globalThis, { isTauri: true })
+let stateListAttempts = 0
 mockIPC((command, payload) => {
   if (command === 'list_books') {
+    const state = new URLSearchParams(location.search).get('state')
+    if (state === 'empty') return []
+    if (state === 'loading') return new Promise(() => {})
+    if (state === 'retry') {
+      stateListAttempts += 1
+      if (stateListAttempts === 1) throw { code: 'persistence' }
+      return []
+    }
     if (new URLSearchParams(location.search).has('grid'))
       return [
         original,
@@ -55,6 +64,18 @@ mockIPC((command, payload) => {
         },
       ]
     return [original]
+  }
+  if (
+    command === 'create_book' &&
+    new URLSearchParams(location.search).has('state')
+  ) {
+    throw {
+      code: 'validation',
+      issues: [
+        { field: 'title', code: 'too_long' },
+        { field: 'dailyWordGoal', code: 'invalid_count' },
+      ],
+    }
   }
   if (
     command === 'get_book' &&
