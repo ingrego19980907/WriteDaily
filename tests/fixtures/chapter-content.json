@@ -1,0 +1,316 @@
+[
+  {
+    "name": "canonical empty",
+    "valid": true,
+    "input": {
+      "schemaVersion": 1,
+      "document": { "type": "doc", "content": [{ "type": "paragraph" }] }
+    }
+  },
+  {
+    "name": "literal Unicode writing",
+    "valid": true,
+    "input": {
+      "schemaVersion": 1,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "  Україна 🖋 é\n\t<tag>\u0000  ",
+                "marks": [{ "type": "bold" }, { "type": "italic" }]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "heading and hard break",
+    "valid": true,
+    "input": {
+      "schemaVersion": 1,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "heading",
+            "attrs": { "level": 6 },
+            "content": [{ "type": "hardBreak", "marks": [] }]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "nested lists",
+    "valid": true,
+    "input": {
+      "schemaVersion": 1,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "orderedList",
+            "attrs": { "start": 9007199254740991, "type": null },
+            "content": [
+              {
+                "type": "listItem",
+                "content": [
+                  { "type": "paragraph", "content": [] },
+                  {
+                    "type": "bulletList",
+                    "content": [
+                      {
+                        "type": "listItem",
+                        "content": [{ "type": "paragraph" }]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "unknown version",
+    "valid": false,
+    "input": {
+      "schemaVersion": 2,
+      "document": { "type": "doc", "content": [{ "type": "paragraph" }] }
+    }
+  },
+  {
+    "name": "unknown envelope property",
+    "valid": false,
+    "input": {
+      "schemaVersion": 1,
+      "extra": true,
+      "document": { "type": "doc", "content": [{ "type": "paragraph" }] }
+    }
+  },
+  {
+    "name": "empty root",
+    "valid": false,
+    "input": {
+      "schemaVersion": 1,
+      "document": { "type": "doc", "content": [] }
+    }
+  },
+  {
+    "name": "unsupported node",
+    "valid": false,
+    "input": {
+      "schemaVersion": 1,
+      "document": {
+        "type": "doc",
+        "content": [{ "type": "image", "attrs": { "src": "bad" } }]
+      }
+    }
+  },
+  {
+    "name": "unknown paragraph attrs",
+    "valid": false,
+    "input": {
+      "schemaVersion": 1,
+      "document": {
+        "type": "doc",
+        "content": [{ "type": "paragraph", "attrs": {} }]
+      }
+    }
+  },
+  {
+    "name": "null content",
+    "valid": false,
+    "input": {
+      "schemaVersion": 1,
+      "document": {
+        "type": "doc",
+        "content": [{ "type": "paragraph", "content": null }]
+      }
+    }
+  },
+  {
+    "name": "inline at root",
+    "valid": false,
+    "input": {
+      "schemaVersion": 1,
+      "document": {
+        "type": "doc",
+        "content": [{ "type": "text", "text": "writing" }]
+      }
+    }
+  },
+  {
+    "name": "missing heading level",
+    "valid": false,
+    "input": {
+      "schemaVersion": 1,
+      "document": {
+        "type": "doc",
+        "content": [{ "type": "heading", "attrs": {} }]
+      }
+    }
+  },
+  {
+    "name": "fractional heading",
+    "valid": false,
+    "input": {
+      "schemaVersion": 1,
+      "document": {
+        "type": "doc",
+        "content": [{ "type": "heading", "attrs": { "level": 1.5 } }]
+      }
+    }
+  },
+  {
+    "name": "empty list",
+    "valid": false,
+    "input": {
+      "schemaVersion": 1,
+      "document": {
+        "type": "doc",
+        "content": [{ "type": "bulletList", "content": [] }]
+      }
+    }
+  },
+  {
+    "name": "unsafe list start",
+    "valid": false,
+    "input": {
+      "schemaVersion": 1,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "orderedList",
+            "attrs": { "start": 9007199254740992 },
+            "content": [
+              { "type": "listItem", "content": [{ "type": "paragraph" }] }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "invalid list type",
+    "valid": false,
+    "input": {
+      "schemaVersion": 1,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "orderedList",
+            "attrs": { "start": 1, "type": "decimal" },
+            "content": [
+              { "type": "listItem", "content": [{ "type": "paragraph" }] }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "list item starts with heading",
+    "valid": false,
+    "input": {
+      "schemaVersion": 1,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "bulletList",
+            "content": [
+              {
+                "type": "listItem",
+                "content": [{ "type": "heading", "attrs": { "level": 1 } }]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "empty text",
+    "valid": false,
+    "input": {
+      "schemaVersion": 1,
+      "document": {
+        "type": "doc",
+        "content": [
+          { "type": "paragraph", "content": [{ "type": "text", "text": "" }] }
+        ]
+      }
+    }
+  },
+  {
+    "name": "duplicate marks",
+    "valid": false,
+    "input": {
+      "schemaVersion": 1,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "x",
+                "marks": [{ "type": "bold" }, { "type": "bold" }]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "mark attrs",
+    "valid": false,
+    "input": {
+      "schemaVersion": 1,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "x",
+                "marks": [{ "type": "bold", "attrs": {} }]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "null marks",
+    "valid": false,
+    "input": {
+      "schemaVersion": 1,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [{ "type": "hardBreak", "marks": null }]
+          }
+        ]
+      }
+    }
+  }
+]

@@ -20,6 +20,7 @@ const original: Book = {
 Object.assign(globalThis, { isTauri: true })
 let stateListAttempts = 0
 mockIPC((command, payload) => {
+  if (command === 'list_chapters') return []
   if (command === 'list_books') {
     const state = new URLSearchParams(location.search).get('state')
     if (state === 'empty') return []

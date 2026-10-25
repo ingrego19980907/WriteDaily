@@ -1,4 +1,6 @@
 pub mod books;
+mod chapter_commands;
+pub mod chapters;
 mod commands;
 mod covers;
 mod database;
@@ -15,7 +17,14 @@ pub fn run() {
             commands::update_book,
             commands::delete_book,
             commands::set_cover,
-            commands::read_cover
+            commands::read_cover,
+            chapter_commands::list_chapters,
+            chapter_commands::get_chapter,
+            chapter_commands::create_chapter,
+            chapter_commands::rename_chapter,
+            chapter_commands::save_chapter_content,
+            chapter_commands::delete_chapter,
+            chapter_commands::reorder_chapters
         ])
         .setup(|app| {
             let mut data_directory = app.path().app_data_dir()?;

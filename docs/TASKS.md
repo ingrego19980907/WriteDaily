@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Task 3.1 (chapter data model) is complete; awaiting approval before 3.2 (chapter repository). Progress is explicitly unknown until actual word counts are available; no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Tasks 3.1–3.3 (chapter model/repository/management UI) are complete; awaiting approval before 3.4 (Tiptap integration). Progress is explicitly unknown until actual word counts are available; no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -56,8 +56,8 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | Done | ID   | Description                   | Status                 | Dependencies | Acceptance criteria                                                           |
 | ---- | ---- | ----------------------------- | ---------------------- | ------------ | ----------------------------------------------------------------------------- |
 | [x]  | 3.1  | Design chapter data model     | Completed (2026-10-25) | 2.12         | Ordering, content schema and revisions specified                              |
-| [ ]  | 3.2  | Implement chapter repository  | Not started            | 3.1          | Chapter CRUD and revision handling pass persistence checks                    |
-| [ ]  | 3.3  | Implement chapter management  | Not started            | 3.2          | Create, rename and confirmed deletion work                                    |
+| [x]  | 3.2  | Implement chapter repository  | Completed (2026-10-25) | 3.1          | Chapter CRUD and revision handling pass persistence checks                    |
+| [x]  | 3.3  | Implement chapter management  | Completed (2026-10-25) | 3.2          | Create, rename and confirmed deletion work                                    |
 | [ ]  | 3.4  | Integrate Tiptap              | Not started            | 3.3          | Rich text edits and serialization work                                        |
 | [ ]  | 3.5  | Add formatting toolbar        | Not started            | 3.4          | Bold, italic, headings, lists and undo/redo work                              |
 | [ ]  | 3.6  | Implement chapter navigation  | Not started            | 3.5          | Pending edits preserved when switching chapters                               |
@@ -133,6 +133,22 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [ ]  | 8.10 | Tag version 1.0.0           | Not started | 8.9          | Release gates pass and explicit authorization obtained before Git mutation |
 
 ## Historical verification evidence
+
+## Verification evidence: 3.3
+
+- Added ChapterManager, ChapterTitleDialog and DeleteChapter to the selected-book editor context. Displays ordered, ID-keyed chapter rows; create appends through native persistence, rename sends only title/revision, deletion requires an unchecked acknowledgement and explicit destructive action. All English copy is centralized under en.chapters; no manuscript editing, reorder controls, counts or autosave were added.
+- Loading, confirmed empty, desktop-only, failed/unsupported-data states are distinct. Rows remain on read failure; writes require a successful read and are serialized while pending. Create/rename merge only committed results and refresh the collection; a failed follow-up read retains the committed row/success notice and blocks new writes. Delete applies the native returned collection/revisions. Request guards and book-ID mounting prevent late reads from entering another book.
+- Title drafts survive dismissal and section navigation for the selected book. Conflict reload explicitly refreshes the revision without replacing a rename draft; untouched forms use refreshed row snapshots. Delete conflicts block submission until current details are loaded and acknowledged again. Pending writes cannot be dismissed or submitted twice; failure never reports success. Draft titles are session-local and are not retained after switching to a different book or restarting.
+- Accessibility: labelled ordered collection/groups, linked local/native title errors and focus, safe initial Cancel focus, Escape/Enter cancellation, retained drafts, live committed notices, heading focus after success/deletion and appropriate focus after conflict reload. Modal now supports the existing Radix close-focus event to avoid racing automatic trigger restoration; other consumers keep default behavior.
+- Verified: 251 Vitest tests (13 new management tests), lint, format, strict typecheck and build; all 41 Edge tests pass (5 new), with the 5 chapter checks repeated after final focus refinements. Browser coverage includes duplicate-title identity, create/rename/delete/cancel/reconfirmation, error/retry feedback, section draft retention, axe WCAG scans at 320/640/1100px and 200% text reflow. Screenshots inspected. Fixtures are test-only IPC, not mock production persistence. Native implementation/schema were unchanged and the 53-test 3.2 record remains historical; no new native GUI/restart, Tiptap or manual screen-reader claim. Next: 3.4.
+
+## Verification evidence: 3.2
+
+- Added append-only migration 003_chapters.sql: STRICT owned chapters, UUID/position/count/revision/content bounds, unique book/position and ON DELETE CASCADE. Registered schema v3; migration tests preserve v1/v2 books and cover-cleanup intents, reject future v4 and retain rollback guarantees. Migrations 001/002 are unchanged.
+- Added native chapters module: scoped ordered list/get/create/rename/save_content/delete/reorder, authoritative metadata and bounded content validation, read/IMMEDIATE transactions, separate revision checks, monotonic timestamps and committed-only results. Reorder verifies a full prior order/revision vector and exact ID permutation; temporary safe positions avoid UNIQUE collisions, deletion closes gaps and affected rows advance revisions. Parent metadata remains unchanged; content writes invalidate word_count to null pending 3.7.
+- Added registered blocking chapter_commands and typed services/chapters.ts, browser refusal, metadata/body separation and explicit delete confirmation at IPC. Stable error codes conceal SQL details; invalid stored content/order blocks editing without repair. serde_json was already locked/cached and now is a production dependency with explicitly bounded unbounded_depth decoding; no package/version/lockfile change.
+- Tests use only disposable databases. Cover CRUD and reopen with Unicode/whitespace/control body preservation, stale writes across two connections, ownership/book cascade, valid/invalid permutations and no-op reorder, revision overflow, injected SQL/deferred-commit rollback, SQL constraints, corrupt/unsupported stored data and UTF-8/node/depth limits. Shared 21-case chapter-content fixtures enforce native/TypeScript agreement. Frontend service tests verify command payloads and failure propagation.
+- Verified: 53 native tests, 238 Vitest tests, Cargo fmt/Clippy, frontend lint/format/typecheck/build and diff whitespace checks. No UI/layout changed, so Edge checks were not repeated. No real desktop launch, Tiptap/editor/autosave or forced-interruption verification is claimed. The reusable 2.12 book/cover desktop runner now expects schema v3; its recorded run remains historical v2 evidence. Next approved boundary: 3.3 chapter management UI.
 
 ## Verification evidence: 3.1
 

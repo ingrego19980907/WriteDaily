@@ -25,6 +25,50 @@ fn registered_migrations_are_valid() {
 }
 
 #[test]
+fn version_two_upgrades_chapters_preserving_books_and_cleanup_intents() {
+    let directory = tempfile::tempdir().unwrap();
+    let mut connection = Connection::open(directory.path().join("write-daily.sqlite3")).unwrap();
+    initialize(
+        &mut connection,
+        &Migrations::new(vec![M::up(INITIAL_SCHEMA), M::up(COVER_SCHEMA)]),
+    )
+    .unwrap();
+    seed_book(&connection);
+    connection
+        .execute(
+            "INSERT INTO pending_cover_cleanup(path) VALUES ('covers/queued.png')",
+            [],
+        )
+        .unwrap();
+    drop(connection);
+    let database = open(directory.path()).unwrap();
+    let connection = database.lock().unwrap();
+    assert_eq!(version(&connection), 3);
+    assert_eq!(
+        connection
+            .query_row("SELECT count(*) FROM books", [], |row| row.get::<_, i64>(0))
+            .unwrap(),
+        1
+    );
+    assert_eq!(
+        connection
+            .query_row("SELECT path FROM pending_cover_cleanup", [], |row| row
+                .get::<_, String>(
+                0
+            ))
+            .unwrap(),
+        "covers/queued.png"
+    );
+    assert_eq!(
+        connection
+            .query_row("SELECT count(*) FROM chapters", [], |row| row
+                .get::<_, i64>(0))
+            .unwrap(),
+        0
+    );
+}
+
+#[test]
 fn version_one_upgrades_to_cover_queue_without_touching_books() {
     let directory = tempfile::tempdir().unwrap();
     let mut connection = Connection::open(directory.path().join("write-daily.sqlite3")).unwrap();
@@ -37,7 +81,7 @@ fn version_one_upgrades_to_cover_queue_without_touching_books() {
     drop(connection);
     let database = open(directory.path()).unwrap();
     let connection = database.lock().unwrap();
-    assert_eq!(version(&connection), 2);
+    assert_eq!(version(&connection), 3);
     assert_eq!(
         connection
             .query_row("SELECT count(*) FROM books", [], |row| row.get::<_, i64>(0))
@@ -61,7 +105,7 @@ fn fresh_database_is_configured_and_reopening_preserves_data() {
     {
         let database = open(directory.path()).unwrap();
         let connection = database.lock().unwrap();
-        assert_eq!(version(&connection), 2);
+        assert_eq!(version(&connection), 3);
         assert_eq!(
             connection
                 .pragma_query_value(None, "application_id", |r| r.get::<_, i32>(0))
@@ -96,7 +140,7 @@ fn fresh_database_is_configured_and_reopening_preserves_data() {
     }
     let database = open(directory.path()).unwrap();
     let connection = database.lock().unwrap();
-    assert_eq!(version(&connection), 2);
+    assert_eq!(version(&connection), 3);
     assert_eq!(
         connection
             .query_row("SELECT title FROM books WHERE id = ?1", [BOOK_ID], |r| {
@@ -213,13 +257,14 @@ fn failed_upgrade_rolls_back_new_objects_and_keeps_existing_data() {
     let broken = Migrations::new(vec![
         M::up(INITIAL_SCHEMA),
         M::up(COVER_SCHEMA),
+        M::up(CHAPTER_SCHEMA),
         M::up("CREATE TABLE rollback_probe (id INTEGER); THIS IS NOT SQL;"),
     ]);
     assert!(matches!(
         initialize(&mut connection, &broken),
         Err(DatabaseError::Migration(_))
     ));
-    assert_eq!(version(&connection), 2);
+    assert_eq!(version(&connection), 3);
     assert_eq!(
         connection
             .query_row("SELECT count(*) FROM books", [], |r| r.get::<_, i64>(0))
@@ -278,10 +323,11 @@ fn upgrading_an_existing_schema_preserves_data_and_old_app_refuses_downgrade() {
         let newer = Migrations::new(vec![
             M::up(INITIAL_SCHEMA),
             M::up(COVER_SCHEMA),
+            M::up(CHAPTER_SCHEMA),
             M::up("CREATE TABLE upgrade_probe (id INTEGER PRIMARY KEY) STRICT;"),
         ]);
         initialize(&mut connection, &newer).unwrap();
-        assert_eq!(version(&connection), 3);
+        assert_eq!(version(&connection), 4);
         assert_eq!(
             connection
                 .query_row("SELECT count(*) FROM books", [], |r| r.get::<_, i64>(0))
@@ -294,7 +340,7 @@ fn upgrading_an_existing_schema_preserves_data_and_old_app_refuses_downgrade() {
         Err(DatabaseError::FutureSchema)
     ));
     let connection = Connection::open(directory.path().join("write-daily.sqlite3")).unwrap();
-    assert_eq!(version(&connection), 3);
+    assert_eq!(version(&connection), 4);
     assert_eq!(
         connection
             .query_row("SELECT count(*) FROM books", [], |r| r.get::<_, i64>(0))

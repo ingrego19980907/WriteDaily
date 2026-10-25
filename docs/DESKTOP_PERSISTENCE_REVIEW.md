@@ -1,5 +1,7 @@
 # Desktop persistence review (2.12)
 
+Later compatibility update (3.2): the reusable restart runner now expects schema v3 after chapter migration 003. It was not rerun in 3.2; the observations/results below describe the actual schema-v2 run from 2.12 and establish no chapter/editor restart verification.
+
 Verified on Windows on 2026-10-25 using the real Tauri debug executable, embedded production frontend at `http://tauri.localhost/`, WebView2 and SQLite/filesystem persistence. This is separate from the Edge tests that use mock IPC fixtures. Milestone 2's desktop-restart gate is satisfied for current book metadata and covers; chapter editing/counting remains later work.
 
 ## Reproduce

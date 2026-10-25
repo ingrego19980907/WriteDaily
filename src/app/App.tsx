@@ -5,7 +5,7 @@ import { AppNavigation } from './AppNavigation'
 import type { SectionId } from './navigation'
 import { Card } from '../components/ui/Card'
 import { Library } from '../features/library/Library'
-import { Button } from '../components/ui/Button'
+import { ChapterManager } from '../features/editor/ChapterManager'
 import type { Book } from '../features/library/book'
 import { bookErrorCode, getBook } from '../services/books'
 
@@ -94,38 +94,22 @@ export default function App() {
             onBookDeleted={bookDeleted}
           />
         </div>
-        {activeSection === 'editor' && selectedBook ? (
-          <Card
-            className="space-y-4"
-            role="region"
-            aria-label={selectedBook.title}
-          >
-            <h2 className="font-writing text-writing">{selectedBook.title}</h2>
-            <p className="text-secondary">
-              {selectedBook.targetWordCount === null
-                ? en.library.noTarget
-                : en.library.wordTarget(
-                    new Intl.NumberFormat('en').format(
-                      selectedBook.targetWordCount,
-                    ),
-                  )}
-            </p>
-            <p>{en.library.editorPending}</p>
-            <Button
-              variant="secondary"
-              onClick={() => selectSection('library')}
-            >
-              {en.library.backToLibrary}
-            </Button>
-          </Card>
-        ) : (
-          activeSection !== 'library' && (
+        {selectedBook && (
+          <div hidden={activeSection !== 'editor'}>
+            <ChapterManager
+              key={selectedBook.id}
+              book={selectedBook}
+              onBack={() => selectSection('library')}
+            />
+          </div>
+        )}
+        {activeSection !== 'library' &&
+          (activeSection !== 'editor' || !selectedBook) && (
             <Card className="space-y-2">
               <h2 className="font-semibold">{en.shell.comingSoon}</h2>
               <p className="text-ui text-secondary">{section.description}</p>
             </Card>
-          )
-        )}
+          )}
       </div>
     </AppShell>
   )

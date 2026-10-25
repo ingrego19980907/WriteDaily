@@ -47,7 +47,9 @@ for (const [width, columns] of [
       exact: true,
     })
     await expect(selected).toContainText('Target: 2,000 words')
-    await expect(selected).toContainText('Chapter editing is coming soon.')
+    await expect(selected).toContainText(
+      'Writing and formatting are coming next.',
+    )
     await page.getByRole('button', { name: 'Back to library' }).click()
     await expect(list.getByRole('article')).toHaveCount(3)
     await page.addStyleTag({ content: 'html { font-size: 200%; }' })

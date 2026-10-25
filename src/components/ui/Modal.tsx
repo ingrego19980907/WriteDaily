@@ -1,4 +1,4 @@
-import type { ReactElement, ReactNode } from 'react'
+import type { ComponentProps, ReactElement, ReactNode } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { Button } from './Button'
 import './modal.css'
@@ -11,6 +11,7 @@ export type ModalProps = {
   description?: string
   closeLabel: string
   children: ReactNode
+  onCloseAutoFocus?: ComponentProps<typeof Dialog.Content>['onCloseAutoFocus']
 }
 
 export function Modal({
@@ -21,6 +22,7 @@ export function Modal({
   description,
   closeLabel,
   children,
+  onCloseAutoFocus,
 }: ModalProps) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -28,6 +30,7 @@ export function Modal({
       <Dialog.Portal>
         <Dialog.Overlay className="modal-overlay" />
         <Dialog.Content
+          onCloseAutoFocus={onCloseAutoFocus}
           className="modal-content"
           {...(!description ? { 'aria-describedby': undefined } : {})}
         >

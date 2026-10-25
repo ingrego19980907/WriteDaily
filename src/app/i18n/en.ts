@@ -109,6 +109,67 @@ export const en = {
       invalid_date: 'Enter a valid date (YYYY-MM-DD, years 0001–9999).',
     },
   },
+  chapters: {
+    heading: 'Chapters',
+    create: 'Create chapter',
+    rename: 'Rename chapter',
+    delete: 'Delete chapter',
+    title: 'Chapter title',
+    titleHint: 'Up to 200 characters. Duplicate titles are allowed.',
+    createDescription: 'Give the next chapter of this book a title.',
+    renameDescription: 'Change the title. The saved chapter text stays intact.',
+    deleteDescription:
+      'Permanently delete this chapter and all its saved text? This cannot be undone.',
+    confirmDelete:
+      'I understand that the chapter and its text will be permanently deleted.',
+    cancel: 'Cancel',
+    close: 'Close',
+    save: 'Save title',
+    creating: 'Creating…',
+    saving: 'Saving…',
+    deleting: 'Deleting…',
+    created: (title: string) => `Chapter created: ${title}`,
+    renamed: (title: string) => `Chapter renamed: ${title}`,
+    deleted: (title: string) => `Chapter deleted: ${title}`,
+    draft: 'Your unfinished title is kept when you close this form.',
+    loading: 'Loading chapters…',
+    empty: 'No chapters yet. Create the first chapter of this book.',
+    pending: 'Writing and formatting are coming next.',
+    loadFailure:
+      'Could not load the chapters. Existing rows are kept. Retry before making changes.',
+    retry: 'Retry loading chapters',
+    refresh: 'Reload chapters',
+    missingList:
+      'This book is no longer available. Return to the library and load it again.',
+    desktop: 'Open the desktop app to manage saved chapters.',
+    createFailure:
+      'Could not create the chapter. Your title is kept. Please try again.',
+    renameFailure:
+      'Could not rename the chapter. Your title is kept. Please try again.',
+    deleteFailure:
+      'Could not delete the chapter. No deletion was confirmed. Please try again.',
+    conflict:
+      'This chapter has changed. Load the latest revision before trying again. Your title draft is kept.',
+    deleteConflict:
+      'This chapter has changed. Load the latest details and confirm again before deleting.',
+    missing:
+      'The chapter or its book is no longer available. Close this dialog and reload the chapters. Your title draft is kept.',
+    storedFailure:
+      'Saved chapter data could not be safely read. No changes were made. Keep the existing database for recovery.',
+    limit: 'The chapter has reached a storage limit. No changes were made.',
+    reload: 'Load latest revision and keep draft',
+    reloadDelete: 'Load latest chapter details',
+    reloading: 'Loading latest revision…',
+    reloadFailure:
+      'Could not load the latest revision. Nothing was changed. Please try again.',
+    validationSummary: 'Check the chapter title before saving.',
+    errors: {
+      required: 'Enter a chapter title.',
+      invalid_type: 'Enter a valid chapter title.',
+      invalid_title: 'Remove control characters from the title.',
+      too_long: 'Use no more than 200 characters.',
+    },
+  },
   app: {
     name: 'WriteDaily',
     tagline: 'A little writing, every day.',

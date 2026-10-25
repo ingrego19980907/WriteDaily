@@ -1,5 +1,17 @@
 # Decision log
 
+## 2026-10-25 - Chapter management UI (3.3)
+
+Keep chapter management feature-local and connect existing native services without new persistence or dependencies. Show a validated ordered collection with loading/error/empty distinctions and block mutations during pending/failed reads. Reconcile membership after create/rename; preserve committed rows when the following read fails. Delete uses the repository's returned collection so shifted revisions remain current. Retain selected-book title drafts across modal dismissal/section navigation, with a book-ID component boundary for request isolation; these are not durable drafts across switching books/restart.
+
+On rename conflicts, explicitly load a fresh revision while retaining the typed title. For deletion, reset acknowledgement on errors/reload and require a new confirmation of the displayed current snapshot. Show success only after native commit. Use Radix's close-focus lifecycle for successful mutation focus instead of competing animation-frame focus calls; cancellation retains standard trigger restoration. Tiptap, text editing, chapter navigation/reorder controls and autosave remain later tasks.
+
+## 2026-10-25 - Chapter repository (3.2)
+
+Append migration 003 for owned chapters without modifying 001/002. Keep chapter writes independent of Book.updatedAt and enforce chapter revisions inside IMMEDIATE transactions. Reorder compares the full ordered ID/revision vector and stages changed positions above the current range before assigning their final positions; deletion closes gaps atomically and advances moved revisions. Overflow, conflicts and failed commits return no successful snapshot.
+
+Mirror the version-1 content contract with strict native Serde types and shared JSON fixtures. Bound raw manuscript bytes/nesting before decoding, then enforce schema/node/depth limits. Promote the already-locked serde_json dependency to production with unbounded_depth behind an explicit lexical bound, supporting valid depth-64 manuscripts without allowing arbitrary recursion. Preserve body text exactly; optional empty arrays/null list type can serialize canonically. Validate stored data instead of repairing it. Expose typed commands/services now, with no chapter management UI or autosave until their tasks. Counts become unknown after body writes until 3.7; never accept caller-supplied counts.
+
 ## 2026-10-25 - Chapter data model (3.1)
 
 Use separate title metadata and versioned Tiptap-compatible JSON content contracts, with native-owned identity/book/position/count/revision/timestamps. Validate/copy body JSON without changing writing; reject unknown schema versions/nodes rather than dropping them. Restrict version 1 to the planned basic formatting/list subset and bound bytes/nodes/depth. Keep empty documents creation-only. Native implementation must mirror validation before writes; exact installed Tiptap compatibility remains 3.4.

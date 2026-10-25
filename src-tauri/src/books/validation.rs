@@ -69,7 +69,7 @@ fn valid_date(value: &str) -> bool {
     })
 }
 
-pub(super) fn valid_id(value: &str) -> bool {
+pub(crate) fn valid_id(value: &str) -> bool {
     Uuid::parse_str(value).is_ok_and(|id| {
         id.get_version_num() == 4
             && id.get_variant() == Variant::RFC4122
@@ -88,7 +88,7 @@ pub(super) fn validate_id(value: &str) -> Result<(), BookError> {
     }
 }
 
-pub(super) fn parse_timestamp(value: &str) -> Option<DateTime<Utc>> {
+pub(crate) fn parse_timestamp(value: &str) -> Option<DateTime<Utc>> {
     let time = DateTime::parse_from_rfc3339(value)
         .ok()?
         .with_timezone(&Utc);
