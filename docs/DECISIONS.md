@@ -1,5 +1,9 @@
 # Decision log
 
+## 2026-10-25 - Book cards (2.8)
+
+Use shared Card and ProgressBar, full wrapped titles and named article semantics; keep edit/delete as native actions. Show managed cover or a code-native decorative fallback, preserving aspect ratio and text reflow. Extract preview reads from mutation controls so each card reads its cover once. Keep cover controls mounted inside a native disclosure to preserve selection/state while collapsed. Actual manuscript counts are absent, so expose indeterminate progress and an unavailable explanation instead of fabricated zero/percent. Completion is an independent persisted label. No dependency, native or schema changes; grid/open behavior remains 2.9.
+
 ## 2026-10-24 - Managed covers (2.7)
 
 Use image 0.25.10 (Rust 1.88 minimum, compatible with project 1.95) with default features disabled and PNG/JPEG/WebP only. Decode content natively, reject oversized/invalid input and normalize to bounded PNG with generated UUID names. Transfer selected bytes through typed IPC, with no filesystem plugin or broad asset permissions. Persist relative references; returned data URLs are display-only.

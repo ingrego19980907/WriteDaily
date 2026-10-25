@@ -1,0 +1,108 @@
+@layer components {
+  .book-card {
+    min-width: 0;
+  }
+  .book-card__overview {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+  .book-cover-image {
+    width: 8rem;
+    max-width: 100%;
+    min-height: 12rem;
+    aspect-ratio: 2 / 3;
+    flex-shrink: 0;
+    overflow: hidden;
+    border-radius: 0.5rem;
+    background: var(--color-background);
+    border: 1px solid var(--color-border);
+  }
+  .book-cover-image img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .book-cover-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    min-height: 12rem;
+    padding: 0.75rem;
+    text-align: center;
+    color: var(--color-secondary);
+    font-size: 0.875rem;
+    overflow-wrap: anywhere;
+  }
+  .book-cover-placeholder svg {
+    flex-shrink: 0;
+  }
+  .book-cover-image--placeholder {
+    aspect-ratio: auto;
+  }
+  .book-card__content {
+    min-width: 0;
+    flex: 1;
+    display: grid;
+    gap: 0.75rem;
+  }
+  .book-card__title {
+    font-family: var(--font-writing);
+    font-size: 1.5rem;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+  }
+  .book-card__completion {
+    color: var(--color-foreground);
+    font-weight: 600;
+  }
+  .book-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  .book-card__actions > p:empty {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .book-card__cover-settings {
+    margin-top: 1rem;
+    border-top: 1px solid var(--color-border);
+    padding-top: 0.5rem;
+  }
+  .book-card__cover-settings summary {
+    cursor: pointer;
+    padding: 0.75rem 0;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+  .book-card__cover-settings summary:focus-visible {
+    outline: 2px solid var(--color-foreground);
+    outline-offset: 3px;
+    border-radius: 0.25rem;
+  }
+  .book-card__cover-settings[open] summary {
+    margin-bottom: 0.5rem;
+  }
+  @media (max-width: 35rem) {
+    .book-card__overview {
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .book-card__content {
+      width: 100%;
+    }
+  }
+  @media (forced-colors: active) {
+    .book-cover-image {
+      border-color: CanvasText;
+    }
+  }
+}

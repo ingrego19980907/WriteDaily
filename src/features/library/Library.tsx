@@ -4,9 +4,7 @@ import { Button } from '../../components/ui/Button'
 import { bookErrorCode, listBooks } from '../../services/books'
 import type { Book } from './book'
 import { CreateBook } from './CreateBook'
-import { BookDetailsDialog } from './BookDetailsDialog'
-import { DeleteBook } from './DeleteBook'
-import { BookCover } from './BookCover'
+import { BookCard } from './BookCard'
 
 const copy = en.library
 
@@ -108,12 +106,7 @@ export function Library() {
       <ul className="space-y-4" aria-label={copy.books}>
         {books.map((book) => (
           <li key={book.id} className="space-y-2">
-            <h3 className="font-writing text-writing break-words">
-              {book.title}
-            </h3>
-            <BookDetailsDialog book={book} onSaved={saved} />
-            <BookCover book={book} onSaved={saved} />
-            <DeleteBook book={book} onDeleted={removed} />
+            <BookCard book={book} onSaved={saved} onDeleted={removed} />
           </li>
         ))}
       </ul>

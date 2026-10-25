@@ -1,5 +1,9 @@
 # Design system
 
+## Book cards (2.8)
+
+BookCard composes the shared surface/border/radius/shadow with a 2:3 managed-cover area, full serif title, optional word target, explicit unknown-progress state, persisted completion label and native edit/delete actions. It is a named article rather than a nested clickable card. Covers use contain to preserve the image; absent/failed covers have a decorative book outline and readable fallback. Narrow layouts stack cover/content; long Unicode/unbroken titles wrap without truncation. Fallbacks grow with text enlargement. Manage cover uses native details/summary, retains mounted controls and has visible focus. No hover-only actions, animation, new colors/fonts or external image assets. The responsive library grid and progress calculations remain 2.9/2.10.
+
 Status: colors/typography implemented in 1.1 and application shell in 1.2; navigation implemented in 1.3 and Button in 1.4, Input in 1.5 and Modal in 1.6; Card implemented in 1.7; ProgressBar implemented in 1.8; accessibility/layout review completed in 1.9. `src/styles/tokens.css` defines centralized Tailwind theme variables; `src/styles/global.css` imports them and applies base styling.
 
 | Token               | Value   |

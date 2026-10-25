@@ -1,5 +1,7 @@
 # Accessibility and layout review
 
+Task 2.8 follow-up: all 27 Edge checks pass. New card checks at 320/640/1100px cover full Unicode/unbroken titles, named articles, cover/fallback/error states, unknown progress semantics, no-target/completion labels, axe WCAG scans, native disclosure keyboard access, edit focus restoration and 200% text reflow. Narrow enlarged-text review fixes cover sizing and masthead wrapping. Browser screenshots inspected. Test-only IPC remains separate from native persistence; no manual screen-reader or new desktop-window verification.
+
 Task 2.7 follow-up: all 24 Edge tests pass, including labelled cover picker/limits, disabled actions, invalid-file feedback, persisted-image preview with alt text, removal, 320/640/1100px reflow and axe WCAG scans. Browser cover tests use isolated IPC responses; native tests separately verify file/database reopen retention. No new actual desktop-window or manual screen-reader claim.
 
 Task 2.6 follow-up: all 21 Edge tests pass, including deletion dialogs at 320/640/1100px with safe initial Cancel focus, Enter/Escape cancellation, focus restoration, explicit unchecked acknowledgement, conflict/reconfirmation, WCAG scans without disabled rules and reflow. Successful deletion moves focus to the surviving Books heading after the row/trigger disappears. Browser deletion uses test-only IPC responses; native persistence/rollback tests use disposable SQLite files separately. No new native GUI or manual screen-reader claim.

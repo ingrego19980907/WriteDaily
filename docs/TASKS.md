@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Tasks 2.1-2.7 (book model, SQLite/migrations v1-v2, native repository, creation, editing, confirmed deletion and managed covers) are complete; awaiting approval before 2.8 (book cards). Library cards/grid remain planned. Covered-book deletion now uses safe queued cleanup.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Tasks 2.1-2.8 (book model, SQLite/migrations v1-v2, native repository, CRUD, managed covers and book cards) are complete; awaiting approval before 2.9 (library grid). Progress is explicitly unknown until actual word counts are available; no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -45,7 +45,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [x]  | 2.5  | Implement book editing             | Completed (2026-10-24) | 2.4          | Changes persist after reopening                                          |
 | [x]  | 2.6  | Implement book deletion            | Completed (2026-10-24) | 2.5          | Confirmation and safe dependent-data policy verified                     |
 | [x]  | 2.7  | Implement cover upload and storage | Completed (2026-10-24) | 2.6          | Managed covers survive restart and invalid files are rejected            |
-| [ ]  | 2.8  | Design book cards                  | Not started            | 2.7          | Cover, title and progress render accessibly                              |
+| [x]  | 2.8  | Design book cards                  | Completed (2026-10-25) | 2.7          | Cover, title and progress render accessibly                              |
 | [ ]  | 2.9  | Implement library grid             | Not started            | 2.8          | Responsive grid opens the correct book                                   |
 | [ ]  | 2.10 | Implement book progress            | Not started            | 2.9          | Zero, missing and exceeded targets handled                               |
 | [ ]  | 2.11 | Add empty states and validation    | Not started            | 2.10         | Empty, loading and error states work                                     |
@@ -133,6 +133,15 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [ ]  | 8.10 | Tag version 1.0.0           | Not started | 8.9          | Release gates pass and explicit authorization obtained before Git mutation |
 
 ## Historical verification evidence
+
+## Verification evidence: 2.8
+
+- Added BookCard using shared Card and ProgressBar, a named article with the full level-three book title, persisted cover or decorative fallback, formatted optional word target, persisted completion status and existing edit/delete actions. Cards remain a vertical list; responsive grid/open-book behavior stays 2.9.
+- Native Book snapshots have no actual manuscript count yet. Progress is explicitly indeterminate with Word count unavailable, no aria-valuenow/percentage/fabricated zero. Completion remains a separate persisted status, not a derived 100% claim. Calculation/aggregation remains future work.
+- Extracted CoverImage from cover controls: one native preview read per card, fallback for absent/loading/failed images, browser image-error handling and stale async-response protection. Manage cover is a native keyboard-operable disclosure; its mounted controls preserve selections/drafts across collapse. No persistence/native/dependency changes.
+- 121 frontend tests passed. Added card semantics/title/target/unknown-progress checks, completion without invented counts, image error fallback and stale preview response coverage. Existing CRUD/cover tests remain passing.
+- 27 Edge tests passed, including new 320/640/1100px card fixtures with Unicode/unbroken long titles, loaded/absent/unavailable covers, completion/no-target states, WCAG scans, disclosures, edit focus restoration and 200% text reflow. Fixed narrow enlarged-text overflow in cover sizing and shell masthead wrapping; reserved fallback content can grow rather than clip. Inspected browser screenshots.
+- Lint, strict typecheck, formatting, production build and diff checks passed. Native code/database untouched; prior 39 native tests remain recorded under 2.7, not rerun. Browser fixtures use test-only IPC; no new actual desktop-window/restart or screen-reader claim. Next: 2.9, awaiting approval.
 
 ## Verification evidence: 2.7
 

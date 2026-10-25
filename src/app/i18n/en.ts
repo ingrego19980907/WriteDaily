@@ -1,6 +1,13 @@
 export const en = {
   library: {
     create: 'Create book',
+    noCover: 'No cover yet',
+    manageCover: 'Manage cover',
+    writingProgress: 'Writing progress',
+    wordCountUnavailable: 'Word count unavailable',
+    noTarget: 'No word target',
+    wordTarget: (count: string) => `Target: ${count} words`,
+    completed: 'Completed',
     cover: 'Cover image',
     coverHint:
       'PNG, JPEG or WebP, up to 5 MiB and 4096 × 4096 pixels. Saved as a PNG up to 1200 × 1600 pixels.',

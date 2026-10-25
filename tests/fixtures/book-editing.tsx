@@ -19,7 +19,27 @@ const original: Book = {
 }
 Object.assign(globalThis, { isTauri: true })
 mockIPC((command, payload) => {
-  if (command === 'list_books') return [original]
+  if (command === 'list_books') {
+    if (new URLSearchParams(location.search).has('cards'))
+      return [
+        { ...original, title: 'ДовгаНазва'.repeat(22) },
+        {
+          ...original,
+          id: 'second',
+          title: 'Історія з обкладинкою',
+          coverPath: `covers/${original.id}.png`,
+          targetWordCount: null,
+          completedAt: original.createdAt,
+        },
+        {
+          ...original,
+          id: 'third',
+          title: 'Unavailable cover',
+          coverPath: 'covers/missing.png',
+        },
+      ]
+    return [original]
+  }
   if (command === 'get_book')
     return {
       ...original,
@@ -37,10 +57,16 @@ mockIPC((command, payload) => {
     if (expectedUpdatedAt === original.updatedAt) throw { code: 'conflict' }
     return { cleanupPending: false }
   }
-  if (command === 'read_cover')
+  if (command === 'read_cover') {
+    if (
+      (payload as { expectedPath: string }).expectedPath ===
+      'covers/missing.png'
+    )
+      throw new Error('Missing test image')
     return Array.from(atob(coverDataUrl.split(',')[1]), (character) =>
       character.charCodeAt(0),
     )
+  }
   if (command === 'set_cover') {
     const { bytes } = payload as { bytes: number[] | null }
     if (bytes && bytes[0] !== 137) throw { code: 'invalid_image' }

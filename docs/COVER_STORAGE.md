@@ -1,6 +1,6 @@
 # Managed cover storage (2.7)
 
-After creating a book, use its Cover image picker and Save cover action in My Library. Replacement/removal are separate commits from metadata creation/editing. Failed cover operations leave the current book/cover intact. Book cards/default-cover artwork remain task 2.8.
+After creating a book, use its Cover image picker and Save cover action in My Library. Replacement/removal are separate commits from metadata creation/editing. Failed cover operations leave the current book/cover intact. Task 2.8 adds accessible book cards with a decorative default-cover fallback; Manage cover expands the existing controls.
 
 Native import accepts PNG, JPEG and WebP by decoded content, never filename/MIME alone. Input limit: 5 MiB, 4096 pixels per dimension, requested decoder allocation limit 128 MiB (best effort). The decoded static frame becomes RGBA8 PNG at most 1200 × 1600, without upscaling; stored output is capped at 8 MiB. Animated sources use the decoded static frame. EXIF orientation/color-profile fidelity is not promised.
 

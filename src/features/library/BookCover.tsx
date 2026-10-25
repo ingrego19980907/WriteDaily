@@ -1,28 +1,20 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { CoverImage } from './CoverImage'
+import './book-card.css'
+import { useId, useRef, useState } from 'react'
 import { en } from '../../app/i18n/en'
 import { Button } from '../../components/ui/Button'
-import {
-  bookErrorCode,
-  getBook,
-  readCover,
-  setCover,
-} from '../../services/books'
+import { bookErrorCode, getBook, setCover } from '../../services/books'
 import type { Book } from './book'
 
 const copy = en.library
 const MAX_BYTES = 5 * 1024 * 1024
 
-function dataUrl(bytes: number[]) {
-  let binary = ''
-  for (let offset = 0; offset < bytes.length; offset += 4096)
-    binary += String.fromCharCode(...bytes.slice(offset, offset + 4096))
-  return `data:image/png;base64,${btoa(binary)}`
-}
-
 export function BookCover({
   book,
   onSaved,
+  showPreview = true,
 }: {
+  showPreview?: boolean
   book: Book
   onSaved: (book: Book) => void
 }) {
@@ -34,29 +26,6 @@ export function BookCover({
   const [failure, setFailure] = useState('')
   const [conflict, setConflict] = useState(false)
   const [status, setStatus] = useState('')
-  const [image, setImage] = useState<{
-    path: string
-    url: string | null
-  } | null>(null)
-
-  useEffect(() => {
-    let active = true
-    const path = book.coverPath
-    if (path) {
-      void readCover(book.id, path).then(
-        (bytes) => {
-          if (active) setImage({ path, url: dataUrl(bytes) })
-        },
-        () => {
-          if (active) setImage({ path, url: null })
-        },
-      )
-    }
-    return () => {
-      active = false
-    }
-  }, [book.id, book.coverPath])
-
   async function save(remove = false) {
     if (inFlight.current || conflict || (!remove && !file)) return
     if (!remove && file && (file.size === 0 || file.size > MAX_BYTES)) {
@@ -114,23 +83,9 @@ export function BookCover({
     }
   }
 
-  const loaded = image?.path === book.coverPath ? image : null
   return (
     <div className="space-y-2" aria-busy={pending}>
-      {book.coverPath &&
-        (loaded ? (
-          loaded.url ? (
-            <img
-              src={loaded.url}
-              alt={copy.coverAlt}
-              className="max-h-64 max-w-full rounded-lg object-contain"
-            />
-          ) : (
-            <p role="alert">{copy.coverReadFailure}</p>
-          )
-        ) : (
-          <p role="status">{copy.coverLoading}</p>
-        ))}
+      {showPreview && book.coverPath && <CoverImage book={book} />}
       <label htmlFor={id} className="block font-semibold">
         {copy.cover}
       </label>

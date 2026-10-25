@@ -4,6 +4,10 @@
     grid-template-rows: auto 1fr;
     min-height: 100dvh;
   }
+  .app-shell > header {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
 
   .app-shell__body {
     display: grid;

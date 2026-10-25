@@ -7,6 +7,7 @@ for (const width of [320, 640, 1100]) {
   }) => {
     await page.setViewportSize({ width, height: 480 })
     await page.goto('/tests/fixtures/book-editing.html')
+    await page.getByText('Manage cover', { exact: true }).click()
     const input = page.getByLabel('Cover image', { exact: true })
     const save = page.getByRole('button', { name: 'Save cover', exact: true })
     await expect(input).toBeVisible()
