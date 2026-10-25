@@ -1,5 +1,9 @@
 # Decision log
 
+## 2026-10-25 - Real desktop restart verification (2.12)
+
+Use Tauri's supported CLI app-directory override for isolated test builds instead of adding a production environment-variable hook or touching the normal library. Attach existing Playwright to real WebView2 via process-local CDP arguments and use native UI controls for all mutations. Keep read-only native IPC/SQLite/hash comparisons, visible-window captures and distinct PID/clean-exit evidence. Test source remains reusable; artifacts stay ignored. Restore the default debug build in finally. This covers graceful Windows process restarts only, not installer/macOS/power-loss recovery.
+
 ## 2026-10-25 - Empty/loading/error states and validation (2.11)
 
 Track completed list loading independently from visible rows and mutation success. Never infer an empty library from a failed/pending read, and do not clear that read failure when creating a book succeeds. Preserve known rows, disable retry while pending and manage retry focus without stealing initial-load focus. Treat desktop-only preview separately from retryable read errors.

@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Tasks 2.1-2.11 (book model, persistence, CRUD, covers, cards/grid, progress presentation and library states/validation) are complete; awaiting approval before 2.12 (desktop persistence after restart). Progress is explicitly unknown until actual word counts are available; no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; awaiting approval before 3.1 (chapter data model). Progress is explicitly unknown until actual word counts are available; no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -49,7 +49,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [x]  | 2.9  | Implement library grid             | Completed (2026-10-25) | 2.8          | Responsive grid opens the correct book                                   |
 | [x]  | 2.10 | Implement book progress            | Completed (2026-10-25) | 2.9          | Zero, missing and exceeded targets handled                               |
 | [x]  | 2.11 | Add empty states and validation    | Completed (2026-10-25) | 2.10         | Empty, loading and error states work                                     |
-| [ ]  | 2.12 | Test persistence after restart     | Not started            | 2.11         | Books and covers survive a real desktop restart                          |
+| [x]  | 2.12 | Test persistence after restart     | Completed (2026-10-25) | 2.11         | Books and covers survive a real desktop restart                          |
 
 ## Milestone 3: Writing Editor
 
@@ -133,6 +133,15 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [ ]  | 8.10 | Tag version 1.0.0           | Not started | 8.9          | Release gates pass and explicit authorization obtained before Git mutation |
 
 ## Historical verification evidence
+
+## Verification evidence: 2.12
+
+- Added npm.cmd run test:desktop with Windows-only tests/desktop/restart.ts and scoped window.ps1. Uses real Tauri/WebView2, embedded production frontend, native IPC, SQLite and managed cover files; no mocks or Vite server. Tauri appDirectoriesOverride and a unique WebView profile isolate all test data under .cache/desktop-restart/run-*; production source/config/identifier/data are unchanged.
+- Successful run run-jvz0G5 completed five visible native process launches/four full restarts, with native PIDs 18652, 19376, 10436, 22308 and 17644. Windows/title/rendered screenshots inspected. Created duplicate Ukrainian titles with distinct IDs, edited metadata, rejected invalid image bytes, imported a cover and renamed its disposable source; exact snapshots/cover hash survived restart.
+- Further relaunches verified metadata edits preserve covers, replacement cleans the old file, cancelled deletion preserves a book, confirmed deletion persists, cover removal persists, and covered-book deletion cleans its managed file. Final relaunch showed a confirmed empty library, zero book rows/files and empty cleanup queue. Read-only database inspection after each close confirmed schema v2, application ID and integrity.
+- Every native process closed gracefully with exit code 0. Runner restored the normal debug executable/config context via a default build; report passed=true/restoredDefaultBuild=true and runner exited 0. No production persistence bug required changes. Evidence and reproducible steps: [DESKTOP_PERSISTENCE_REVIEW.md](DESKTOP_PERSISTENCE_REVIEW.md).
+- 169 frontend and 39 native tests, strict typecheck, lint, formatting, Cargo fmt/Clippy, isolated/default native debug builds and diff checks passed. Existing 36 Edge checks remain verified in 2.11; no UI/layout source change here. GUI/helper execution required sandbox approval; helper execution-policy override is child-process-only, with no system policy change.
+- Milestone 2 acceptance is satisfied for current books/covers. Installer/release/macOS/power-loss/chapter persistence are not claimed. Test artifacts remain ignored and all test windows are closed. Next: 3.1, awaiting approval.
 
 ## Verification evidence: 2.11
 

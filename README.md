@@ -10,7 +10,7 @@ WriteDaily is a planned free, offline-first Windows writing application, with fu
 
 Foundation tasks 0.1-0.9 are complete: environment inspection, React/strict TypeScript/Vite, Tauri 2, Tailwind, ESLint/Prettier, Vitest, application structure, synchronized documentation and verified Windows desktop startup. The UI currently shows a responsive application shell with the WriteDaily brand and five navigable sections. My Library offers creation/editing dialogs, confirmed deletion and a responsive grid of accessible book cards; other sections display Coming soon. Library has book domain types/validation and native SQLite initialization/migrations v1-v2. The Rust book repository is implemented; Book creation is connected to SQLite through Tauri. Chapter editor, autosave, export and backup remain planned.
 
-Frontend checks, the React DOM smoke test and native development build passed. The Windows Tauri window was opened and its React heading, tagline and status visually verified in task 0.9. Milestone 0 is complete; Milestone 1 (design system, navigation and accessibility/layout review) is also complete; tasks 2.1-2.11 are complete; task 2.12 (desktop persistence after restart) awaits approval. See [task status and verification evidence](docs/TASKS.md).
+Frontend checks, the React DOM smoke test and native development build passed. The Windows Tauri window was opened and its React heading, tagline and status visually verified in task 0.9. Milestone 0 is complete; Milestone 1 (design system, navigation and accessibility/layout review) is also complete; Milestone 2 (tasks 2.1-2.12) is complete, including verified real desktop process restarts for books/covers. Task 3.1 (chapter data model) awaits approval. See [task status and verification evidence](docs/TASKS.md).
 
 ## Prerequisites
 
@@ -45,9 +45,11 @@ The official create-vite 9.3.1 React/TypeScript template was generated in a temp
 
 ## Verification status
 
-Tauri 2 compilation and Windows development-window startup are verified using the existing Windows C++ tools, Rust 1.99.1 and Node 24.22.1. React content was visually inspected in the native window, and frontend checks passed. Installer and packaged release verification remain pending; details are tracked in docs/TASKS.md. This foundation verification does not establish native persistence or macOS support.
+Tauri 2 compilation and Windows development-window startup are verified using the existing Windows C++ tools, Rust 1.99.1 and Node 24.22.1. React content was visually inspected in the native window, and frontend checks passed. Installer and packaged release verification remain pending; details are tracked in docs/TASKS.md. Native book/cover persistence is additionally verified by five isolated real desktop launches in 2.12. macOS and installer/release packaging remain unverified.
 
 ## Desktop development
+
+Real book/cover persistence across process restarts is verified in task 2.12. Run `npm.cmd run test:desktop` with Cargo on PATH for the isolated Windows/WebView2 scenario. It opens five native windows sequentially, stores all test data under ignored .cache/desktop-restart, performs real UI/IPC writes, closes each process gracefully and restores the ordinary debug build. No real library data is used. See [desktop persistence review](docs/DESKTOP_PERSISTENCE_REVIEW.md) for prerequisites, scoped PowerShell execution, artifacts and coverage limits.
 
 Rust/Cargo 1.99.1 MSVC are installed on this machine. Cargo is not in the inherited terminal PATH; add it for the current PowerShell session (adjust for a different account):
 
@@ -124,7 +126,7 @@ Data model, autosave, streak and backup policies remain proposals until their im
 
 ## Application shell
 
-`src/app/AppShell.tsx` provides the masthead, keyboard skip link and main content area. App supplies five section buttons through its optional navigation slot. Main content adapts to the supported minimum desktop size (640x480); the layout was visually checked in Tauri at minimum and wider sizes. Accessibility/layout verification passed in 1.9; book metadata, SQLite/migrations and Rust repository are implemented; book creation, editing, confirmed deletion and managed covers are implemented; book cards and library grid are implemented; progress calculation/presentation is implemented; empty/loading/error states and localized validation are implemented; desktop restart verification is next. Run `npm.cmd run tauri -- dev` with Cargo on PATH to inspect the current shell.
+`src/app/AppShell.tsx` provides the masthead, keyboard skip link and main content area. App supplies five section buttons through its optional navigation slot. Main content adapts to the supported minimum desktop size (640x480); the layout was visually checked in Tauri at minimum and wider sizes. Accessibility/layout verification passed in 1.9; book metadata, SQLite/migrations and Rust repository are implemented; book creation, editing, confirmed deletion and managed covers are implemented; book cards and library grid are implemented; progress calculation/presentation is implemented; empty/loading/error states and localized validation are implemented; desktop restart persistence is verified; chapter data modeling is next. Run `npm.cmd run tauri -- dev` with Cargo on PATH to inspect the current shell.
 
 ## Section navigation
 
@@ -220,4 +222,4 @@ Migration SQL under src-tauri/migrations is source code: commit it and never edi
 
 `src-tauri/src/books/` provides native list/get/create/update/delete with validated metadata and real SQLite transactions. Create/list/get/update and confirmed delete are exposed through typed Tauri commands. The library uses a basic list for selecting metadata to edit; the responsive grid opens the selected persisted book in a read-only editor context; chapter editing remains planned. UUIDs/timestamps are generated natively; update/delete require the loaded updatedAt token and return Conflict if stale. Malformed stored data is reported rather than silently filtered or rewritten. Covered-book deletion queues cleanup transactionally and reports deferred cleanup separately from committed deletion.
 
-Focused native tests: `cargo test --manifest-path src-tauri/Cargo.toml --locked books::tests`. Existing migration SQL is unchanged. Shared test fixtures in tests/fixtures/book-details.json exercise Rust/TypeScript normalization and dates; no test writes to the actual user library. Cover selection, preview, replacement/removal and safe cleanup are implemented; book cards and library grid are implemented; progress calculation/presentation is implemented; empty/loading/error states and localized validation are implemented; desktop restart verification is next.
+Focused native tests: `cargo test --manifest-path src-tauri/Cargo.toml --locked books::tests`. Existing migration SQL is unchanged. Shared test fixtures in tests/fixtures/book-details.json exercise Rust/TypeScript normalization and dates; no test writes to the actual user library. Library CRUD, managed covers, cards/grid, progress presentation and state/validation handling are implemented. Real desktop restart persistence is verified; chapter data modeling is next.
