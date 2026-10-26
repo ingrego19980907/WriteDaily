@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Tasks 3.1–3.5 (chapter model/repository/management/Tiptap/toolbar) are complete; awaiting approval before 3.6 (chapter navigation). Progress is explicitly unknown until actual word counts are available; no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Tasks 3.1–3.6 (chapter model/repository/management/editor/toolbar/navigation) are complete; awaiting approval before 3.7 (word counting). Progress is explicitly unknown until actual word counts are available; no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -60,7 +60,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [x]  | 3.3  | Implement chapter management  | Completed (2026-10-25) | 3.2          | Create, rename and confirmed deletion work                                    |
 | [x]  | 3.4  | Integrate Tiptap              | Completed (2026-10-25) | 3.3          | Rich text edits and serialization work                                        |
 | [x]  | 3.5  | Add formatting toolbar        | Completed (2026-10-26) | 3.4          | Bold, italic, headings, lists and undo/redo work                              |
-| [ ]  | 3.6  | Implement chapter navigation  | Not started            | 3.5          | Pending edits preserved when switching chapters                               |
+| [x]  | 3.6  | Implement chapter navigation  | Completed (2026-10-26) | 3.5          | Pending edits preserved when switching chapters                               |
 | [ ]  | 3.7  | Implement word counting       | Not started            | 3.6          | Documented counting policy passes Unicode and empty-content tests             |
 | [ ]  | 3.8  | Implement autosave            | Not started            | 3.7          | Serialized debounced writes and retry behavior pass failure checks            |
 | [ ]  | 3.9  | Implement save status         | Not started            | 3.8          | Saved appears only after successful commit; errors remain visible             |
@@ -133,6 +133,13 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [ ]  | 8.10 | Tag version 1.0.0           | Not started | 8.9          | Release gates pass and explicit authorization obtained before Git mutation |
 
 ## Historical verification evidence
+
+## Verification evidence: 3.6
+
+- Added ordered book-scoped chapter selection and previous/next controls inside ChapterEditorDialog. Numbered option labels distinguish duplicate titles while native IDs determine identity. The selector remains on the current chapter until a successful validated read; successful transitions focus the new chapter heading after close protection is ready.
+- ManuscriptEditor exposes an explicit prepare-to-leave operation using the existing revision-checked save path. Dirty writing commits before target loading. Clean documents skip saving; pending manual saves block navigation. Transitions are serialized with an immediate ref guard and disabled controls; editing/formatting/manual-save actions are locked during the transition. No debounce or background autosave is introduced.
+- Failed saves/conflicts keep the same editor/text and cancel target loading. Failed or unsupported target reads keep the current session/history and restore editing, with an explicit retry for target loading. Retrying a read does not resave already committed writing. Only a validated target replaces the session, keyed by chapter ID; dismissed/unmounted reads cannot enter a new session. Normal close guards remain in place; success-only navigation creates a fresh editor/history for the target rather than retaining undo history across chapters.
+- Verified 300 Vitest tests (8 new navigation cases), all 63 Edge tests (9 new), lint, formatting, strict typecheck, production build and diff whitespace checks. Browser coverage includes duplicate-title identities, formatted roundtrip navigation at 320/640/1100px, save-before-read ordering, pending locks, write/conflict/read/unsupported-data failures, retry without duplicate saves, slow reads/repeated clicks, heading focus, axe scans and 200% selector/modal reflow. Test-only IPC remains separate from native persistence; native code/dependencies/schema are unchanged, so Cargo tests were not repeated. No new actual native GUI/restart or manual screen-reader claim. Next: 3.7.
 
 ## Verification evidence: 3.5
 

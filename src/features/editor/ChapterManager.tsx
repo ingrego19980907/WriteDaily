@@ -193,6 +193,7 @@ export function ChapterManager({
                       <ChapterEditorDialog
                         bookId={book.id}
                         chapter={chapter}
+                        chapters={chapters}
                         disabled={disabled}
                         onPending={operationPending}
                         onSaved={(committed) => {

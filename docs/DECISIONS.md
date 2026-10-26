@@ -1,5 +1,11 @@
 # Decision log
 
+## 2026-10-26 - Chapter navigation (3.6)
+
+Keep chapter navigation in the existing editor dialog, using ordered book-scoped summaries and ID-based selection/previous/next controls. Flush dirty content through the established revision-checked save before reading the target; skip writes for clean documents. This is an explicit transition save, not timed autosave. Serialize transitions and lock editing while saving/loading to prevent overlapping writes or mixed chapter responses.
+
+Retain the current Editor instance and text until the target validates. Save failure/conflict cancels the switch; read failure/unsupported content restores editing and allows target retry without another clean save. Replace the session only on successful ID change, with fresh undo state and heading focus. Normal dirty/pending close protection remains. Do not add session draft storage, new dependencies, schemas or native commands. Counting/autosave/recovery stay separate tasks.
+
 ## 2026-10-26 - Formatting toolbar (3.5)
 
 Compose the installed Tiptap commands through a feature-local toolbar without adding extensions, dependencies or persisted formats. Subscribe with useEditorState so selection-only changes update active/available controls independently of ManuscriptEditor renders. Preserve selection on pointer activation and use command focus chains to continue writing. Keep native history grouping.

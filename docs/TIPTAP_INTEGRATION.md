@@ -1,6 +1,16 @@
 # Tiptap integration (3.4)
 
-Implemented on 2026-10-25, extended with the formatting toolbar on 2026-10-26. Open a book, create a chapter, choose **Edit chapter text**, write/format, then choose **Save chapter text**. Saving is manual. Chapter switching, word counts, autosave and its status UI remain tasks 3.6 onward.
+Implemented on 2026-10-25, extended with formatting and chapter navigation on 2026-10-26. Open a book, create a chapter, choose **Edit chapter text**, write/format, then choose **Save chapter text** or switch chapters. Ordinary editing uses manual saving; chapter navigation saves dirty text before leaving. Word counts, timed autosave and its status UI remain tasks 3.7 onward.
+
+## Chapter navigation (3.6)
+
+The editor dialog receives the book's ordered summary collection. **Choose chapter**, **Previous chapter** and **Next chapter** navigate by ID; numbered option labels distinguish duplicate titles. This is an in-dialog workflow, not persistent application routing or reordering. The collection is a snapshot of the loaded chapter list; external membership/order changes appear when the manager reloads, while every selected target is read freshly.
+
+Navigation calls ManuscriptEditor's prepare-to-leave operation. Dirty documents use the same validated JSON/revision save as the manual button; only committed success permits target loading. Clean documents avoid a redundant write. A pending manual save blocks navigation; accepted transitions are serialized and later clicks are ignored while controls are disabled. The existing editor is frozen during the transition so no new writing can enter between the outgoing save and target read. Normal typing still does not trigger autosave.
+
+Write errors/conflicts retain the current editor and abort target loading. Read errors/unsupported content retain the current document and restore editing; Retry opening chapter retries the target without resaving an already clean document. A successful validated read alone replaces the session, with a chapter-ID key and heading focus after the new close guard is ready. Each opened chapter gets fresh undo/selection state; cross-chapter undo history is not preserved. Returning reads the committed text/formatting. Close/unmount request guards reject stale responses, and existing normal-close protection stays active for dirty/pending writing.
+
+Verification for 3.6: 300 Vitest tests (8 new navigation cases) and all 63 Edge tests (9 new) pass, plus lint/format/typecheck/build. Checks cover dirty/clean transitions, commit-before-read, revision use, duplicate-title identities, persistence/conflict/read/unsupported failures, safe retry, serialized rapid actions/slow reads, stale dismissed responses, manual-save locks, focus, axe and 320/640/1100px with 200% internal reflow. Browser persistence is test-only IPC; native dependencies/code/schema and the previously verified 53 native tests are unchanged. No real desktop editor restart or manual screen-reader claim is added.
 
 ## Formatting toolbar (3.5)
 

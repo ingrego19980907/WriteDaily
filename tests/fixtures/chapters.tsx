@@ -48,6 +48,9 @@ let deleteAttempts = 0
 let saveAttempts = 0
 let destroyed = false
 let finishSave: (() => void) | undefined
+let finishRead: (() => void) | undefined
+let targetReads = 0
+const chapterReads: string[] = []
 const seed = validateChapterContent({
   schemaVersion: 1,
   document: {
@@ -67,6 +70,8 @@ Object.assign(globalThis, {
   testWindowDestroyed: () => destroyed,
   completeTestSave: () => finishSave?.(),
   testSaveAttempts: () => saveAttempts,
+  testChapterReads: () => [...chapterReads],
+  completeTestRead: () => finishRead?.(),
 })
 mockIPC(
   (command, payload) => {
@@ -109,6 +114,29 @@ mockIPC(
     const index = chapters.findIndex((chapter) => chapter.id === args.id)
     if (index < 0) throw { code: 'not_found' }
     if (command === 'get_chapter') {
+      chapterReads.push(args.id)
+      if (args.id !== first.id) {
+        targetReads += 1
+        if (scenario === 'navigation-failure' && targetReads === 1)
+          throw { code: 'persistence' }
+        if (scenario === 'navigation-invalid')
+          return {
+            ...chapters[index],
+            content: {
+              schemaVersion: 999,
+              document: { type: 'doc', content: [] },
+            },
+          }
+        if (scenario === 'navigation-slow' && targetReads === 1)
+          return new Promise((resolve) => {
+            finishRead = () =>
+              resolve({
+                ...chapters[index],
+                content:
+                  manuscripts.get(args.id) ?? createEmptyChapterContent(),
+              })
+          })
+      }
       if (scenario === 'editor-invalid')
         return {
           ...chapters[index],

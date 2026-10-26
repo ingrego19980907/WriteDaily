@@ -173,6 +173,16 @@ export const en = {
     },
   },
   writing: {
+    navigation: 'Chapter navigation',
+    chooseChapter: 'Choose chapter',
+    previousChapter: 'Previous chapter',
+    nextChapter: 'Next chapter',
+    switching: 'Saving changes and opening the selected chapter…',
+    switchFailure:
+      'Could not open the selected chapter. Your current chapter is still open. Please try again.',
+    retryChapter: 'Retry opening chapter',
+    navigationHint:
+      'Switching chapters saves your current changes first. A failed save keeps you in the current chapter.',
     toolbar: 'Text formatting',
     toolbarHint:
       'Use Left and Right Arrow, Home or End to move between formatting buttons. Press Enter or Space to apply, then continue writing.',

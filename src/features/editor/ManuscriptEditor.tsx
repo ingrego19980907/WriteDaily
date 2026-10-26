@@ -1,4 +1,11 @@
-import { useEffect, useId, useRef, useState, type RefObject } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type RefObject,
+} from 'react'
 import { EditorContent, useEditor } from '@tiptap/react'
 import type { JSONContent } from '@tiptap/core'
 import { en } from '../../app/i18n/en'
@@ -24,6 +31,9 @@ export function ManuscriptEditor({
   onClose,
   onSaved,
   onPending,
+  prepareToLeaveRef,
+  navigationLocked = false,
+  focusOnReady = false,
 }: {
   chapter: Chapter
   document: JSONContent
@@ -31,6 +41,9 @@ export function ManuscriptEditor({
   onClose: () => void
   onSaved: (chapter: ChapterSummary) => void
   onPending: (pending: boolean) => void
+  prepareToLeaveRef?: RefObject<() => Promise<boolean>>
+  navigationLocked?: boolean
+  focusOnReady?: boolean
 }) {
   const [ready, setReady] = useState(false)
   const [dirty, setDirty] = useState(false)
@@ -45,6 +58,7 @@ export function ManuscriptEditor({
   const savingRef = useRef(false)
   const revision = useRef(chapter.revision)
   const hintId = useId()
+  const headingRef = useRef<HTMLHeadingElement>(null)
   const [extensions] = useState(() => [
     ...chapterExtensions(),
     contentBoundary(() => setFailure(copy.rejected)),
@@ -52,7 +66,7 @@ export function ManuscriptEditor({
   const editor = useEditor({
     extensions,
     content: document,
-    editable: ready && !saving && !fatal,
+    editable: ready && !saving && !fatal && !navigationLocked,
     immediatelyRender: false,
     shouldRerenderOnTransaction: false,
     enableContentCheck: true,
@@ -93,8 +107,12 @@ export function ManuscriptEditor({
   })
 
   useEffect(() => {
-    editor?.setEditable(ready && !saving && !fatal, false)
-  }, [editor, ready, saving, fatal])
+    editor?.setEditable(ready && !saving && !fatal && !navigationLocked, false)
+  }, [editor, ready, saving, fatal, navigationLocked])
+
+  useEffect(() => {
+    if (ready && focusOnReady) headingRef.current?.focus()
+  }, [ready, focusOnReady])
 
   useEffect(() => {
     let disposed = false
@@ -147,7 +165,7 @@ export function ManuscriptEditor({
     }
   }, [canCloseRef])
 
-  async function save() {
+  const save = useCallback(async () => {
     if (
       !editor ||
       savingRef.current ||
@@ -156,11 +174,11 @@ export function ManuscriptEditor({
       fatal ||
       !ready
     )
-      return
+      return false
     const content = serializeEditorDocument(editor.getJSON())
     if (!content) {
       setFailure(copy.rejected)
-      return
+      return false
     }
     savingRef.current = true
     editor.setEditable(false, false)
@@ -180,6 +198,7 @@ export function ManuscriptEditor({
       setClosing(false)
       setDiscard(false)
       onSaved(committed)
+      return true
     } catch (error) {
       const code = chapterErrorCode(error)
       setBlocked(
@@ -196,24 +215,57 @@ export function ManuscriptEditor({
               ? copy.storedFailure
               : copy.failure,
       )
+      return false
     } finally {
       savingRef.current = false
       setSaving(false)
       onPending(false)
-      editor.setEditable(!fatal, false)
+      editor.setEditable(ready && !fatal && !navigationLocked, false)
     }
-  }
+  }, [
+    editor,
+    blocked,
+    fatal,
+    ready,
+    chapter.bookId,
+    chapter.id,
+    onPending,
+    onSaved,
+    navigationLocked,
+  ])
+
+  useEffect(() => {
+    if (!prepareToLeaveRef) return
+    prepareToLeaveRef.current = async () => {
+      if (savingRef.current) return false
+      if (dirtyRef.current && !(await save())) return false
+      editor?.setEditable(false, false)
+      return true
+    }
+    return () => {
+      prepareToLeaveRef.current = async () => true
+    }
+  }, [prepareToLeaveRef, editor, save])
 
   return (
     <div className="min-w-0 space-y-4">
-      <h3 className="font-writing text-writing break-words">{chapter.title}</h3>
+      <h3
+        ref={headingRef}
+        tabIndex={-1}
+        className="font-writing text-writing break-words"
+      >
+        {chapter.title}
+      </h3>
       <p id={hintId} className="text-secondary">
         {copy.description}
       </p>
       {!fatal && (
         <>
           {editor && (
-            <FormattingToolbar editor={editor} disabled={!ready || saving} />
+            <FormattingToolbar
+              editor={editor}
+              disabled={!ready || saving || navigationLocked}
+            />
           )}
           <EditorContent editor={editor} className="manuscript" />
         </>
@@ -225,7 +277,15 @@ export function ManuscriptEditor({
       )}
       <p role="status">{saved ? copy.saved : ''}</p>
       <Button
-        disabled={!editor || !ready || !dirty || saving || blocked || fatal}
+        disabled={
+          !editor ||
+          !ready ||
+          !dirty ||
+          saving ||
+          blocked ||
+          fatal ||
+          navigationLocked
+        }
         onClick={() => {
           void save()
         }}
