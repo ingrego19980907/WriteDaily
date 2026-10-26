@@ -16,6 +16,15 @@ import { ChapterEditorDialog } from './ChapterEditorDialog'
 import type { Chapter, ChapterSummary } from './chapter'
 import { createEmptyChapterContent } from './chapter-content'
 import { countChapterWords } from './word-count'
+import {
+  getEditorPreferences,
+  saveEditorPreferences,
+} from '../../services/editor-preferences'
+
+vi.mock('../../services/editor-preferences', () => ({
+  getEditorPreferences: vi.fn(),
+  saveEditorPreferences: vi.fn(),
+}))
 
 vi.mock('../../services/chapters', () => ({
   getChapter: vi.fn(),
@@ -39,6 +48,11 @@ const chapter: Chapter = {
 }
 beforeEach(() => {
   vi.resetAllMocks()
+  vi.mocked(getEditorPreferences).mockResolvedValue({
+    schemaVersion: 1,
+    fontSize: 18,
+    revision: 1,
+  })
   vi.mocked(getChapter).mockResolvedValue(chapter)
   vi.mocked(protectWritingClose).mockResolvedValue(vi.fn())
 })
@@ -233,7 +247,9 @@ test('navigation commits dirty writing before reading the target and restores it
     'contenteditable',
     'false',
   )
-  expect(screen.getByRole('combobox')).toBeDisabled()
+  expect(
+    screen.getByRole('combobox', { name: copy.chooseChapter }),
+  ).toBeDisabled()
   const change = vi.mocked(saveChapterContent).mock.calls[0][2]
   const committed = { ...chapter, revision: 5, content: change.content }
   await act(async () => commit(committed))
@@ -264,12 +280,17 @@ test.each(['persistence', 'conflict'])(
     act(() => {
       editor.commands.insertContent({ type: 'text', text: 'Keep this draft' })
     })
-    await user.selectOptions(screen.getByRole('combobox'), second.id)
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: copy.chooseChapter }),
+      second.id,
+    )
     expect(await screen.findByRole('alert')).toHaveTextContent(
       code === 'conflict' ? copy.conflict : copy.failure,
     )
     expect(getChapter).toHaveBeenCalledTimes(1)
-    expect(screen.getByRole('combobox')).toHaveValue(chapter.id)
+    expect(
+      screen.getByRole('combobox', { name: copy.chooseChapter }),
+    ).toHaveValue(chapter.id)
     expect(screen.getByRole('textbox')).toHaveTextContent('Keep this draft')
     expect(
       (screen.getByRole('textbox') as HTMLElement & { editor: Editor }).editor,
@@ -331,7 +352,9 @@ test('unsupported target data leaves the current document open instead of creati
   expect(
     (screen.getByRole('textbox') as HTMLElement & { editor: Editor }).editor,
   ).toBe(editor)
-  expect(screen.getByRole('combobox')).toHaveValue(chapter.id)
+  expect(
+    screen.getByRole('combobox', { name: copy.chooseChapter }),
+  ).toHaveValue(chapter.id)
   expect(saveChapterContent).not.toHaveBeenCalled()
 })
 
@@ -347,9 +370,14 @@ test('rapid navigation requests are serialized while target loading locks curren
     )
   mount(vi.fn(), [chapter, second, third])
   const { user } = await open()
-  await user.selectOptions(screen.getByRole('combobox'), second.id)
-  expect(screen.getByRole('combobox')).toBeDisabled()
-  fireEvent.change(screen.getByRole('combobox'), {
+  await user.selectOptions(
+    screen.getByRole('combobox', { name: copy.chooseChapter }),
+    second.id,
+  )
+  expect(
+    screen.getByRole('combobox', { name: copy.chooseChapter }),
+  ).toBeDisabled()
+  fireEvent.change(screen.getByRole('combobox', { name: copy.chooseChapter }), {
     target: { value: third.id },
   })
   expect(getChapter).toHaveBeenCalledTimes(2)
@@ -360,7 +388,9 @@ test('rapid navigation requests are serialized while target loading locks curren
   )
   await act(async () => resolve(second))
   await waitFor(() =>
-    expect(screen.getByRole('combobox')).toHaveValue(second.id),
+    expect(
+      screen.getByRole('combobox', { name: copy.chooseChapter }),
+    ).toHaveValue(second.id),
   )
   expect(screen.getByRole('textbox')).toHaveTextContent('Second chapter text')
 })
@@ -382,7 +412,7 @@ test('manual-save pending state blocks navigation until its commit finishes', as
   })
   await user.click(screen.getByRole('button', { name: copy.save }))
   expect(screen.getByRole('button', { name: copy.nextChapter })).toBeDisabled()
-  fireEvent.change(screen.getByRole('combobox'), {
+  fireEvent.change(screen.getByRole('combobox', { name: copy.chooseChapter }), {
     target: { value: second.id },
   })
   expect(getChapter).toHaveBeenCalledTimes(1)
@@ -919,4 +949,106 @@ test('one Escape exits focus mode, repeated Escape cannot dismiss the clean edit
   expect(screen.getByRole('dialog')).toBeVisible()
   await user.keyboard('{Escape}')
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+})
+
+test('committed global size changes display without changing the current editor JSON, selection or save revision', async () => {
+  vi.mocked(getEditorPreferences).mockResolvedValue({
+    schemaVersion: 1,
+    fontSize: 24,
+    revision: 1,
+  })
+  let commit!: (snapshot: {
+    schemaVersion: 1
+    fontSize: number
+    revision: number
+  }) => void
+  vi.mocked(saveEditorPreferences).mockReturnValue(
+    new Promise((resolve) => {
+      commit = resolve
+    }),
+  )
+  mount()
+  const { user, editor, field } = await open()
+  act(() => {
+    editor.commands.insertContent({ type: 'text', text: 'Kept writing' })
+    editor.commands.setTextSelection({ from: 1, to: 5 })
+  })
+  const document = editor.getJSON()
+  const selection = editor.state.selection.toJSON()
+  const container = field.closest('[style]')!
+  await waitFor(() =>
+    expect(container).toHaveStyle('--editor-font-size: 1.5rem'),
+  )
+  await user.click(screen.getByText(en.editorPreferences.title))
+  await user.selectOptions(
+    screen.getByRole('combobox', { name: en.editorPreferences.fontSize }),
+    '32',
+  )
+  await user.click(
+    screen.getByRole('button', { name: en.editorPreferences.save }),
+  )
+  expect(container).toHaveStyle('--editor-font-size: 1.5rem')
+  expect(
+    screen.getByRole('combobox', { name: copy.chooseChapter }),
+  ).toBeDisabled()
+  expect(screen.getByRole('button', { name: copy.enterFocus })).toBeDisabled()
+  const [shouldBlock, onBlocked] = vi.mocked(protectWritingClose).mock.calls[0]
+  expect(shouldBlock()).toBe(true)
+  act(() => onBlocked())
+  await user.click(
+    within(screen.getByRole('dialog')).getByRole('button', {
+      name: copy.close,
+    }),
+  )
+  expect(screen.getByRole('dialog')).toBeVisible()
+  await act(async () => {
+    commit({ schemaVersion: 1, fontSize: 32, revision: 2 })
+  })
+  expect(container).toHaveStyle('--editor-font-size: 2rem')
+  expect(screen.getByRole('textbox')).toBe(field)
+  expect(editor.getJSON()).toEqual(document)
+  expect(editor.state.selection.toJSON()).toEqual(selection)
+  expect(saveChapterContent).not.toHaveBeenCalled()
+  expect(
+    screen.getByRole('status', { name: copy.saveStatus }),
+  ).toHaveTextContent(copy.saveWaiting)
+  await user.click(screen.getByRole('button', { name: copy.enterFocus }))
+  expect(screen.getByRole('textbox').closest('[style]')).toHaveStyle(
+    '--editor-font-size: 2rem',
+  )
+})
+
+test('pending preference write protects a clean native window without stale manuscript-save feedback', async () => {
+  let commit!: (snapshot: {
+    schemaVersion: 1
+    fontSize: number
+    revision: number
+  }) => void
+  vi.mocked(saveEditorPreferences).mockReturnValue(
+    new Promise((resolve) => {
+      commit = resolve
+    }),
+  )
+  mount()
+  const { user } = await open()
+  await user.click(screen.getByText(en.editorPreferences.title))
+  await user.selectOptions(
+    screen.getByRole('combobox', { name: en.editorPreferences.fontSize }),
+    '20',
+  )
+  await user.click(
+    screen.getByRole('button', { name: en.editorPreferences.save }),
+  )
+  const [shouldBlock, onBlocked] = vi.mocked(protectWritingClose).mock.calls[0]
+  expect(shouldBlock()).toBe(true)
+  act(() => onBlocked())
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  expect(
+    screen.getByRole('status', { name: en.editorPreferences.status }),
+  ).toHaveTextContent(en.editorPreferences.saving)
+  await act(async () => {
+    commit({ schemaVersion: 1, fontSize: 20, revision: 2 })
+  })
+  expect(shouldBlock()).toBe(false)
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
 })

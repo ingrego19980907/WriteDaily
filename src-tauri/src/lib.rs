@@ -4,6 +4,8 @@ pub mod chapters;
 mod commands;
 mod covers;
 mod database;
+mod editor_preferences;
+mod preference_commands;
 
 use tauri::Manager;
 
@@ -24,7 +26,9 @@ pub fn run() {
             chapter_commands::rename_chapter,
             chapter_commands::save_chapter_content,
             chapter_commands::delete_chapter,
-            chapter_commands::reorder_chapters
+            chapter_commands::reorder_chapters,
+            preference_commands::get_editor_preferences,
+            preference_commands::save_editor_preferences
         ])
         .setup(|app| {
             let mut data_directory = app.path().app_data_dir()?;

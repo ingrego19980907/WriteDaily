@@ -51,6 +51,10 @@ let destroyed = false
 let finishSave: (() => void) | undefined
 let finishRead: (() => void) | undefined
 let targetReads = 0
+let preferenceReads = 0
+let preferenceWrites = 0
+let preferences = { schemaVersion: 1, fontSize: 18, revision: 1 }
+let finishPreferenceSave: (() => void) | undefined
 const chapterReads: string[] = []
 const seed = validateChapterContent({
   schemaVersion: 1,
@@ -73,9 +77,50 @@ Object.assign(globalThis, {
   testSaveAttempts: () => saveAttempts,
   testChapterReads: () => [...chapterReads],
   completeTestRead: () => finishRead?.(),
+  completePreferenceSave: () => finishPreferenceSave?.(),
+  testPreferenceWrites: () => preferenceWrites,
 })
 mockIPC(
   (command, payload) => {
+    if (command === 'get_editor_preferences') {
+      preferenceReads += 1
+      if (scenario === 'preferences-read-failure' && preferenceReads === 1)
+        throw { code: 'persistence' }
+      return { ...preferences }
+    }
+    if (command === 'save_editor_preferences') {
+      const { change } = payload as {
+        change: { fontSize: number; expectedRevision: number }
+      }
+      preferenceWrites += 1
+      if (scenario === 'preferences-save-failure' && preferenceWrites === 1)
+        throw { code: 'persistence' }
+      if (scenario === 'preferences-conflict' && preferenceWrites === 1) {
+        preferences = { schemaVersion: 1, fontSize: 22, revision: 2 }
+        throw { code: 'conflict' }
+      }
+      if (change.expectedRevision !== preferences.revision)
+        throw { code: 'conflict' }
+      if (
+        !Number.isInteger(change.fontSize) ||
+        change.fontSize < 12 ||
+        change.fontSize > 32
+      )
+        throw { code: 'validation' }
+      const commit = () => {
+        preferences = {
+          ...preferences,
+          fontSize: change.fontSize,
+          revision: preferences.revision + 1,
+        }
+        return { ...preferences }
+      }
+      if (scenario === 'preferences-pending')
+        return new Promise((resolve) => {
+          finishPreferenceSave = () => resolve(commit())
+        })
+      return commit()
+    }
     if (command === 'plugin:window|destroy') {
       destroyed = true
       return

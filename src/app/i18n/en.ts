@@ -247,6 +247,26 @@ export const en = {
     discardCheck: 'I understand that my unsaved chapter changes will be lost.',
     discard: 'Discard changes and close',
   },
+  editorPreferences: {
+    title: 'Editor settings',
+    fontSize: 'Manuscript text size',
+    size: (size: number) => `${size} px`,
+    hint: 'Choose a size from 12 to 32 px and save it for all chapters. Only manuscript display changes; your text and formatting stay the same.',
+    save: 'Save editor settings',
+    saving: 'Saving editor settings…',
+    saved: 'Editor settings saved.',
+    loading: 'Loading editor settings…',
+    status: 'Editor settings status',
+    loadFailure:
+      'Could not load saved editor settings. The current display size is unchanged. Load saved settings before making changes.',
+    failure:
+      'Could not save editor settings. The previous size still applies and your chosen size is kept. Try saving again.',
+    conflict:
+      'Editor settings changed elsewhere. Your chosen size is kept. Load saved settings before trying again.',
+    invalid:
+      'Saved editor settings could not be safely updated. No size was changed. Load saved settings before trying again.',
+    reload: 'Load saved settings',
+  },
   app: {
     name: 'WriteDaily',
     tagline: 'A little writing, every day.',

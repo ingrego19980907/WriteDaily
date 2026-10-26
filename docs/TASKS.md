@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Tasks 3.1–3.10 (chapter model/repository/management/editor/toolbar/navigation/counting/autosave/status/focus mode) are complete; awaiting approval before 3.11 (editor preferences). Library progress is explicitly unknown until book aggregation (4.1); no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Tasks 3.1–3.11 (chapter model/repository/management/editor/toolbar/navigation/counting/autosave/status/focus mode/preferences) are complete; awaiting approval before 3.12 (desktop editor persistence/recovery checks). Library progress is explicitly unknown until book aggregation (4.1); no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -65,7 +65,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [x]  | 3.8  | Implement autosave            | Completed (2026-10-26) | 3.7          | Serialized debounced writes and retry behavior pass failure checks            |
 | [x]  | 3.9  | Implement save status         | Completed (2026-10-26) | 3.8          | Saved appears only after successful commit; errors remain visible             |
 | [x]  | 3.10 | Add focus mode                | Completed (2026-10-26) | 3.9          | Focus mode can be entered and exited by keyboard                              |
-| [ ]  | 3.11 | Add editor preferences        | Not started            | 3.10         | Font size persists within validated limits                                    |
+| [x]  | 3.11 | Add editor preferences        | Completed (2026-10-26) | 3.10         | Font size persists within validated limits                                    |
 | [ ]  | 3.12 | Test persistence and recovery | Not started            | 3.11         | Formatting, rapid navigation, interrupted saves and restart recovery verified |
 
 ## Milestone 4: Goals & Deadlines
@@ -133,6 +133,12 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [ ]  | 8.10 | Tag version 1.0.0           | Not started | 8.9          | Release gates pass and explicit authorization obtained before Git mutation |
 
 ## Historical verification evidence
+
+## Verification evidence: 3.11
+
+- Added global integer manuscript size 12–32 px (default 18), strict frontend/native snapshot validation, typed get/save IPC and the editor's collapsible settings panel. Applied size changes only after commit; rem units preserve root enlargement. Same Tiptap document/selection/history/revision remain, including in focus mode. Feedback stays visible outside the collapsed details control; read failures never silently replace stored settings.
+- Append-only migration 004 adds a STRICT versioned singleton with its own safe revision; IMMEDIATE writes reject conflicts and return after commit, no-op preserves revision, failures/overflow/invalid data do not reset or repair it. Existing migrations 001–003 are unchanged. Combined pending locks protect settings/content writes and native/browser/dialog close. No dependency/capability added. See [EDITOR_PREFERENCES.md](EDITOR_PREFERENCES.md).
+- Verified: 401 Vitest tests (26 new), 66 Rust tests (7 new), lint, formatting, strict typecheck/build and Cargo fmt/Clippy. All 94 Edge tests passed (7 new), including bounds/reopen/navigation/focus, failure/retry/conflict/pending, unchanged manuscript JSON, axe at 320/640/1100px, 200% reflow and forced colors/reduced motion. Inspected the 640px enlarged capture. Native tests use disposable databases; the desktop restart runner's schema assertion is updated to v4 but no actual native GUI/restart or manual screen-reader verification is claimed here. Next: 3.12, awaiting approval.
 
 ## Verification evidence: 3.10
 

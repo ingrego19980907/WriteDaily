@@ -1,5 +1,7 @@
 # Architecture
 
+Editor preferences (3.11): pure editor-preferences.ts validates global font size/snapshots; a narrow service calls get/save_editor_preferences; EditorPreferencesPanel owns load/draft/commit feedback. ChapterEditorDialog applies only committed sizes through a rem-based manuscript CSS variable and combines preference/content pending refs for navigation/mutation/close locks. Rust editor_preferences owns strict singleton reads and revision-checked IMMEDIATE updates, adapted through preference_commands. Append-only migration 004 advances SQLite to v4 without changing manuscript rows. No dependency/native capability change. See [EDITOR_PREFERENCES.md](EDITOR_PREFERENCES.md).
+
 Focus mode (3.10): ChapterEditorDialog owns a session-local layout flag and pressed header toggle. Modal's optional fullscreen/header-action/Escape props expand the same dialog; ManuscriptEditor hides distractions without remounting Tiptap or changing autosave/revision state. First Escape restores the normal layout and button focus; normal Close still uses existing dirty/pending guards. Header actions remain available during writes and are locked during chapter transitions. No native/dependency/persistence change. See [FOCUS_MODE.md](FOCUS_MODE.md).
 
 Save status (3.9): ManuscriptEditor derives preparing/neutral/waiting/saving/committed/paused/blocked/unavailable state and passes it to the feature-local SaveStatus presentation. The named polite/atomic region never infers success before native commit. Separate retained save errors survive edits and close notices until successful retry; commits clear stale close feedback. Session keys isolate chapter status. No persistence/dependency change. See [SAVE_STATUS.md](SAVE_STATUS.md).
@@ -38,7 +40,7 @@ Status: Foundation complete through task 0.9, including Windows development-wind
 
 ## Technology direction
 
-Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs 375 domain/component/service/editor tests and 87 passing Edge browser tests. Native persistence is additionally covered by 59 Rust tests. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
+Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs 401 domain/component/service/editor tests and 94 passing Edge browser tests. Native persistence is additionally covered by 66 Rust tests. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
 
 ## Organization
 
@@ -115,7 +117,7 @@ This document distinguishes installed foundation tooling from proposed product a
 
 ## Colors and typography (1.1)
 
-Central CSS theme variables live in src/styles/tokens.css using Tailwind 4 @theme static; global.css imports them and applies base styles in @layer base. Components reference semantic utility classes. Local UI and serif font stacks keep typography offline. The original palette is preserved with one darker secondary text token to meet normal-text contrast on background/surface. Size/line-height tokens define baseline UI, display and writing styles; editor settings are not yet implemented. Design system documentation contains measured contrast and usage limits. The running Windows Tauri window was visually checked after application of the tokens.
+Central CSS theme variables live in src/styles/tokens.css using Tailwind 4 @theme static; global.css imports them and applies base styles in @layer base. Components reference semantic utility classes. Local UI and serif font stacks keep typography offline. The original palette is preserved with one darker secondary text token to meet normal-text contrast on background/surface. Size/line-height tokens define baseline UI, display and writing styles; global manuscript size preferences are implemented in 3.11 through native SQLite; only manuscript text uses the committed rem-based size. Design system documentation contains measured contrast and usage limits. The running Windows Tauri window was visually checked after application of the tokens.
 
 ## Application shell (1.2)
 

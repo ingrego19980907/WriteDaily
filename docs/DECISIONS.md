@@ -1,5 +1,11 @@
 # Decision log
 
+## 2026-10-26 - Editor preferences (3.11)
+
+Persist one global manuscript-size setting in the existing native SQLite database through append-only migration 004, instead of browser storage or text-formatting attributes. Use integer bounds 12–32 px, default 18, a versioned singleton and independent safe revision. Reject invalid/stale/missing snapshots without repair; commit before applying or announcing success. Keep all existing migration SQL unchanged and preserve writing across upgrades.
+
+Expose a labelled native select and explicit Save in a collapsible editor settings panel. Keep pending/error feedback visible outside the collapsed form, retain draft/applied size on failure and require explicit fresh reload after conflicts. Apply size as rem-based manuscript-only CSS so text enlargement works without altering JSON/undo/dirty state. Combine preference/content pending guards for mutation/navigation/close safety; keep the preference global and focus mode session-local. No new dependency, plugin or capability. See [EDITOR_PREFERENCES.md](EDITOR_PREFERENCES.md).
+
 ## 2026-10-26 - Focus mode (3.10)
 
 Expand the existing chapter dialog within the app viewport instead of adding native fullscreen, another editor or a nested portal. Use a session-local header toggle and hide navigation/toolbar/counts while retaining save status, errors, Save and close protection. Visually hide verbose chapter context/help while preserving screen-reader context. Keep the same Tiptap instance, selection/history/revision and autosave timer. Add only optional generic Modal layout/header/Escape hooks; defaults remain unchanged.

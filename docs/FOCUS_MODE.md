@@ -1,5 +1,7 @@
 # Focus mode (3.10)
 
+Task 3.11 follow-up: editor settings are also hidden while focused, but the committed global text size continues to apply. A pending settings write prevents entering focus mode until it finishes; existing exit-during-manuscript-save behavior remains.
+
 Choose **Enter focus mode** in the chapter dialog header. The same dialog fills the application's viewport and centers the manuscript in a column up to 48rem wide. This is a presentation mode inside the app, not native OS/browser fullscreen. No window API, permission, dependency or persistence change is added.
 
 Chapter navigation, formatting controls and word counts are hidden from both the visual layout and keyboard/accessibility navigation while focused. The long chapter heading and explanatory help remain available to screen readers but are visually hidden, making room for writing at small/enlarged sizes. The dialog title, mode/Close buttons, save-status region, manuscript, error details, manual Save and any required discard acknowledgement remain available. Hidden counts still update, and ordinary formatting keyboard shortcuts continue to work.

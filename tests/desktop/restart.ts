@@ -197,7 +197,7 @@ async function books(page: Page): Promise<Book[]> {
 function rows() {
   const database = new DatabaseSync(databasePath, { readOnly: true })
   try {
-    assert.equal(database.prepare('PRAGMA user_version').get()?.user_version, 3)
+    assert.equal(database.prepare('PRAGMA user_version').get()?.user_version, 4)
     assert.equal(
       database.prepare('PRAGMA application_id').get()?.application_id,
       1464090969,

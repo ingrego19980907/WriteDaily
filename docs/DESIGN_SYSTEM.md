@@ -66,7 +66,7 @@ No font downloads or font dependencies are needed. Fonts resolve locally, with U
 | --text-display / text-display | 2.5rem, line-height 1.2                                            | Bootstrap heading                                    |
 | --text-writing / text-writing | 1.125rem, line-height 1.8                                          | Comfortable serif text                               |
 
-Root font size remains 1rem so system/browser scaling is respected. Base styles live in Tailwind's base layer so utilities can override them. Section headings/subtitles use the serif stack; navigation and descriptive copy use the UI stack. No editor or adjustable-font-size control exists yet; implement that in task 3.11.
+Root font size remains 1rem so system/browser scaling is respected. Base styles live in Tailwind's base layer so utilities can override them. Section headings/subtitles use the serif stack; navigation and descriptive copy use the UI stack. Task 3.11 adds a labelled native manuscript-size select (12–32 px, default 18) with explicit commit-only apply. Saved size uses rem units so root enlargement still applies. UI fonts and persisted text/formatting are unchanged. See [editor preferences](EDITOR_PREFERENCES.md).
 
 ## Later component guidance
 

@@ -16,7 +16,7 @@
     border-radius: 0.5rem;
     background: var(--color-surface);
     font-family: var(--font-writing);
-    font-size: var(--text-writing);
+    font-size: var(--editor-font-size, var(--text-writing));
     line-height: 1.8;
     white-space: pre-wrap;
     overflow-wrap: anywhere;

@@ -7,10 +7,12 @@ const APPLICATION_ID: i32 = 0x5744_4159; // WDAY: local format marker, not authe
 const INITIAL_SCHEMA: &str = include_str!("../../migrations/001_books.sql");
 const COVER_SCHEMA: &str = include_str!("../../migrations/002_cover_cleanup.sql");
 const CHAPTER_SCHEMA: &str = include_str!("../../migrations/003_chapters.sql");
+const PREFERENCE_SCHEMA: &str = include_str!("../../migrations/004_editor_preferences.sql");
 const MIGRATION_STEPS: &[M<'static>] = &[
     M::up(INITIAL_SCHEMA),
     M::up(COVER_SCHEMA),
     M::up(CHAPTER_SCHEMA),
+    M::up(PREFERENCE_SCHEMA),
 ];
 const MIGRATIONS: Migrations<'static> = Migrations::from_slice(MIGRATION_STEPS);
 
@@ -42,6 +44,9 @@ pub fn open(data_directory: &Path) -> Result<Database, DatabaseError> {
     initialize(&mut connection, &MIGRATIONS)?;
     connection.prepare("SELECT path FROM pending_cover_cleanup LIMIT 0")?;
     connection.prepare("SELECT id, book_id, title, position, content_schema_version, content_json, word_count, revision, created_at, updated_at FROM chapters LIMIT 0")?;
+    connection.prepare(
+        "SELECT id, schema_version, font_size, revision FROM editor_preferences LIMIT 0",
+    )?;
     Ok(Mutex::new(connection))
 }
 

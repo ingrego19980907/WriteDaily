@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
   type RefObject,
+  type CSSProperties,
 } from 'react'
 import { EditorContent, useEditor } from '@tiptap/react'
 import type { JSONContent } from '@tiptap/core'
@@ -23,6 +24,7 @@ import './manuscript.css'
 import { FormattingToolbar } from './FormattingToolbar'
 import { countChapterWords } from './word-count'
 import { SaveStatus, type SaveState } from './SaveStatus'
+import { DEFAULT_FONT_SIZE } from './editor-preferences'
 
 const copy = en.writing
 const AUTOSAVE_DELAY_MS = 2_000
@@ -38,6 +40,8 @@ export function ManuscriptEditor({
   navigationLocked = false,
   focusOnReady = false,
   focusMode = false,
+  fontSize = DEFAULT_FONT_SIZE,
+  preferencesPendingRef,
 }: {
   chapter: Chapter
   document: JSONContent
@@ -49,6 +53,8 @@ export function ManuscriptEditor({
   navigationLocked?: boolean
   focusOnReady?: boolean
   focusMode?: boolean
+  fontSize?: number
+  preferencesPendingRef?: RefObject<boolean>
 }) {
   const [ready, setReady] = useState(false)
   const [dirty, setDirty] = useState(false)
@@ -133,6 +139,7 @@ export function ManuscriptEditor({
     let disposed = false
     let cleanup: (() => void) | undefined
     const refuse = () => {
+      if (preferencesPendingRef?.current) return false
       if (savingRef.current) {
         setFailure(copy.pending)
         return false
@@ -146,14 +153,21 @@ export function ManuscriptEditor({
     }
     canCloseRef.current = refuse
     const beforeUnload = (event: BeforeUnloadEvent) => {
-      if (dirtyRef.current || savingRef.current) {
+      if (
+        dirtyRef.current ||
+        savingRef.current ||
+        preferencesPendingRef?.current
+      ) {
         event.preventDefault()
         event.returnValue = ''
       }
     }
     window.addEventListener('beforeunload', beforeUnload)
     void protectWritingClose(
-      () => dirtyRef.current || savingRef.current,
+      () =>
+        dirtyRef.current ||
+        savingRef.current ||
+        Boolean(preferencesPendingRef?.current),
       () => {
         refuse()
       },
@@ -178,7 +192,7 @@ export function ManuscriptEditor({
       canCloseRef.current = () => true
       window.removeEventListener('beforeunload', beforeUnload)
     }
-  }, [canCloseRef])
+  }, [canCloseRef, preferencesPendingRef])
 
   const save = useCallback(async () => {
     if (
@@ -313,7 +327,10 @@ export function ManuscriptEditor({
                 : 'unchanged'
 
   return (
-    <div className={`min-w-0 space-y-4${focusMode ? ' manuscript-focus' : ''}`}>
+    <div
+      className={`min-w-0 space-y-4${focusMode ? ' manuscript-focus' : ''}`}
+      style={{ '--editor-font-size': `${fontSize / 16}rem` } as CSSProperties}
+    >
       <h3
         ref={headingRef}
         tabIndex={-1}
