@@ -14,7 +14,7 @@ Navigation flushes dirty content immediately before target loading and suppresse
 
 Any save error pauses automatic writes for that session. Writing remains editable and dirty, and the error stays visible through further edits. Time passing or further typing cannot produce a retry loop or silently dismiss the failure. **Save chapter text** explicitly retries a transient persistence failure, submitting the latest text with the unchanged expected revision. Successful commit clears the pause and resumes autosaving subsequent changes.
 
-Conflict, missing chapter and invalid stored data continue to block writes entirely. A stale revision is never force-overwritten or automatically rebased. Preserve/copy the current text and follow the existing explicit close/discard workflow. Unsupported editor content never becomes an empty saved fallback. Detailed save-status presentation remains task 3.9; this task retains the existing pending/error/commit-only success controls and adds truthful autosave/retry instructions to centralized English copy.
+Conflict, missing chapter and invalid stored data continue to block writes entirely. A stale revision is never force-overwritten or automatically rebased. Preserve/copy the current text and follow the existing explicit close/discard workflow. Unsupported editor content never becomes an empty saved fallback. Task 3.9 adds the dedicated [save-status region](SAVE_STATUS.md), including neutral/waiting/pending/committed/paused/blocked states and save-error details retained through edits, close notices and retries. Copy remains centralized in English.
 
 ## Durability and verification boundaries
 

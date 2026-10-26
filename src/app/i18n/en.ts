@@ -216,6 +216,13 @@ export const en = {
     save: 'Save chapter text',
     saving: 'Saving chapter text…',
     saved: 'Chapter text saved.',
+    saveStatus: 'Save status',
+    savePreparing: 'Preparing safe editing.',
+    saveUnchanged: 'No unsaved changes.',
+    saveWaiting: 'Unsaved changes: waiting to save.',
+    savePaused: 'Not saved: automatic saving is paused.',
+    saveBlocked: 'Not saved: saving is blocked.',
+    saveUnavailable: 'Saving is unavailable.',
     failure:
       'Could not save the chapter text. Your writing is kept in this editor. Automatic saving is paused. Choose Save chapter text to try again.',
     storedFailure:

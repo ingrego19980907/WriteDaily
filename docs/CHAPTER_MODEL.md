@@ -35,7 +35,7 @@ Position is a contiguous zero-based integer within one book. Native list order i
 
 Revision starts at 1 and increments on every committed chapter change: metadata, content or position. Rename/content update/delete require expectedRevision; a stale value returns Conflict without overwriting content or other fields. Changed positions advance affected chapters' revisions/timestamps, so old autosave/reorder snapshots fail safely. Unchanged reorder is a no-op. Revision overflow beyond the safe-integer maximum must fail, never wrap/reuse. Native updatedAt advances monotonically as with books, but revision is the chapter concurrency token.
 
-ChapterMetadataChange and ChapterContentChange separate title and content writes; neither can replace ownership/order/count/system fields. Native-generated IDs/timestamps/revisions/counts are never accepted by spreading a client snapshot. Chapter writes do not modify parent Book metadata or use Book.updatedAt as their concurrency token. Navigation flush is implemented in 3.6; autosave serialization is implemented in 3.8; expanded save-status UI remains 3.9; no zero-loss recovery promise is made by this model.
+ChapterMetadataChange and ChapterContentChange separate title and content writes; neither can replace ownership/order/count/system fields. Native-generated IDs/timestamps/revisions/counts are never accepted by spreading a client snapshot. Chapter writes do not modify parent Book metadata or use Book.updatedAt as their concurrency token. Navigation flush is implemented in 3.6; autosave serialization is implemented in 3.8; save-status UI is implemented in 3.9; no zero-loss recovery promise is made by this model.
 
 ## Implemented storage mapping (3.2, schema v3)
 

@@ -1,5 +1,11 @@
 # Decision log
 
+## 2026-10-26 - Save status (3.9)
+
+Derive status from the existing save lifecycle instead of adding a parallel status timer or persisted flag. Distinguish a clean freshly loaded chapter from a successful write in the current session. Only native commit shows Saved; each accepted edit invalidates it, and chapter navigation starts a fresh neutral state. Use a stable named polite/atomic region with wrapping visible text and existing tokens, without animation or focus changes.
+
+Keep save errors separate from close/paste notices so continued editing or attempted dismissal cannot replace a failed-save explanation. Retain that detail during retry and clear it only on successful commit, together with obsolete pending/close feedback. Keep transient retry and permanent conflict blocks from 3.8; no timestamp, dependency, native change or recovery promise. See [SAVE_STATUS.md](SAVE_STATUS.md).
+
 ## 2026-10-26 - Autosave (3.8)
 
 Use a session-local 2-second inactivity debounce around the existing validated content save rather than adding another persistence path. Serialize automatic/manual/navigation saves through the synchronous pending guard and retain the current edit lock during writes, so submitted content cannot race further user edits. Only native commit advances revision and saved state. Cancel scheduled writes after clean/manual save, navigation or unmount.

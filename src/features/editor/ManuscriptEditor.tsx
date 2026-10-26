@@ -22,6 +22,7 @@ import {
 import './manuscript.css'
 import { FormattingToolbar } from './FormattingToolbar'
 import { countChapterWords } from './word-count'
+import { SaveStatus, type SaveState } from './SaveStatus'
 
 const copy = en.writing
 const AUTOSAVE_DELAY_MS = 2_000
@@ -53,6 +54,7 @@ export function ManuscriptEditor({
   const [fatal, setFatal] = useState(false)
   const [blocked, setBlocked] = useState(false)
   const [failure, setFailure] = useState('')
+  const [saveFailure, setSaveFailure] = useState('')
   const [saved, setSaved] = useState(false)
   const [editSequence, setEditSequence] = useState(0)
   const [autosavePaused, setAutosavePaused] = useState(false)
@@ -188,7 +190,8 @@ export function ManuscriptEditor({
       return false
     const content = serializeEditorDocument(editor.getJSON())
     if (!content) {
-      setFailure(copy.rejected)
+      setAutosavePaused(true)
+      setSaveFailure(copy.rejected)
       return false
     }
     savingRef.current = true
@@ -207,6 +210,8 @@ export function ManuscriptEditor({
       dirtyRef.current = false
       setDirty(false)
       setSaved(true)
+      setFailure('')
+      setSaveFailure('')
       setAutosavePaused(false)
       setClosing(false)
       setDiscard(false)
@@ -214,13 +219,14 @@ export function ManuscriptEditor({
       return true
     } catch (error) {
       setAutosavePaused(true)
+      setFailure('')
       const code = chapterErrorCode(error)
       setBlocked(
         code === 'conflict' ||
           code === 'not_found' ||
           code === 'invalid_stored_data',
       )
-      setFailure(
+      setSaveFailure(
         code === 'conflict'
           ? copy.conflict
           : code === 'not_found'
@@ -288,6 +294,22 @@ export function ManuscriptEditor({
     }
   }, [prepareToLeaveRef, editor, save])
 
+  const saveState: SaveState = fatal
+    ? 'unavailable'
+    : saving
+      ? 'saving'
+      : blocked
+        ? 'blocked'
+        : autosavePaused
+          ? 'paused'
+          : !ready
+            ? 'preparing'
+            : dirty
+              ? 'waiting'
+              : saved
+                ? 'saved'
+                : 'unchanged'
+
   return (
     <div className="min-w-0 space-y-4">
       <h3
@@ -300,6 +322,7 @@ export function ManuscriptEditor({
       <p id={hintId} className="text-secondary">
         {copy.description}
       </p>
+      <SaveStatus state={saveState} />
       <div
         role="group"
         aria-label={copy.wordCounts}
@@ -330,12 +353,12 @@ export function ManuscriptEditor({
           <EditorContent editor={editor} className="manuscript" />
         </>
       )}
-      {failure && (
-        <p role="alert" className="text-error">
-          {failure}
-        </p>
+      {(failure || saveFailure) && (
+        <div role="alert" className="space-y-2 text-error">
+          {saveFailure && <p>{saveFailure}</p>}
+          {failure && failure !== saveFailure && <p>{failure}</p>}
+        </div>
       )}
-      <p role="status">{saved ? copy.saved : ''}</p>
       <Button
         disabled={
           !editor ||

@@ -1,6 +1,6 @@
 # Tiptap integration (3.4)
 
-Implemented on 2026-10-25, extended with formatting and chapter navigation on 2026-10-26. Open a book, create a chapter, choose **Edit chapter text**, write/format, then choose **Save chapter text** or switch chapters. Ordinary editing autosaves after 2 seconds of inactivity; manual saving and navigation flush use the same serialized save path. Word counting is implemented in 3.7 and autosave in 3.8; expanded status UI remains 3.9. See [autosave policy](AUTOSAVE.md) for timing, pause/retry and durability boundaries. See [word counting](WORD_COUNTING.md) for the Unicode policy, live/committed distinction and verification.
+Implemented on 2026-10-25, extended with formatting and chapter navigation on 2026-10-26. Open a book, create a chapter, choose **Edit chapter text**, write/format, then choose **Save chapter text** or switch chapters. Ordinary editing autosaves after 2 seconds of inactivity; manual saving and navigation flush use the same serialized save path. Word counting is implemented in 3.7 and autosave in 3.8; save status is implemented in 3.9. See [save states](SAVE_STATUS.md) for commit-only success, accessibility and retained failures. See [autosave policy](AUTOSAVE.md) for timing, pause/retry and durability boundaries. See [word counting](WORD_COUNTING.md) for the Unicode policy, live/committed distinction and verification.
 
 ## Chapter navigation (3.6)
 

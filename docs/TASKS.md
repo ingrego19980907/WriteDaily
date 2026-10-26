@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Tasks 3.1–3.8 (chapter model/repository/management/editor/toolbar/navigation/counting/autosave) are complete; awaiting approval before 3.9 (save status). Library progress is explicitly unknown until book aggregation (4.1); no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Tasks 3.1–3.9 (chapter model/repository/management/editor/toolbar/navigation/counting/autosave/status) are complete; awaiting approval before 3.10 (focus mode). Library progress is explicitly unknown until book aggregation (4.1); no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -63,7 +63,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [x]  | 3.6  | Implement chapter navigation  | Completed (2026-10-26) | 3.5          | Pending edits preserved when switching chapters                               |
 | [x]  | 3.7  | Implement word counting       | Completed (2026-10-26) | 3.6          | Documented counting policy passes Unicode and empty-content tests             |
 | [x]  | 3.8  | Implement autosave            | Completed (2026-10-26) | 3.7          | Serialized debounced writes and retry behavior pass failure checks            |
-| [ ]  | 3.9  | Implement save status         | Not started            | 3.8          | Saved appears only after successful commit; errors remain visible             |
+| [x]  | 3.9  | Implement save status         | Completed (2026-10-26) | 3.8          | Saved appears only after successful commit; errors remain visible             |
 | [ ]  | 3.10 | Add focus mode                | Not started            | 3.9          | Focus mode can be entered and exited by keyboard                              |
 | [ ]  | 3.11 | Add editor preferences        | Not started            | 3.10         | Font size persists within validated limits                                    |
 | [ ]  | 3.12 | Test persistence and recovery | Not started            | 3.11         | Formatting, rapid navigation, interrupted saves and restart recovery verified |
@@ -133,6 +133,12 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [ ]  | 8.10 | Tag version 1.0.0           | Not started | 8.9          | Release gates pass and explicit authorization obtained before Git mutation |
 
 ## Historical verification evidence
+
+## Verification evidence: 3.9
+
+- Added SaveStatus.tsx, a stable named polite/atomic status region driven by ManuscriptEditor's real preparing/neutral/waiting/pending/committed/paused/blocked/unavailable lifecycle. Only committed success shows Saved; subsequent edits invalidate it and each chapter session starts neutral. Centralized English copy and existing tokens provide wrapping, text-based states without motion or a new Tab stop.
+- Retain save error details separately from close/paste notices; further edits and close attempts cannot hide them. Retry shows Saving while retaining the previous error until successful commit, which also clears stale close/pending feedback. Serialization failures pause automation without submitting unsupported content. The existing native save path, revisions/counts and locks remain; no dependency/schema/native changes.
+- Frontend verification: 371 Vitest tests (7 new), lint, format:check, strict typecheck and production build. All 81 Edge tests passed, including 6 new scenarios for 320/640/1100px, axe/200% internal reflow/forced colors/reduced motion, pending commit, retry and conflict retention. After final pending-close failure-notice cleanup, all 371 Vitest tests and six focused Edge checks passed again. See [SAVE_STATUS.md](SAVE_STATUS.md). Native tests were not repeated; the 59-test record remains 3.7. No actual desktop launch/restart or screen-reader claim. Next: 3.10, awaiting approval.
 
 ## Verification evidence: 3.8
 

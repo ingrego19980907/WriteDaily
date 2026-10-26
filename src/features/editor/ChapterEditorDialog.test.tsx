@@ -644,3 +644,148 @@ test('manual save consumes a pending debounce and unmount cancels unsent autosav
   })
   expect(saveChapterContent).toHaveBeenCalledTimes(1)
 })
+
+test('save status follows edits and commit, clears pending notices and invalidates success on the next edit', async () => {
+  let commit!: (value: Chapter) => void
+  vi.mocked(saveChapterContent).mockReturnValue(
+    new Promise((resolve) => {
+      commit = resolve
+    }),
+  )
+  mount()
+  const { editor } = await open()
+  const status = screen.getByRole('status', { name: copy.saveStatus })
+  expect(status).toHaveTextContent(copy.saveUnchanged)
+  expect(status).toHaveAttribute('aria-live', 'polite')
+  expect(status).toHaveAttribute('aria-atomic', 'true')
+  expect(status).not.toHaveTextContent(copy.saved)
+  vi.useFakeTimers()
+  act(() => {
+    editor.commands.insertContent({ type: 'text', text: 'draft' })
+  })
+  expect(status).toHaveTextContent(copy.saveWaiting)
+  act(() => {
+    editor.commands.insertContent({ type: 'text', text: ' more' })
+  })
+  expect(screen.getByRole('status', { name: copy.saveStatus })).toBe(status)
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(2000)
+  })
+  expect(status).toHaveTextContent(copy.saving)
+  fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
+  expect(screen.getByRole('alert')).toHaveTextContent(copy.pending)
+  expect(status).not.toHaveTextContent(copy.saved)
+  await act(async () => {
+    commit({ ...chapter, revision: 5 })
+  })
+  expect(status).toHaveTextContent(copy.saved)
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  act(() => {
+    editor.commands.insertContent({ type: 'text', text: ' new' })
+  })
+  expect(status).toHaveTextContent(copy.saveWaiting)
+  expect(status).not.toHaveTextContent(copy.saved)
+  let fail!: (error: { code: string }) => void
+  vi.mocked(saveChapterContent).mockReturnValueOnce(
+    new Promise((_resolve, reject) => {
+      fail = reject
+    }),
+  )
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(2000)
+  })
+  fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
+  expect(screen.getByRole('alert')).toHaveTextContent(copy.pending)
+  await act(async () => {
+    fail({ code: 'persistence' })
+  })
+  expect(status).toHaveTextContent(copy.savePaused)
+  expect(screen.getByRole('alert')).toHaveTextContent(copy.failure)
+  expect(screen.getByRole('alert')).not.toHaveTextContent(copy.pending)
+})
+
+test.each(['persistence', 'conflict', 'not_found', 'invalid_stored_data'])(
+  'save status keeps %s errors visible through edits, close attempts and retry',
+  async (code) => {
+    vi.mocked(saveChapterContent).mockRejectedValueOnce({ code })
+    mount()
+    const { editor, user } = await open()
+    const status = screen.getByRole('status', { name: copy.saveStatus })
+    act(() => {
+      editor.commands.insertContent({ type: 'text', text: 'retained' })
+    })
+    await user.click(screen.getByRole('button', { name: copy.save }))
+    expect(status).toHaveTextContent(
+      code === 'persistence' ? copy.savePaused : copy.saveBlocked,
+    )
+    const message = screen.getByRole('alert').textContent!
+    act(() => {
+      editor.commands.insertContent({ type: 'text', text: ' edits' })
+    })
+    await user.keyboard('{Escape}')
+    expect(screen.getByRole('alert')).toHaveTextContent(message)
+    expect(screen.getByRole('alert')).toHaveTextContent(copy.unsaved)
+    expect(status).not.toHaveTextContent(copy.saved)
+    if (code === 'persistence') {
+      let commit!: (value: Chapter) => void
+      vi.mocked(saveChapterContent).mockReturnValue(
+        new Promise((resolve) => {
+          commit = resolve
+        }),
+      )
+      await user.click(screen.getByRole('button', { name: copy.save }))
+      expect(status).toHaveTextContent(copy.saving)
+      expect(screen.getByRole('alert')).toHaveTextContent(message)
+      await act(async () => {
+        commit({ ...chapter, revision: 5 })
+      })
+      expect(status).toHaveTextContent(copy.saved)
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    } else
+      expect(screen.getByRole('button', { name: copy.save })).toBeDisabled()
+  },
+)
+
+test('save status distinguishes guard preparation from unavailable editing', async () => {
+  let reject!: (reason: Error) => void
+  vi.mocked(protectWritingClose).mockReturnValue(
+    new Promise((_resolve, fail) => {
+      reject = fail
+    }),
+  )
+  mount()
+  const user = userEvent.setup()
+  await user.click(screen.getByRole('button', { name: en.chapters.open }))
+  const status = await screen.findByRole('status', { name: copy.saveStatus })
+  expect(status).toHaveTextContent(copy.savePreparing)
+  await act(async () => {
+    reject(new Error('guard unavailable'))
+  })
+  expect(status).toHaveTextContent(copy.saveUnavailable)
+  expect(status).not.toHaveTextContent(copy.saved)
+})
+
+test('chapter navigation starts a fresh neutral save status after a committed outgoing edit', async () => {
+  vi.mocked(getChapter)
+    .mockResolvedValueOnce(chapter)
+    .mockResolvedValueOnce(second)
+  vi.mocked(saveChapterContent).mockResolvedValue({ ...chapter, revision: 5 })
+  mount(vi.fn(), [chapter, second])
+  const { user, editor } = await open()
+  act(() => {
+    editor.commands.insertContent({ type: 'text', text: 'outgoing' })
+  })
+  await user.click(screen.getByRole('button', { name: copy.save }))
+  expect(
+    screen.getByRole('status', { name: copy.saveStatus }),
+  ).toHaveTextContent(copy.saved)
+  await user.click(screen.getByRole('button', { name: copy.nextChapter }))
+  await waitFor(() =>
+    expect(screen.getByRole('textbox')).toHaveTextContent(
+      'Second chapter text',
+    ),
+  )
+  expect(
+    screen.getByRole('status', { name: copy.saveStatus }),
+  ).toHaveTextContent(copy.saveUnchanged)
+})
