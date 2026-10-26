@@ -1,6 +1,16 @@
 # Tiptap integration (3.4)
 
-Implemented on 2026-10-25. Open a book, create a chapter, choose **Edit chapter text**, write, then choose **Save chapter text**. Saving is manual. The formatting toolbar, chapter-switching workflow, word counts, autosave and its status UI remain tasks 3.5 onward.
+Implemented on 2026-10-25, extended with the formatting toolbar on 2026-10-26. Open a book, create a chapter, choose **Edit chapter text**, write/format, then choose **Save chapter text**. Saving is manual. Chapter switching, word counts, autosave and its status UI remain tasks 3.6 onward.
+
+## Formatting toolbar (3.5)
+
+FormattingToolbar composes existing Button controls for bold, italic, paragraph, headings 1–6, bullet/numbered lists and undo/redo. It uses the existing schema/extensions and persistence path without adding dependencies. useEditorState subscribes to selection/transaction changes so active styles/history availability update without requiring parent editor rerenders. Commands use focus chains; pointer activation preserves the current text selection. Tiptap's existing history grouping remains unchanged.
+
+The labelled horizontal toolbar has one Tab stop, remembers the last control and wraps Left/Right Arrow navigation across available buttons; Home/End select the first/last available button. Enter/Space activate native buttons and return focus to writing. Disabled commands are skipped. Paragraph/mark/list/heading controls expose aria-pressed; full visible labels match accessible names. Saving/unready states disable every action, and read-only/destroyed editors reject command execution. The toolbar wraps within the modal at enlarged text; pressed controls have a double-border distinction in forced colors. Copy is centralized under en.writing.
+
+Verification for 3.5: 292 Vitest tests (6 new toolbar cases using a real Editor), 54 Edge tests (4 new toolbar scenarios and a strengthened pending-save check), lint/format/typecheck/build pass. Browser checks cover selected-word marks, all heading levels, paragraph/lists, undo/redo and JSON equality after save/reopen at 320/640/1100px, plus keyboard focus, forced colors, axe and 200% internal overflow. Test-only IPC does not establish native desktop editor restart. The native 53-test record below belongs to 3.4; native code was unchanged and not retested in 3.5.
+
+References: [Tiptap custom menus](https://tiptap.dev/docs/editor/getting-started/style-editor/custom-menus), [WAI toolbar pattern](https://www.w3.org/WAI/ARIA/apg/patterns/toolbar/).
 
 ## Compatibility and boundaries
 
@@ -8,7 +18,7 @@ Installed exact @tiptap/react, @tiptap/core, @tiptap/pm and @tiptap/starter-kit 
 
 ChapterManager lazily loads ChapterEditorDialog and its editor dependencies when chapter rows are displayed. Vite emits separate local application/editor bundles; no CDN, remote service or online runtime dependency is used. Production build passes without a large-chunk warning.
 
-editor-schema.ts is the adapter between the existing domain contract and Tiptap. StarterKit enables exactly doc, paragraph, heading levels 1–6, bulletList, orderedList, listItem, text, hardBreak and bold/italic. Unsupported blockquote/code/codeBlock/horizontalRule/link/strike/underline are disabled. TrailingNode is disabled to avoid appending a paragraph to saved writing on open. History and list keyboard behavior are available; a toolbar is not part of 3.4. Styling uses existing writing fonts, colors and focus tokens; scoped CSS restores headings and list markers after Tailwind Preflight.
+editor-schema.ts is the adapter between the existing domain contract and Tiptap. StarterKit enables exactly doc, paragraph, heading levels 1–6, bulletList, orderedList, listItem, text, hardBreak and bold/italic. Unsupported blockquote/code/codeBlock/horizontalRule/link/strike/underline are disabled. TrailingNode is disabled to avoid appending a paragraph to saved writing on open. History and list keyboard behavior are available; task 3.5 adds the toolbar described above. Styling uses existing writing fonts, colors and focus tokens; scoped CSS restores headings and list markers after Tailwind Preflight.
 
 ## Loading and editing
 
@@ -28,7 +38,7 @@ Dirty modal dismissal is refused. It reveals an unchecked acknowledgement plus *
 
 These guards cover normal UI/window-close requests. They do not make unsaved edits durable against forced process termination, power loss or system shutdown. A recovery journal/close-flush policy remains 3.8/3.12; no zero-loss recovery claim is made.
 
-## Verification
+## Verification (3.4)
 
 - 286 Vitest tests pass, including 35 new installed-schema/session/close-guard cases. Tests use real Tiptap/ProseMirror instances for schema/serialization/editing; native persistence is mocked only at test boundaries.
 - All 50 Edge tests pass, including nine editor scenarios at 320/640/1100px, actual keyboard edits, save/reopen JSON equality, error/conflict/pending behavior, acknowledged discard, unsupported-document refusal, literal paste/file refusal and mocked native-close events. Axe scans pass; 200% text checks cover document and modal/editor internal overflow plus usable modal-body height. Screenshots were inspected after correcting grid sizing/header wrapping.

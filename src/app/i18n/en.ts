@@ -173,6 +173,17 @@ export const en = {
     },
   },
   writing: {
+    toolbar: 'Text formatting',
+    toolbarHint:
+      'Use Left and Right Arrow, Home or End to move between formatting buttons. Press Enter or Space to apply, then continue writing.',
+    bold: 'Bold',
+    italic: 'Italic',
+    paragraph: 'Paragraph',
+    heading: (level: number) => `Heading ${level}`,
+    bulletList: 'Bullet list',
+    orderedList: 'Numbered list',
+    undo: 'Undo',
+    redo: 'Redo',
     title: 'Chapter text',
     description:
       'Edit this chapter and save it manually. Paste inserts plain text. Automatic saving is not enabled yet.',

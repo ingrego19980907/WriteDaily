@@ -159,6 +159,11 @@ test('pending save blocks editing and repeated save or close (test IPC)', async 
     .getByRole('button', { name: 'Save chapter text', exact: true })
     .click()
   await expect(field).toHaveAttribute('contenteditable', 'false')
+  for (const button of await page
+    .getByRole('toolbar', { name: 'Text formatting' })
+    .getByRole('button')
+    .all())
+    await expect(button).toBeDisabled()
   await page
     .getByRole('dialog')
     .getByRole('button', { name: 'Close', exact: true })

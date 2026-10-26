@@ -13,6 +13,7 @@ import {
   serializeEditorDocument,
 } from './editor-schema'
 import './manuscript.css'
+import { FormattingToolbar } from './FormattingToolbar'
 
 const copy = en.writing
 
@@ -209,7 +210,14 @@ export function ManuscriptEditor({
       <p id={hintId} className="text-secondary">
         {copy.description}
       </p>
-      {!fatal && <EditorContent editor={editor} className="manuscript" />}
+      {!fatal && (
+        <>
+          {editor && (
+            <FormattingToolbar editor={editor} disabled={!ready || saving} />
+          )}
+          <EditorContent editor={editor} className="manuscript" />
+        </>
+      )}
       {failure && (
         <p role="alert" className="text-error">
           {failure}

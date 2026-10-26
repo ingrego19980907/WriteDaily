@@ -1,5 +1,9 @@
 # Design system
 
+## Writing toolbar (3.5)
+
+The editor's feature-local FormattingToolbar uses shared secondary Buttons in a wrapping bordered group. Existing accent-strong/surface tokens distinguish pressed controls; aria-pressed carries the same state. Full text labels match accessible names. Forced colors use a double ButtonText border for pressed buttons, while normal focus/disabled styling stays with Button. One Tab stop, Arrow/Home/End navigation and native Enter/Space activation provide keyboard access. Headings 1–6, marks, lists and history are exposed without new tokens or icons. See TIPTAP_INTEGRATION.md and ACCESSIBILITY_REVIEW.md for behavior and checks.
+
 ## Library states and form feedback (2.11)
 
 Loading is announced through status text while the semantic list is aria-busy. Confirmed empty and failed reads have distinct shared Card presentations with level-three headings and clear guidance. Create book remains the primary action; transient read failures provide a disabled-while-pending retry, while browser preview explains the desktop requirement. Existing committed cards stay visible during unresolved reads. Forms announce one validation summary, associate field messages with inputs and focus the first invalid field; native field focus waits for disabled pending inputs to become editable. File-validation feedback is linked to the picker. These states do not rely on color alone or silently discard entered details.

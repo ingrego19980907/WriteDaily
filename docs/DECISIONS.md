@@ -1,5 +1,11 @@
 # Decision log
 
+## 2026-10-26 - Formatting toolbar (3.5)
+
+Compose the installed Tiptap commands through a feature-local toolbar without adding extensions, dependencies or persisted formats. Subscribe with useEditorState so selection-only changes update active/available controls independently of ManuscriptEditor renders. Preserve selection on pointer activation and use command focus chains to continue writing. Keep native history grouping.
+
+Use full text labels with matching accessible names, aria-pressed for formatting, one roving Tab stop and Arrow/Home/End navigation over enabled buttons. Pending saves/guard registration disable the toolbar; runtime checks reject commands against read-only/destroyed editors. Wrap controls at narrow/enlarged layouts and distinguish pressed buttons in forced colors. Continue manual saving; chapter navigation and autosave remain future tasks.
+
 ## 2026-10-25 - Tiptap integration (3.4)
 
 Pin matching Tiptap React/core/pm/StarterKit 3.32.0 and configure the existing persisted v1 subset explicitly. Disable unsupported nodes/marks and automatic trailing paragraphs. Validate before construction and after serialization; a ProseMirror transaction boundary rejects invalid changes with feedback. Keep manuscript JSON/text intact rather than importing HTML. Plain-text paste is intentional until an explicit rich-paste/import policy exists. Load the editor chunk locally when chapter management needs it.

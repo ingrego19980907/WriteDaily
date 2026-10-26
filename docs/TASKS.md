@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Tasks 3.1–3.4 (chapter model/repository/management/Tiptap) are complete; awaiting approval before 3.5 (formatting toolbar). Progress is explicitly unknown until actual word counts are available; no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Tasks 3.1–3.5 (chapter model/repository/management/Tiptap/toolbar) are complete; awaiting approval before 3.6 (chapter navigation). Progress is explicitly unknown until actual word counts are available; no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -59,7 +59,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [x]  | 3.2  | Implement chapter repository  | Completed (2026-10-25) | 3.1          | Chapter CRUD and revision handling pass persistence checks                    |
 | [x]  | 3.3  | Implement chapter management  | Completed (2026-10-25) | 3.2          | Create, rename and confirmed deletion work                                    |
 | [x]  | 3.4  | Integrate Tiptap              | Completed (2026-10-25) | 3.3          | Rich text edits and serialization work                                        |
-| [ ]  | 3.5  | Add formatting toolbar        | Not started            | 3.4          | Bold, italic, headings, lists and undo/redo work                              |
+| [x]  | 3.5  | Add formatting toolbar        | Completed (2026-10-26) | 3.4          | Bold, italic, headings, lists and undo/redo work                              |
 | [ ]  | 3.6  | Implement chapter navigation  | Not started            | 3.5          | Pending edits preserved when switching chapters                               |
 | [ ]  | 3.7  | Implement word counting       | Not started            | 3.6          | Documented counting policy passes Unicode and empty-content tests             |
 | [ ]  | 3.8  | Implement autosave            | Not started            | 3.7          | Serialized debounced writes and retry behavior pass failure checks            |
@@ -133,6 +133,12 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [ ]  | 8.10 | Tag version 1.0.0           | Not started | 8.9          | Release gates pass and explicit authorization obtained before Git mutation |
 
 ## Historical verification evidence
+
+## Verification evidence: 3.5
+
+- Added FormattingToolbar and scoped CSS to ManuscriptEditor: bold, italic, paragraph, headings 1–6, bullet/numbered lists and undo/redo use existing configured Tiptap commands. useEditorState tracks selection/transaction changes independently of the parent editor. Pressed states use aria-pressed; unsupported commands and pending/unready editor actions are disabled. Runtime checks also refuse commands against destroyed/read-only editors. No dependency, schema, IPC or persistence change.
+- Toolbar pointer activation preserves the selected fragment and restores editor focus through the command chain. One roving Tab stop with wrapping Left/Right Arrow, Home/End and remembered control skips disabled actions; Enter/Space use native button behavior. Full visible heading names match accessible names, and a forced-colors double border identifies pressed controls. All English labels/help remain centralized.
+- Verified 292 Vitest tests (6 new real-editor toolbar cases), all 54 Edge tests (4 new toolbar scenarios plus a pending-save assertion), lint, formatting, typecheck and production build. Browser checks cover actual word selection, all heading levels/list types, undo/redo, save/reopen JSON equality, selection-only state updates, keyboard focus, forced colors, axe and 320/640/1100px with 200% reflow. Browser fixtures use test-only IPC; no native GUI/startup/restart or manual screen-reader claim. Rust/persistence are unchanged; the 53-test native result from 3.4 was not rerun. Next: 3.6.
 
 ## Verification evidence: 3.4
 
