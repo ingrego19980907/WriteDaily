@@ -24,6 +24,7 @@ import { FormattingToolbar } from './FormattingToolbar'
 import { countChapterWords } from './word-count'
 
 const copy = en.writing
+const AUTOSAVE_DELAY_MS = 2_000
 
 export function ManuscriptEditor({
   chapter,
@@ -53,6 +54,8 @@ export function ManuscriptEditor({
   const [blocked, setBlocked] = useState(false)
   const [failure, setFailure] = useState('')
   const [saved, setSaved] = useState(false)
+  const [editSequence, setEditSequence] = useState(0)
+  const [autosavePaused, setAutosavePaused] = useState(false)
   const [closing, setClosing] = useState(false)
   const [discard, setDiscard] = useState(false)
   const [wordCount, setWordCount] = useState(() =>
@@ -105,7 +108,7 @@ export function ManuscriptEditor({
       dirtyRef.current = true
       setDirty(true)
       setSaved(false)
-      if (!blocked) setFailure('')
+      setEditSequence((sequence) => sequence + 1)
       setDiscard(false)
     },
     onContentError() {
@@ -204,11 +207,13 @@ export function ManuscriptEditor({
       dirtyRef.current = false
       setDirty(false)
       setSaved(true)
+      setAutosavePaused(false)
       setClosing(false)
       setDiscard(false)
       onSaved(committed)
       return true
     } catch (error) {
+      setAutosavePaused(true)
       const code = chapterErrorCode(error)
       setBlocked(
         code === 'conflict' ||
@@ -241,6 +246,33 @@ export function ManuscriptEditor({
     onPending,
     onSaved,
     navigationLocked,
+  ])
+
+  useEffect(() => {
+    if (
+      !dirty ||
+      !ready ||
+      saving ||
+      blocked ||
+      fatal ||
+      navigationLocked ||
+      autosavePaused
+    )
+      return
+    const timer = window.setTimeout(() => {
+      void save()
+    }, AUTOSAVE_DELAY_MS)
+    return () => window.clearTimeout(timer)
+  }, [
+    editSequence,
+    dirty,
+    ready,
+    saving,
+    blocked,
+    fatal,
+    navigationLocked,
+    autosavePaused,
+    save,
   ])
 
   useEffect(() => {

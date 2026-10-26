@@ -8,7 +8,7 @@ import {
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { Editor } from '@tiptap/core'
-import { beforeEach, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { en } from '../../app/i18n/en'
 import { getChapter, saveChapterContent } from '../../services/chapters'
 import { protectWritingClose } from '../../services/writing-close'
@@ -25,6 +25,7 @@ vi.mock('../../services/writing-close', () => ({
   protectWritingClose: vi.fn(),
 }))
 const copy = en.writing
+afterEach(() => vi.useRealTimers())
 const chapter: Chapter = {
   id: 'chapter',
   bookId: 'book',
@@ -489,4 +490,157 @@ test('saved word count changes only after the corresponding native commit', asyn
     commit({ ...loaded, content, revision: 5, wordCount: 3 }),
   )
   expect(counts.getByText(copy.savedWords('3'))).toBeVisible()
+})
+
+test('autosave debounces edits, commits the latest document and reuses the committed revision', async () => {
+  vi.mocked(saveChapterContent).mockImplementation(
+    async (_book, _id, change) => ({
+      ...chapter,
+      content: change.content,
+      revision: change.expectedRevision + 1,
+    }),
+  )
+  mount()
+  const { editor } = await open()
+  vi.useFakeTimers()
+  const insert = (text: string) =>
+    act(() => {
+      editor.commands.insertContent({ type: 'text', text })
+    })
+  insert('first')
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(1500)
+  })
+  expect(saveChapterContent).not.toHaveBeenCalled()
+  insert(' latest')
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(1999)
+  })
+  expect(saveChapterContent).not.toHaveBeenCalled()
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(1)
+  })
+  expect(saveChapterContent).toHaveBeenCalledTimes(1)
+  expect(
+    JSON.stringify(vi.mocked(saveChapterContent).mock.calls[0][2].content),
+  ).toContain('first latest')
+  insert(' again')
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(2000)
+  })
+  expect(saveChapterContent).toHaveBeenLastCalledWith(
+    'book',
+    'chapter',
+    expect.objectContaining({ expectedRevision: 5 }),
+  )
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(10000)
+  })
+  expect(saveChapterContent).toHaveBeenCalledTimes(2)
+})
+
+test('slow autosave is serialized and cannot announce success or permit close before commit', async () => {
+  let commit!: (value: Chapter) => void
+  vi.mocked(saveChapterContent).mockReturnValue(
+    new Promise((resolve) => {
+      commit = resolve
+    }),
+  )
+  mount()
+  const { editor, field } = await open()
+  vi.useFakeTimers()
+  act(() => {
+    editor.commands.insertContent({ type: 'text', text: 'pending' })
+  })
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(2000)
+  })
+  expect(field).toHaveAttribute('contenteditable', 'false')
+  fireEvent.click(screen.getByRole('button', { name: copy.saving }))
+  fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(20000)
+  })
+  expect(saveChapterContent).toHaveBeenCalledTimes(1)
+  expect(screen.getByRole('dialog')).toBeVisible()
+  expect(screen.queryByText(copy.saved)).not.toBeInTheDocument()
+  await act(async () => {
+    commit({ ...chapter, revision: 5 })
+  })
+  expect(screen.getByText(copy.saved)).toBeVisible()
+  expect(field).toHaveAttribute('contenteditable', 'true')
+})
+
+test.each(['persistence', 'conflict', 'not_found', 'invalid_stored_data'])(
+  'failed automatic %s write pauses timers and retains writing until explicit action',
+  async (code) => {
+    vi.mocked(saveChapterContent).mockRejectedValueOnce({ code })
+    mount()
+    const { editor } = await open()
+    vi.useFakeTimers()
+    act(() => {
+      editor.commands.insertContent({ type: 'text', text: 'keep this' })
+    })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2000)
+    })
+    const alert = screen.getByRole('alert').textContent
+    act(() => {
+      editor.commands.insertContent({ type: 'text', text: ' and this' })
+    })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(20000)
+    })
+    expect(saveChapterContent).toHaveBeenCalledTimes(1)
+    expect(editor.state.doc.textContent).toBe('keep this and this')
+    expect(screen.getByRole('alert')).toHaveTextContent(alert!)
+    const button = screen.getByRole('button', { name: copy.save })
+    if (code === 'persistence') {
+      expect(button).toBeEnabled()
+      vi.mocked(saveChapterContent).mockResolvedValue({
+        ...chapter,
+        revision: 5,
+      })
+      await act(async () => {
+        fireEvent.click(button)
+      })
+      act(() => {
+        editor.commands.insertContent({ type: 'text', text: ' retry resumes' })
+      })
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(2000)
+      })
+      expect(saveChapterContent).toHaveBeenCalledTimes(3)
+      expect(saveChapterContent).toHaveBeenLastCalledWith(
+        'book',
+        'chapter',
+        expect.objectContaining({ expectedRevision: 5 }),
+      )
+    } else expect(button).toBeDisabled()
+  },
+)
+
+test('manual save consumes a pending debounce and unmount cancels unsent autosaves', async () => {
+  vi.mocked(saveChapterContent).mockResolvedValue({ ...chapter, revision: 5 })
+  const view = mount()
+  const { editor } = await open()
+  vi.useFakeTimers()
+  act(() => {
+    editor.commands.insertContent({ type: 'text', text: 'manual first' })
+  })
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: copy.save }))
+  })
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(2000)
+  })
+  expect(saveChapterContent).toHaveBeenCalledTimes(1)
+  act(() => {
+    editor.commands.insertContent({ type: 'text', text: ' unsent' })
+  })
+  view.unmount()
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(10000)
+  })
+  expect(saveChapterContent).toHaveBeenCalledTimes(1)
 })

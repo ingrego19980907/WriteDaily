@@ -20,7 +20,7 @@ Counting never trims, normalizes, rewrites or truncates writing. Frontend input 
 
 `src-tauri/src/chapters/word_count.rs` implements the same state machine. The native repository derives `word_count` itself and writes it in the same revision-checked IMMEDIATE transaction as content, schema version and timestamps. It returns success only after commit. Pending/failed writes do not advance the saved UI count. Conflicts and failed commits retain previous body/count/revision. Rename/reorder preserve counts; reopening reads the committed count.
 
-Legacy NULL counts stay unknown on reads and metadata changes; the next explicit content save computes them. No automatic backfill, migration, read-side repair or real-library rewrite occurs. A known stored count inconsistent with validated content is rejected as invalid stored data without repair. Changing this policy later requires an explicit strategy for existing counts before deploying the new verifier. Book aggregation remains 4.1; library progress still has unknown counts. Autosave/activity tracking are separate tasks.
+Legacy NULL counts stay unknown on reads and metadata changes; the next explicit content save computes them. No automatic backfill, migration, read-side repair or real-library rewrite occurs. A known stored count inconsistent with validated content is rejected as invalid stored data without repair. Changing this policy later requires an explicit strategy for existing counts before deploying the new verifier. Book aggregation remains 4.1; library progress still has unknown counts. Autosave is implemented in 3.8; activity tracking remains a separate task.
 
 ## Pinned data and reproduction
 

@@ -205,7 +205,7 @@ export const en = {
     redo: 'Redo',
     title: 'Chapter text',
     description:
-      'Edit this chapter and save it manually. Paste inserts plain text. Automatic saving is not enabled yet.',
+      'Changes save automatically after 2 seconds without editing. You can also save now. Paste inserts plain text.',
     label: 'Chapter manuscript',
     loading: 'Loading saved chapter text…',
     loadFailure:
@@ -217,7 +217,7 @@ export const en = {
     saving: 'Saving chapter text…',
     saved: 'Chapter text saved.',
     failure:
-      'Could not save the chapter text. Your writing is kept in this editor. Please try again.',
+      'Could not save the chapter text. Your writing is kept in this editor. Automatic saving is paused. Choose Save chapter text to try again.',
     storedFailure:
       'Saved chapter data could not be safely read. Your writing is kept here. Copy any text you need before closing.',
     conflict:

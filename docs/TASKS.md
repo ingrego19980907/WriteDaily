@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Tasks 3.1–3.7 (chapter model/repository/management/editor/toolbar/navigation/counting) are complete; awaiting approval before 3.8 (autosave). Library progress is explicitly unknown until book aggregation (4.1); no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Tasks 3.1–3.8 (chapter model/repository/management/editor/toolbar/navigation/counting/autosave) are complete; awaiting approval before 3.9 (save status). Library progress is explicitly unknown until book aggregation (4.1); no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -62,7 +62,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [x]  | 3.5  | Add formatting toolbar        | Completed (2026-10-26) | 3.4          | Bold, italic, headings, lists and undo/redo work                              |
 | [x]  | 3.6  | Implement chapter navigation  | Completed (2026-10-26) | 3.5          | Pending edits preserved when switching chapters                               |
 | [x]  | 3.7  | Implement word counting       | Completed (2026-10-26) | 3.6          | Documented counting policy passes Unicode and empty-content tests             |
-| [ ]  | 3.8  | Implement autosave            | Not started            | 3.7          | Serialized debounced writes and retry behavior pass failure checks            |
+| [x]  | 3.8  | Implement autosave            | Completed (2026-10-26) | 3.7          | Serialized debounced writes and retry behavior pass failure checks            |
 | [ ]  | 3.9  | Implement save status         | Not started            | 3.8          | Saved appears only after successful commit; errors remain visible             |
 | [ ]  | 3.10 | Add focus mode                | Not started            | 3.9          | Focus mode can be entered and exited by keyboard                              |
 | [ ]  | 3.11 | Add editor preferences        | Not started            | 3.10         | Font size persists within validated limits                                    |
@@ -133,6 +133,12 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [ ]  | 8.10 | Tag version 1.0.0           | Not started | 8.9          | Release gates pass and explicit authorization obtained before Git mutation |
 
 ## Historical verification evidence
+
+## Verification evidence: 3.8
+
+- Added a session-local 2-second content-change debounce in ManuscriptEditor, reusing the existing validated revision-checked save for automatic/manual/navigation writes. Pending writes keep existing edit/toolbar/navigation locks; committed success alone advances revision, saved state and word count. Clean/manual saves and session cleanup cancel pending timers.
+- Errors pause automation and remain visible through further edits. Explicit Save retries transient failures with the latest content; success resumes subsequent autosaves. Conflicts/missing/corrupt data stay blocked without overwriting writing. No automatic retry loop, dependency, native code, migration or recovery journal added. See [AUTOSAVE.md](AUTOSAVE.md).
+- Verified 364 Vitest tests (7 new), lint, format:check, strict typecheck and production build. Edge coverage contains 75 scenarios, including 6 new checks for exact debounce timing, automatic save/reopen at 320/640/1100px with axe, slow writes, retry/resume and navigation flush/timer isolation. The precise clock is paused for timing and resumed before axe. Native implementation is unchanged; the 59 Rust test result remains the 3.7 record, not a new native run. No real-library mutation, actual desktop restart or screen-reader claim. Next: 3.9, awaiting approval.
 
 ## Verification evidence: 3.7
 

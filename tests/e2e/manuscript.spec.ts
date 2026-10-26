@@ -28,7 +28,10 @@ for (const width of [320, 640, 1100]) {
       '9007199254740991',
     )
     await field.click()
-    await page.keyboard.press('Control+End')
+    await field.evaluate((element) => {
+      const editor = (element as HTMLElement & { editor: Editor }).editor
+      editor.commands.setTextSelection(editor.state.doc.content.size - 1)
+    })
     await page.keyboard.insertText(' Український текст é <tag>')
     await page.keyboard.press('Control+b')
     await page.keyboard.insertText(' bold')

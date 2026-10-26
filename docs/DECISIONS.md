@@ -1,5 +1,11 @@
 # Decision log
 
+## 2026-10-26 - Autosave (3.8)
+
+Use a session-local 2-second inactivity debounce around the existing validated content save rather than adding another persistence path. Serialize automatic/manual/navigation saves through the synchronous pending guard and retain the current edit lock during writes, so submitted content cannot race further user edits. Only native commit advances revision and saved state. Cancel scheduled writes after clean/manual save, navigation or unmount.
+
+Pause automation after errors and require explicit retry for transient failures; keep errors visible while the user continues editing. Successful retry resumes later autosaves. Conflicts/missing/corrupt data remain blocked without rebasing or overwriting writing. Add no automatic retry loop, background draft store, new command/migration or crash-recovery claim. Expanded save-status presentation remains 3.9; desktop restart/recovery remains 3.12. See [AUTOSAVE.md](AUTOSAVE.md).
+
 ## 2026-10-26 - Word counting (3.7)
 
 Use a documented custom Unicode 17.0.0 L/N/M policy and one pinned generated category table for TypeScript and Rust, avoiding runtime Unicode-version differences and new dependencies. Keep apostrophes/hyphens inside words, numeric period/comma separators, combining marks and block boundaries deterministic. Count contiguous scripts without spaces as runs; do not claim linguistic dictionary segmentation. Retain the source hash, offline generator and Unicode license. See [WORD_COUNTING.md](WORD_COUNTING.md).

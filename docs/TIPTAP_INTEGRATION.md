@@ -1,12 +1,12 @@
 # Tiptap integration (3.4)
 
-Implemented on 2026-10-25, extended with formatting and chapter navigation on 2026-10-26. Open a book, create a chapter, choose **Edit chapter text**, write/format, then choose **Save chapter text** or switch chapters. Ordinary editing uses manual saving; chapter navigation saves dirty text before leaving. Word counting is implemented in 3.7; timed autosave and its status UI remain tasks 3.8 onward. See [word counting](WORD_COUNTING.md) for the Unicode policy, live/committed distinction and verification.
+Implemented on 2026-10-25, extended with formatting and chapter navigation on 2026-10-26. Open a book, create a chapter, choose **Edit chapter text**, write/format, then choose **Save chapter text** or switch chapters. Ordinary editing autosaves after 2 seconds of inactivity; manual saving and navigation flush use the same serialized save path. Word counting is implemented in 3.7 and autosave in 3.8; expanded status UI remains 3.9. See [autosave policy](AUTOSAVE.md) for timing, pause/retry and durability boundaries. See [word counting](WORD_COUNTING.md) for the Unicode policy, live/committed distinction and verification.
 
 ## Chapter navigation (3.6)
 
 The editor dialog receives the book's ordered summary collection. **Choose chapter**, **Previous chapter** and **Next chapter** navigate by ID; numbered option labels distinguish duplicate titles. This is an in-dialog workflow, not persistent application routing or reordering. The collection is a snapshot of the loaded chapter list; external membership/order changes appear when the manager reloads, while every selected target is read freshly.
 
-Navigation calls ManuscriptEditor's prepare-to-leave operation. Dirty documents use the same validated JSON/revision save as the manual button; only committed success permits target loading. Clean documents avoid a redundant write. A pending manual save blocks navigation; accepted transitions are serialized and later clicks are ignored while controls are disabled. The existing editor is frozen during the transition so no new writing can enter between the outgoing save and target read. Normal typing still does not trigger autosave.
+Navigation calls ManuscriptEditor's prepare-to-leave operation. Dirty documents use the same validated JSON/revision save as the manual button; only committed success permits target loading. Clean documents avoid a redundant write. A pending manual or automatic save blocks navigation; accepted transitions are serialized and later clicks are ignored while controls are disabled. The existing editor is frozen during the transition so no new writing can enter between the outgoing save and target read. As of 3.8, normal content changes schedule a debounced autosave.
 
 Write errors/conflicts retain the current editor and abort target loading. Read errors/unsupported content retain the current document and restore editing; Retry opening chapter retries the target without resaving an already clean document. A successful validated read alone replaces the session, with a chapter-ID key and heading focus after the new close guard is ready. Each opened chapter gets fresh undo/selection state; cross-chapter undo history is not preserved. Returning reads the committed text/formatting. Close/unmount request guards reject stale responses, and existing normal-close protection stays active for dirty/pending writing.
 
@@ -46,7 +46,7 @@ Persistence errors retain the editor text for retry. Conflict/missing/invalid-st
 
 Dirty modal dismissal is refused. It reveals an unchecked acknowledgement plus **Discard changes and close**; only explicit acknowledgement permits that discard. Browser beforeunload prompts for dirty/pending writing. The Tauri close listener is installed before editing is enabled; registration failure leaves writing unavailable. Dirty/pending native close requests are prevented, and clean requests follow the API's normal destroy path. The existing main-window capability adds only core:window:allow-destroy, required by that clean-close API path; no file/shell/SQL permission was added. Listener/beforeunload cleanup follows the editor lifecycle.
 
-These guards cover normal UI/window-close requests. They do not make unsaved edits durable against forced process termination, power loss or system shutdown. A recovery journal/close-flush policy remains 3.8/3.12; no zero-loss recovery claim is made.
+These guards cover normal UI/window-close requests. They do not make unsaved edits durable against forced process termination, power loss or system shutdown. Autosave in 3.8 adds no recovery journal or automatic native-close flush; desktop recovery acceptance remains 3.12; no zero-loss recovery claim is made.
 
 ## Verification (3.4)
 
