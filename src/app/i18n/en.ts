@@ -110,6 +110,8 @@ export const en = {
     },
   },
   chapters: {
+    open: 'Edit chapter text',
+    textSaved: (title: string) => `Chapter text saved: ${title}`,
     heading: 'Chapters',
     create: 'Create chapter',
     rename: 'Rename chapter',
@@ -134,7 +136,7 @@ export const en = {
     draft: 'Your unfinished title is kept when you close this form.',
     loading: 'Loading chapters…',
     empty: 'No chapters yet. Create the first chapter of this book.',
-    pending: 'Writing and formatting are coming next.',
+    pending: 'Open a chapter to write. Save your text manually.',
     loadFailure:
       'Could not load the chapters. Existing rows are kept. Retry before making changes.',
     retry: 'Retry loading chapters',
@@ -169,6 +171,40 @@ export const en = {
       invalid_title: 'Remove control characters from the title.',
       too_long: 'Use no more than 200 characters.',
     },
+  },
+  writing: {
+    title: 'Chapter text',
+    description:
+      'Edit this chapter and save it manually. Paste inserts plain text. Automatic saving is not enabled yet.',
+    label: 'Chapter manuscript',
+    loading: 'Loading saved chapter text…',
+    loadFailure:
+      'Could not load this chapter. No text has been replaced. Close and try again.',
+    invalid:
+      'This saved content cannot be safely opened in this editor. No changes were made.',
+    close: 'Close',
+    save: 'Save chapter text',
+    saving: 'Saving chapter text…',
+    saved: 'Chapter text saved.',
+    failure:
+      'Could not save the chapter text. Your writing is kept in this editor. Please try again.',
+    storedFailure:
+      'Saved chapter data could not be safely read. Your writing is kept here. Copy any text you need before closing.',
+    conflict:
+      'This chapter changed elsewhere. Your writing is kept here. Copy any text you need before closing; a stale revision will not overwrite the saved chapter.',
+    missing:
+      'This chapter is no longer available. Your writing is kept here. Copy any text you need before closing.',
+    unsaved:
+      'There is unsaved writing. Save it before closing, or explicitly discard the changes.',
+    pending: 'A save is in progress. Wait for it to finish before closing.',
+    guardFailure:
+      'Writing is unavailable because safe window-close handling could not be installed. The saved chapter is unchanged.',
+    rejected:
+      'That edit exceeds the supported document limits. It was not applied; your previous text is kept.',
+    pasteRejected:
+      'Only plain text can be pasted here. Files and drag-and-drop are not supported.',
+    discardCheck: 'I understand that my unsaved chapter changes will be lost.',
+    discard: 'Discard changes and close',
   },
   app: {
     name: 'WriteDaily',

@@ -48,7 +48,7 @@ for (const [width, columns] of [
     })
     await expect(selected).toContainText('Target: 2,000 words')
     await expect(selected).toContainText(
-      'Writing and formatting are coming next.',
+      'Open a chapter to write. Save your text manually.',
     )
     await page.getByRole('button', { name: 'Back to library' }).click()
     await expect(list.getByRole('article')).toHaveCount(3)

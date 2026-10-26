@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { en } from '../../app/i18n/en'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
@@ -8,6 +8,12 @@ import type { ChapterSummary } from './chapter'
 import { chapterErrorCode, chapterFailure } from './chapter-errors'
 import { ChapterTitleDialog } from './ChapterTitleDialog'
 import { DeleteChapter } from './DeleteChapter'
+
+const ChapterEditorDialog = lazy(() =>
+  import('./ChapterEditorDialog').then((module) => ({
+    default: module.ChapterEditorDialog,
+  })),
+)
 
 const copy = en.chapters
 
@@ -177,6 +183,28 @@ export function ChapterManager({
                     {chapter.title}
                   </h3>
                   <div className="flex flex-wrap gap-3">
+                    <Suspense
+                      fallback={
+                        <Button variant="secondary" disabled>
+                          {copy.open}
+                        </Button>
+                      }
+                    >
+                      <ChapterEditorDialog
+                        bookId={book.id}
+                        chapter={chapter}
+                        disabled={disabled}
+                        onPending={operationPending}
+                        onSaved={(committed) => {
+                          setChapters((previous) =>
+                            previous.map((item) =>
+                              item.id === committed.id ? committed : item,
+                            ),
+                          )
+                          setNotice(copy.textSaved(committed.title))
+                        }}
+                      />
+                    </Suspense>
                     <ChapterTitleDialog
                       bookId={book.id}
                       chapter={chapter}

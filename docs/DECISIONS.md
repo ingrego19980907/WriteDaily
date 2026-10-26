@@ -1,5 +1,11 @@
 # Decision log
 
+## 2026-10-25 - Tiptap integration (3.4)
+
+Pin matching Tiptap React/core/pm/StarterKit 3.32.0 and configure the existing persisted v1 subset explicitly. Disable unsupported nodes/marks and automatic trailing paragraphs. Validate before construction and after serialization; a ProseMirror transaction boundary rejects invalid changes with feedback. Keep manuscript JSON/text intact rather than importing HTML. Plain-text paste is intentional until an explicit rich-paste/import policy exists. Load the editor chunk locally when chapter management needs it.
+
+Add minimal revision-checked manual saving now so entered writing has a real persistence path before autosave is implemented. Freeze edits while saving; conflicts retain text without force overwrite. Refuse dirty/pending dismissal and require explicit acknowledged discard. Register native/beforeunload close protection before enabling editing; narrowly permit main-window destroy for Tauri's clean-close API behavior. This is normal-close protection, not durable crash recovery. Toolbar, chapter navigation and autosave/status/recovery remain their approved tasks. Details and verification limits are recorded in TIPTAP_INTEGRATION.md.
+
 ## 2026-10-25 - Chapter management UI (3.3)
 
 Keep chapter management feature-local and connect existing native services without new persistence or dependencies. Show a validated ordered collection with loading/error/empty distinctions and block mutations during pending/failed reads. Reconcile membership after create/rename; preserve committed rows when the following read fails. Delete uses the repository's returned collection so shifted revisions remain current. Retain selected-book title drafts across modal dismissal/section navigation, with a book-ID component boundary for request isolation; these are not durable drafts across switching books/restart.

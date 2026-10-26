@@ -1,0 +1,62 @@
+@layer components {
+  .manuscript .tiptap {
+    min-height: 12rem;
+    padding: 1rem;
+    border: 1px solid var(--color-secondary);
+    border-radius: 0.5rem;
+    background: var(--color-surface);
+    font-family: var(--font-writing);
+    font-size: var(--text-writing);
+    line-height: 1.8;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .manuscript .tiptap:focus-visible {
+    outline: 2px solid var(--color-accent-strong);
+    outline-offset: 3px;
+  }
+  .manuscript .tiptap > * + * {
+    margin-top: 0.75rem;
+  }
+  .manuscript h1 {
+    font-size: 2em;
+  }
+  .manuscript h2 {
+    font-size: 1.7em;
+  }
+  .manuscript h3 {
+    font-size: 1.4em;
+  }
+  .manuscript h4 {
+    font-size: 1.2em;
+  }
+  .manuscript h5 {
+    font-size: 1.1em;
+  }
+  .manuscript h6 {
+    font-size: 1em;
+  }
+  .manuscript :is(h1, h2, h3, h4, h5, h6) {
+    font-weight: 700;
+  }
+  .manuscript ul {
+    list-style-type: disc;
+    padding-inline-start: 1.5rem;
+  }
+  .manuscript ol {
+    list-style-type: decimal;
+    padding-inline-start: 1.5rem;
+  }
+  .manuscript ol[type='a'] {
+    list-style-type: lower-alpha;
+  }
+  .manuscript ol[type='A'] {
+    list-style-type: upper-alpha;
+  }
+  .manuscript ol[type='i'] {
+    list-style-type: lower-roman;
+  }
+  .manuscript ol[type='I'] {
+    list-style-type: upper-roman;
+  }
+}

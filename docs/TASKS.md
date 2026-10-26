@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Tasks 3.1–3.3 (chapter model/repository/management UI) are complete; awaiting approval before 3.4 (Tiptap integration). Progress is explicitly unknown until actual word counts are available; no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Tasks 3.1–3.4 (chapter model/repository/management/Tiptap) are complete; awaiting approval before 3.5 (formatting toolbar). Progress is explicitly unknown until actual word counts are available; no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -58,7 +58,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [x]  | 3.1  | Design chapter data model     | Completed (2026-10-25) | 2.12         | Ordering, content schema and revisions specified                              |
 | [x]  | 3.2  | Implement chapter repository  | Completed (2026-10-25) | 3.1          | Chapter CRUD and revision handling pass persistence checks                    |
 | [x]  | 3.3  | Implement chapter management  | Completed (2026-10-25) | 3.2          | Create, rename and confirmed deletion work                                    |
-| [ ]  | 3.4  | Integrate Tiptap              | Not started            | 3.3          | Rich text edits and serialization work                                        |
+| [x]  | 3.4  | Integrate Tiptap              | Completed (2026-10-25) | 3.3          | Rich text edits and serialization work                                        |
 | [ ]  | 3.5  | Add formatting toolbar        | Not started            | 3.4          | Bold, italic, headings, lists and undo/redo work                              |
 | [ ]  | 3.6  | Implement chapter navigation  | Not started            | 3.5          | Pending edits preserved when switching chapters                               |
 | [ ]  | 3.7  | Implement word counting       | Not started            | 3.6          | Documented counting policy passes Unicode and empty-content tests             |
@@ -133,6 +133,14 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [ ]  | 8.10 | Tag version 1.0.0           | Not started | 8.9          | Release gates pass and explicit authorization obtained before Git mutation |
 
 ## Historical verification evidence
+
+## Verification evidence: 3.4
+
+- Installed exact Tiptap React/core/pm/StarterKit 3.32.0 after checking official compatibility/docs and npm peer metadata. package-lock.json is updated; installation reports zero vulnerabilities. Lazy editor loading keeps local application/editor chunks below the default warning threshold. No CDN/cloud or SQL migration was added.
+- ChapterEditorDialog reads fresh book-scoped content and rejects invalid/unsupported envelopes before Tiptap. editor-schema.ts matches the v1 node/mark grammar, disables unsupported extensions and TrailingNode, validates ProseMirror structure/output and rejects invalid document-changing transactions without truncation. ManuscriptEditor uses labelled multiline rich text with scoped typography/list styling and literal plain-text paste; files/drop are refused visibly.
+- Minimal manual save makes the integration usable before autosave: validated JSON and expectedRevision go through the existing native save command; editing/repeated save/close are blocked while pending. Revision and success update only from the committed result. Errors retain writing; conflicts/missing/invalid stored data block stale overwrites. Toolbar/navigation/counting/autosave/status workflows remain later tasks.
+- Unsaved dismissal requires saving or explicit acknowledged discard. beforeunload and Tauri close listeners protect normal close requests; editing waits for successful listener registration. Main-window core:window:allow-destroy enables the API's clean-close path after interception. Shared Modal now wraps header controls and constrains its grid to prevent inner overflow at enlarged text. No forced-termination/recovery durability claim.
+- Verified 286 Vitest tests (35 new), all 50 Edge tests (9 new), lint, format, typecheck and production build. Tests cover real installed Editor JSON roundtrips/Unicode/formatting and bounded transactions, manual commit/error/conflict/revision handling, discard/close cleanup, invalid content, paste/files and normal native-close event behavior through test mocks. Browser axe/reflow at 320/640/1100px includes 200% internal editor/modal geometry; screenshots inspected after layout correction. Native 53 tests, fmt and Clippy pass. No actual desktop startup/editor save/close/restart was observed. See [TIPTAP_INTEGRATION.md](TIPTAP_INTEGRATION.md) for scope and limits. Next: 3.5.
 
 ## Verification evidence: 3.3
 
