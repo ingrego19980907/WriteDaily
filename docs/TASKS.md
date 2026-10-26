@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Tasks 3.1–3.9 (chapter model/repository/management/editor/toolbar/navigation/counting/autosave/status) are complete; awaiting approval before 3.10 (focus mode). Library progress is explicitly unknown until book aggregation (4.1); no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Tasks 3.1–3.10 (chapter model/repository/management/editor/toolbar/navigation/counting/autosave/status/focus mode) are complete; awaiting approval before 3.11 (editor preferences). Library progress is explicitly unknown until book aggregation (4.1); no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -64,7 +64,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [x]  | 3.7  | Implement word counting       | Completed (2026-10-26) | 3.6          | Documented counting policy passes Unicode and empty-content tests             |
 | [x]  | 3.8  | Implement autosave            | Completed (2026-10-26) | 3.7          | Serialized debounced writes and retry behavior pass failure checks            |
 | [x]  | 3.9  | Implement save status         | Completed (2026-10-26) | 3.8          | Saved appears only after successful commit; errors remain visible             |
-| [ ]  | 3.10 | Add focus mode                | Not started            | 3.9          | Focus mode can be entered and exited by keyboard                              |
+| [x]  | 3.10 | Add focus mode                | Completed (2026-10-26) | 3.9          | Focus mode can be entered and exited by keyboard                              |
 | [ ]  | 3.11 | Add editor preferences        | Not started            | 3.10         | Font size persists within validated limits                                    |
 | [ ]  | 3.12 | Test persistence and recovery | Not started            | 3.11         | Formatting, rapid navigation, interrupted saves and restart recovery verified |
 
@@ -133,6 +133,12 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [ ]  | 8.10 | Tag version 1.0.0           | Not started | 8.9          | Release gates pass and explicit authorization obtained before Git mutation |
 
 ## Historical verification evidence
+
+## Verification evidence: 3.10
+
+- Added session-local focus mode to ChapterEditorDialog, using optional Modal fullscreen/header-action/Escape hooks. The same editor/dialog remain mounted; text, selection, history, revisions, autosave and close guards are preserved. Focus mode hides chapter navigation/toolbar/counts and visually hides long chapter context/help while retaining screen-reader context. Save status, writing, errors and manual save/discard remain available.
+- Header toggle is keyboard operable with pressed state and remains reachable during writes. First Escape exits focus mode and restores button focus; repeated/composing Escape cannot dismiss the editor. Explicit Close retains dirty/pending protection; reopening resets mode. Chapter transitions lock the toggle. Existing typography/tokens, centered reading width, dynamic viewport/internal scrolling and no animation. No dependency/native/schema/permission change. See [FOCUS_MODE.md](FOCUS_MODE.md).
+- Verified: 375 Vitest tests (4 new), lint, formatting, strict typecheck/build and all 87 Edge tests (6 new). New checks cover keyboard entry/Tab/exit, document/selection/history identity, autosave/formatting, pending/error/retry, acknowledged discard/reopen, axe at 320/640/1100px, 640x480, 200% internal reflow and forced colors/reduced motion. Inspected the enlarged 640x480 capture. Native tests were not repeated; the 59-test result remains 3.7. No new native startup/restart or manual screen-reader claim. Next: 3.11, awaiting approval.
 
 ## Verification evidence: 3.9
 

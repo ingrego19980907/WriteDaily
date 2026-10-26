@@ -1,5 +1,11 @@
 # Decision log
 
+## 2026-10-26 - Focus mode (3.10)
+
+Expand the existing chapter dialog within the app viewport instead of adding native fullscreen, another editor or a nested portal. Use a session-local header toggle and hide navigation/toolbar/counts while retaining save status, errors, Save and close protection. Visually hide verbose chapter context/help while preserving screen-reader context. Keep the same Tiptap instance, selection/history/revision and autosave timer. Add only optional generic Modal layout/header/Escape hooks; defaults remain unchanged.
+
+Keyboard activation retains focus on the toggle. First Escape exits visual mode and restores toggle focus rather than closing/discarding writing; suppress repeated/composing Escape dismissal. Allow exit during pending writes while retaining save/close locks; disable entry during chapter transitions. Reset on close/reopen instead of persisting a preference. Use existing tokens, responsive internal scrolling and no animation. See [FOCUS_MODE.md](FOCUS_MODE.md).
+
 ## 2026-10-26 - Save status (3.9)
 
 Derive status from the existing save lifecycle instead of adding a parallel status timer or persisted flag. Distinguish a clean freshly loaded chapter from a successful write in the current session. Only native commit shows Saved; each accepted edit invalidates it, and chapter navigation starts a fresh neutral state. Use a stable named polite/atomic region with wrapping visible text and existing tokens, without animation or focus changes.

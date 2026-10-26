@@ -12,6 +12,9 @@ export type ModalProps = {
   closeLabel: string
   children: ReactNode
   onCloseAutoFocus?: ComponentProps<typeof Dialog.Content>['onCloseAutoFocus']
+  onEscapeKeyDown?: ComponentProps<typeof Dialog.Content>['onEscapeKeyDown']
+  fullScreen?: boolean
+  headerActions?: ReactNode
 }
 
 export function Modal({
@@ -23,6 +26,9 @@ export function Modal({
   closeLabel,
   children,
   onCloseAutoFocus,
+  onEscapeKeyDown,
+  fullScreen = false,
+  headerActions,
 }: ModalProps) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -31,11 +37,13 @@ export function Modal({
         <Dialog.Overlay className="modal-overlay" />
         <Dialog.Content
           onCloseAutoFocus={onCloseAutoFocus}
-          className="modal-content"
+          onEscapeKeyDown={onEscapeKeyDown}
+          className={`modal-content${fullScreen ? ' modal-content--fullscreen' : ''}`}
           {...(!description ? { 'aria-describedby': undefined } : {})}
         >
           <div className="modal-header">
             <Dialog.Title className="modal-title">{title}</Dialog.Title>
+            {headerActions}
             <Dialog.Close asChild>
               <Button variant="ghost" className="shrink-0">
                 {closeLabel}

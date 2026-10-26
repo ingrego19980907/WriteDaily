@@ -204,6 +204,10 @@ export const en = {
     undo: 'Undo',
     redo: 'Redo',
     title: 'Chapter text',
+    enterFocus: 'Enter focus mode',
+    exitFocus: 'Exit focus mode',
+    focusHint:
+      'Focus mode hides chapter navigation, formatting controls and word counts. Press Escape or Exit focus mode to return. Changes still save automatically.',
     description:
       'Changes save automatically after 2 seconds without editing. You can also save now. Paste inserts plain text.',
     label: 'Chapter manuscript',

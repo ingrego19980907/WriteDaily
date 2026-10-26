@@ -1,4 +1,14 @@
 @layer components {
+  .manuscript-focus {
+    width: 100%;
+    max-width: 48rem;
+    margin-inline: auto;
+  }
+
+  .manuscript-focus .tiptap {
+    min-height: 50dvh;
+  }
+
   .manuscript .tiptap {
     min-height: 12rem;
     padding: 1rem;

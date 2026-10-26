@@ -1,5 +1,7 @@
 # Architecture
 
+Focus mode (3.10): ChapterEditorDialog owns a session-local layout flag and pressed header toggle. Modal's optional fullscreen/header-action/Escape props expand the same dialog; ManuscriptEditor hides distractions without remounting Tiptap or changing autosave/revision state. First Escape restores the normal layout and button focus; normal Close still uses existing dirty/pending guards. Header actions remain available during writes and are locked during chapter transitions. No native/dependency/persistence change. See [FOCUS_MODE.md](FOCUS_MODE.md).
+
 Save status (3.9): ManuscriptEditor derives preparing/neutral/waiting/saving/committed/paused/blocked/unavailable state and passes it to the feature-local SaveStatus presentation. The named polite/atomic region never infers success before native commit. Separate retained save errors survive edits and close notices until successful retry; commits clear stale close feedback. Session keys isolate chapter status. No persistence/dependency change. See [SAVE_STATUS.md](SAVE_STATUS.md).
 
 Autosave (3.8): ManuscriptEditor restarts a 2-second timer after accepted content changes. The timer, manual action and navigation flush share one guarded save path with revision reuse after commit; pending writes retain existing editing/toolbar/navigation locks. Failures pause automatic writes until explicit successful retry and remain visible through edits. Session cleanup cancels timers; no native/dependency/schema change or recovery journal. See [AUTOSAVE.md](AUTOSAVE.md).
@@ -36,7 +38,7 @@ Status: Foundation complete through task 0.9, including Windows development-wind
 
 ## Technology direction
 
-Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs 371 domain/component/service/editor tests and 81 passing Edge browser tests. Native persistence is additionally covered by 59 Rust tests. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
+Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs 375 domain/component/service/editor tests and 87 passing Edge browser tests. Native persistence is additionally covered by 59 Rust tests. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
 
 ## Organization
 

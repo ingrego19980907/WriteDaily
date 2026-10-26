@@ -789,3 +789,134 @@ test('chapter navigation starts a fresh neutral save status after a committed ou
     screen.getByRole('status', { name: copy.saveStatus }),
   ).toHaveTextContent(copy.saveUnchanged)
 })
+
+test('focus mode is keyboard reversible without replacing writing, selection, history or dirty status', async () => {
+  mount()
+  const { user, editor, field } = await open()
+  act(() => {
+    editor.commands.insertContent({ type: 'text', text: 'Keep this draft' })
+    editor.commands.setTextSelection({ from: 1, to: 5 })
+    editor.commands.toggleBold()
+  })
+  const before = editor.getJSON()
+  const selection = editor.state.selection.toJSON()
+  const undoAvailable = editor.can().undo()
+  const button = screen.getByRole('button', { name: copy.enterFocus })
+  button.focus()
+  await user.keyboard('{Enter}')
+  const exit = screen.getByRole('button', { name: copy.exitFocus })
+  expect(exit).toHaveFocus()
+  expect(exit).toHaveAttribute('aria-pressed', 'true')
+  expect(screen.getByRole('dialog')).toHaveClass('modal-content--fullscreen')
+  expect(
+    screen.queryByRole('navigation', { name: copy.navigation }),
+  ).not.toBeInTheDocument()
+  expect(screen.queryByRole('toolbar')).not.toBeInTheDocument()
+  expect(
+    screen.queryByRole('group', { name: copy.wordCounts }),
+  ).not.toBeInTheDocument()
+  expect(screen.getByRole('textbox')).toBe(field)
+  expect(editor.getJSON()).toEqual(before)
+  expect(editor.state.selection.toJSON()).toEqual(selection)
+  expect(editor.can().undo()).toBe(undoAvailable)
+  expect(
+    screen.getByRole('status', { name: copy.saveStatus }),
+  ).toHaveTextContent(copy.saveWaiting)
+  await user.keyboard('{Escape}')
+  expect(screen.getByRole('dialog')).not.toHaveClass(
+    'modal-content--fullscreen',
+  )
+  expect(screen.getByRole('button', { name: copy.enterFocus })).toHaveFocus()
+  expect(screen.getByRole('toolbar')).toBeVisible()
+  expect(screen.getByRole('textbox')).toBe(field)
+  expect(saveChapterContent).not.toHaveBeenCalled()
+  await user.keyboard('{Escape}')
+  expect(screen.getByRole('dialog')).toBeVisible()
+  expect(screen.getByRole('alert')).toHaveTextContent(copy.unsaved)
+})
+
+test('focus mode keeps autosave pending locks, commit status and retryable errors', async () => {
+  let fail!: (error: { code: string }) => void
+  vi.mocked(saveChapterContent).mockReturnValueOnce(
+    new Promise((_resolve, reject) => {
+      fail = reject
+    }),
+  )
+  mount()
+  const { user, editor, field } = await open()
+  await user.click(screen.getByRole('button', { name: copy.enterFocus }))
+  vi.useFakeTimers()
+  act(() => {
+    editor.commands.insertContent({ type: 'text', text: 'Focus writing' })
+  })
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(2000)
+  })
+  expect(field).toHaveAttribute('contenteditable', 'false')
+  expect(
+    screen.getByRole('status', { name: copy.saveStatus }),
+  ).toHaveTextContent(copy.saving)
+  fireEvent.click(screen.getByRole('button', { name: copy.exitFocus }))
+  expect(screen.getByRole('dialog')).not.toHaveClass(
+    'modal-content--fullscreen',
+  )
+  expect(field).toHaveAttribute('contenteditable', 'false')
+  await act(async () => {
+    fail({ code: 'persistence' })
+  })
+  fireEvent.click(screen.getByRole('button', { name: copy.enterFocus }))
+  expect(screen.getByRole('alert')).toHaveTextContent(copy.failure)
+  expect(field).toHaveAttribute('contenteditable', 'true')
+  vi.mocked(saveChapterContent).mockResolvedValue({
+    ...chapter,
+    revision: 5,
+    wordCount: 2,
+  })
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: copy.save }))
+  })
+  expect(
+    screen.getByRole('status', { name: copy.saveStatus }),
+  ).toHaveTextContent(copy.saved)
+  expect(screen.getByRole('dialog')).toHaveClass('modal-content--fullscreen')
+  expect(saveChapterContent).toHaveBeenCalledTimes(2)
+})
+
+test('explicit close in focus mode retains dirty text and discard acknowledgement, then reopening resets mode', async () => {
+  mount()
+  const { user, editor } = await open()
+  act(() => {
+    editor.commands.insertContent({ type: 'text', text: 'Do not lose this' })
+  })
+  await user.click(screen.getByRole('button', { name: copy.enterFocus }))
+  await user.click(
+    within(screen.getByRole('dialog')).getByRole('button', {
+      name: copy.close,
+    }),
+  )
+  expect(screen.getByRole('dialog')).toHaveClass('modal-content--fullscreen')
+  expect(screen.getByRole('alert')).toHaveTextContent(copy.unsaved)
+  expect(screen.getByRole('button', { name: copy.discard })).toBeDisabled()
+  await user.click(screen.getByRole('checkbox'))
+  await user.click(screen.getByRole('button', { name: copy.discard }))
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  await user.click(screen.getByRole('button', { name: en.chapters.open }))
+  await screen.findByRole('textbox')
+  expect(screen.getByRole('dialog')).not.toHaveClass(
+    'modal-content--fullscreen',
+  )
+  expect(screen.getByRole('button', { name: copy.enterFocus })).toBeVisible()
+})
+
+test('one Escape exits focus mode, repeated Escape cannot dismiss the clean editor', async () => {
+  mount()
+  const { user } = await open()
+  await user.click(screen.getByRole('button', { name: copy.enterFocus }))
+  fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape', repeat: true })
+  expect(screen.getByRole('button', { name: copy.exitFocus })).toBeVisible()
+  await user.keyboard('{Escape}')
+  fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape', repeat: true })
+  expect(screen.getByRole('dialog')).toBeVisible()
+  await user.keyboard('{Escape}')
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+})

@@ -37,6 +37,9 @@ export function ChapterEditorDialog({
   const [writingPending, setWritingPending] = useState(false)
   const [failedTarget, setFailedTarget] = useState<string | null>(null)
   const [focusOnReady, setFocusOnReady] = useState(false)
+  const [focusMode, setFocusMode] = useState(false)
+  const focusModeRef = useRef(false)
+  const focusButton = useRef<HTMLButtonElement>(null)
   const request = useRef(0)
   const canClose = useRef<() => boolean>(() => true)
   const prepareToLeaveRef = useRef<() => Promise<boolean>>(async () => true)
@@ -70,6 +73,8 @@ export function ChapterEditorDialog({
     request.current += 1
     setOpen(false)
     setLoaded(null)
+    focusModeRef.current = false
+    setFocusMode(false)
   }
   function changeOpen(next: boolean) {
     if (!next) {
@@ -83,6 +88,8 @@ export function ChapterEditorDialog({
     setSwitchFailure('')
     setFailedTarget(null)
     setFocusOnReady(false)
+    focusModeRef.current = false
+    setFocusMode(false)
     setLoaded(null)
     void getChapter(bookId, chapter.id).then(
       (result) => {
@@ -103,6 +110,7 @@ export function ChapterEditorDialog({
   async function switchChapter(id: string) {
     if (
       !loaded ||
+      focusModeRef.current ||
       id === loaded.chapter.id ||
       switchingRef.current ||
       writingPendingRef.current ||
@@ -154,9 +162,38 @@ export function ChapterEditorDialog({
       }
       title={copy.title}
       closeLabel={copy.close}
+      fullScreen={focusMode}
+      onEscapeKeyDown={(event) => {
+        if (event.repeat || event.isComposing) {
+          event.preventDefault()
+        } else if (focusModeRef.current) {
+          event.preventDefault()
+          focusModeRef.current = false
+          setFocusMode(false)
+          focusButton.current?.focus()
+        }
+      }}
+      headerActions={
+        loaded && (
+          <Button
+            ref={focusButton}
+            variant="secondary"
+            aria-pressed={focusMode}
+            disabled={switching}
+            onClick={() => {
+              const next = !focusModeRef.current
+              focusModeRef.current = next
+              setFocusMode(next)
+            }}
+          >
+            {focusMode ? copy.exitFocus : copy.enterFocus}
+          </Button>
+        )
+      }
     >
       {loaded && (
         <nav
+          hidden={focusMode}
           aria-label={copy.navigation}
           className="min-w-0 space-y-3"
           aria-busy={switching}
@@ -246,6 +283,7 @@ export function ChapterEditorDialog({
           prepareToLeaveRef={prepareToLeaveRef}
           navigationLocked={switching}
           focusOnReady={focusOnReady}
+          focusMode={focusMode}
         />
       ) : (
         <p role="status">{copy.loading}</p>

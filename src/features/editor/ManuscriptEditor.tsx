@@ -37,6 +37,7 @@ export function ManuscriptEditor({
   prepareToLeaveRef,
   navigationLocked = false,
   focusOnReady = false,
+  focusMode = false,
 }: {
   chapter: Chapter
   document: JSONContent
@@ -47,6 +48,7 @@ export function ManuscriptEditor({
   prepareToLeaveRef?: RefObject<() => Promise<boolean>>
   navigationLocked?: boolean
   focusOnReady?: boolean
+  focusMode?: boolean
 }) {
   const [ready, setReady] = useState(false)
   const [dirty, setDirty] = useState(false)
@@ -311,19 +313,22 @@ export function ManuscriptEditor({
                 : 'unchanged'
 
   return (
-    <div className="min-w-0 space-y-4">
+    <div className={`min-w-0 space-y-4${focusMode ? ' manuscript-focus' : ''}`}>
       <h3
         ref={headingRef}
         tabIndex={-1}
-        className="font-writing text-writing break-words"
+        className={
+          focusMode ? 'sr-only' : 'font-writing text-writing break-words'
+        }
       >
         {chapter.title}
       </h3>
-      <p id={hintId} className="text-secondary">
-        {copy.description}
+      <p id={hintId} className={focusMode ? 'sr-only' : 'text-secondary'}>
+        {focusMode ? copy.focusHint : copy.description}
       </p>
       <SaveStatus state={saveState} />
       <div
+        hidden={focusMode}
         role="group"
         aria-label={copy.wordCounts}
         className="space-y-2 text-secondary"
@@ -345,10 +350,12 @@ export function ManuscriptEditor({
       {!fatal && (
         <>
           {editor && (
-            <FormattingToolbar
-              editor={editor}
-              disabled={!ready || saving || navigationLocked}
-            />
+            <div hidden={focusMode}>
+              <FormattingToolbar
+                editor={editor}
+                disabled={!ready || saving || navigationLocked}
+              />
+            </div>
           )}
           <EditorContent editor={editor} className="manuscript" />
         </>

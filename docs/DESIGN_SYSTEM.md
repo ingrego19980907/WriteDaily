@@ -110,6 +110,8 @@ The surface field has a secondary-colored border, foreground text, 2.75rem minim
 
 ## Modal
 
+Task 3.10 adds optional fullScreen, headerActions and onEscapeKeyDown props. Fullscreen fills the app viewport with a non-scrolling header and scrolling body; it does not request native/browser fullscreen. Header actions precede Close in the normal focus order. Consumers can prevent Escape dismissal before applying their own visual-mode exit. All defaults and Radix focus/close behavior remain unchanged for existing callers. See [focus mode](FOCUS_MODE.md) for the editor consumer and checks.
+
 `src/components/ui/Modal.tsx` composes Radix Dialog with WriteDaily styling and shared Button. Required props: open, onOpenChange, trigger (one semantic button element), title, closeLabel and children. Optional description is rendered visibly and connected to the dialog; if omitted, its description reference is also omitted. Title, close label and content come from the caller's localized messages. Use Button or another trigger that forwards native props/ref.
 
 Radix portals the modal into document.body, blocks outside interaction, traps focus, handles Escape/backdrop/Close requests and restores focus to its trigger. The controlled onOpenChange callback lets a caller refuse a close request while an unsaved form needs confirmation. Default focus follows Radix's first-focusable policy (the header Close action in the tested content); forms can manage their own initial field focus. No automatic saving, discard confirmation or destructive alert-dialog behavior is included.
