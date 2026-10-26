@@ -98,6 +98,12 @@ fn checked(raw: (ChapterSummary, i64, Option<String>)) -> Result<Chapter, Chapte
         return Err(invalid());
     }
     let content = ChapterContent::stored(version, &json.ok_or_else(invalid)?)?;
+    if summary
+        .word_count
+        .is_some_and(|count| count != content.word_count())
+    {
+        return Err(invalid());
+    }
     Ok(Chapter { summary, content })
 }
 fn load(connection: &Connection, book_id: &str, chapter_id: &str) -> Result<Chapter, ChapterError> {
@@ -262,7 +268,7 @@ impl<'connection> ChapterRepository<'connection> {
         let (next_revision, time) = next(&current.summary)?;
         let changed = if let Some(content) = content {
             let (version, document) = content.storage()?;
-            tx.execute("UPDATE chapters SET content_schema_version = ?1, content_json = ?2, word_count = NULL, revision = ?3, updated_at = ?4 WHERE book_id = ?5 AND id = ?6 AND revision = ?7", params![version, document, next_revision, time, book_id, chapter_id, expected_revision])?
+            tx.execute("UPDATE chapters SET content_schema_version = ?1, content_json = ?2, word_count = ?3, revision = ?4, updated_at = ?5 WHERE book_id = ?6 AND id = ?7 AND revision = ?8", params![version, document, content.word_count(), next_revision, time, book_id, chapter_id, expected_revision])?
         } else {
             tx.execute("UPDATE chapters SET title = ?1, revision = ?2, updated_at = ?3 WHERE book_id = ?4 AND id = ?5 AND revision = ?6", params![title.ok_or(ChapterError::Validation("required"))?, next_revision, time, book_id, chapter_id, expected_revision])?
         };

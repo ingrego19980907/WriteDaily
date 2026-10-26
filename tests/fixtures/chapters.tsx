@@ -10,6 +10,7 @@ import {
   type ChapterContent,
 } from '../../src/features/editor/chapter-content'
 import contentCases from './chapter-content.json'
+import { countChapterWords } from '../../src/features/editor/word-count'
 import type {
   ChapterSummary,
   ChapterDetails,
@@ -107,6 +108,7 @@ mockIPC(
         id: crypto.randomUUID(),
         title: args.details.title,
         position: chapters.length,
+        wordCount: 0,
       }
       chapters = [...chapters, chapter]
       return { ...chapter, content: createEmptyChapterContent() }
@@ -163,7 +165,7 @@ mockIPC(
         chapters[index] = {
           ...chapters[index],
           revision: chapters[index].revision + 1,
-          wordCount: null,
+          wordCount: countChapterWords(result.data),
         }
         manuscripts.set(args.id, result.data)
         return { ...chapters[index], content: result.data }

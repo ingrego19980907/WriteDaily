@@ -173,6 +173,15 @@ export const en = {
     },
   },
   writing: {
+    wordCounts: 'Word count',
+    currentWords: (count: string) =>
+      `${count} ${count === '1' ? 'word' : 'words'} in current text`,
+    savedWords: (count: string) =>
+      `${count} saved ${count === '1' ? 'word' : 'words'}`,
+    savedWordsUnknown: 'Saved word count unavailable',
+    wordsUnknown: 'Current word count unavailable',
+    wordCountHint:
+      'The current count includes unsaved edits. Internal apostrophes and hyphens join words; numbers also count.',
     navigation: 'Chapter navigation',
     chooseChapter: 'Choose chapter',
     previousChapter: 'Previous chapter',

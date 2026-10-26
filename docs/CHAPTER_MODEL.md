@@ -1,6 +1,6 @@
 # Chapter model, repository and editor (3.1–3.4)
 
-Implemented: readonly TypeScript contracts and pure metadata/content validation under src/features/editor, native chapter repository/validation under src-tauri/src/chapters, migration 003, registered Tauri commands and src/services/chapters.ts. Task 3.3 connects selected-book chapter management UI for creation, renaming and confirmed deletion. Task 3.4 integrates Tiptap 3.32.0 with manual content saving and close protection; word counting and autosave remain pending. See [Tiptap integration](TIPTAP_INTEGRATION.md).
+Implemented: readonly TypeScript contracts and pure metadata/content validation under src/features/editor, native chapter repository/validation under src-tauri/src/chapters, migration 003, registered Tauri commands and src/services/chapters.ts. Task 3.3 connects selected-book chapter management UI for creation, renaming and confirmed deletion. Task 3.4 integrates Tiptap 3.32.0 with manual content saving and close protection; word counting is implemented in 3.7; autosave remains pending. See [Tiptap integration](TIPTAP_INTEGRATION.md).
 
 ## Ownership and snapshots
 
@@ -35,7 +35,7 @@ Position is a contiguous zero-based integer within one book. Native list order i
 
 Revision starts at 1 and increments on every committed chapter change: metadata, content or position. Rename/content update/delete require expectedRevision; a stale value returns Conflict without overwriting content or other fields. Changed positions advance affected chapters' revisions/timestamps, so old autosave/reorder snapshots fail safely. Unchanged reorder is a no-op. Revision overflow beyond the safe-integer maximum must fail, never wrap/reuse. Native updatedAt advances monotonically as with books, but revision is the chapter concurrency token.
 
-ChapterMetadataChange and ChapterContentChange separate title and content writes; neither can replace ownership/order/count/system fields. Native-generated IDs/timestamps/revisions/counts are never accepted by spreading a client snapshot. Chapter writes do not modify parent Book metadata or use Book.updatedAt as their concurrency token. Autosave serialization, navigation flush and conflict UI remain 3.6/3.8/3.9; no zero-loss recovery promise is made by this model.
+ChapterMetadataChange and ChapterContentChange separate title and content writes; neither can replace ownership/order/count/system fields. Native-generated IDs/timestamps/revisions/counts are never accepted by spreading a client snapshot. Chapter writes do not modify parent Book metadata or use Book.updatedAt as their concurrency token. Navigation flush is implemented in 3.6; autosave serialization and additional conflict/status UI remain 3.8/3.9; no zero-loss recovery promise is made by this model.
 
 ## Implemented storage mapping (3.2, schema v3)
 
@@ -53,7 +53,7 @@ ChapterMetadataChange and ChapterContentChange separate title and content writes
 
 Append-only migration 003 creates the STRICT chapters table and unique book/position index; released migrations 001/002 remain unchanged. All related changes use bound parameters and atomic transactions, returning success only after commit. Book/chapter confirmed deletion removes owned chapter rows; future activity retains history with detached references, and achievements remain. Restore/import must validate content versions/order/revisions before exposing editable writing.
 
-wordCount is derived from committed body content, not supplied by the caller or copied from title/targets/activity. Null means not computed for that content revision. A newly created canonical empty chapter may have known zero; content writes before the counter exists must invalidate stale counts to null. Rename/reorder preserve counts. Native counting is 3.7 and book aggregation is 4.1: one unknown chapter count makes the aggregate unknown, not a partial sum; a validated empty chapter collection can establish zero. Do not infer completion from these counts.
+wordCount is derived from committed body content, not supplied by the caller or copied from title/targets/activity. Null means not computed for that content revision. A newly created canonical empty chapter has known zero. As of 3.7, native content writes compute and commit the count atomically with body/revision; legacy NULL stays unknown until an explicit content save. Reads reject inconsistent known counts without repair. Rename/reorder preserve counts. See [counting policy](WORD_COUNTING.md). Book aggregation remains 4.1: one unknown chapter count makes the aggregate unknown, not a partial sum; a validated empty chapter collection can establish zero. Do not infer completion from these counts.
 
 ## Native API and validation (3.2)
 

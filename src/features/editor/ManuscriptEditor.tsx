@@ -21,6 +21,7 @@ import {
 } from './editor-schema'
 import './manuscript.css'
 import { FormattingToolbar } from './FormattingToolbar'
+import { countChapterWords } from './word-count'
 
 const copy = en.writing
 
@@ -54,6 +55,10 @@ export function ManuscriptEditor({
   const [saved, setSaved] = useState(false)
   const [closing, setClosing] = useState(false)
   const [discard, setDiscard] = useState(false)
+  const [wordCount, setWordCount] = useState(() =>
+    countChapterWords(chapter.content),
+  )
+  const [savedWordCount, setSavedWordCount] = useState(chapter.wordCount)
   const dirtyRef = useRef(false)
   const savingRef = useRef(false)
   const revision = useRef(chapter.revision)
@@ -93,7 +98,10 @@ export function ManuscriptEditor({
         return true
       },
     },
-    onUpdate() {
+    onUpdate({ editor: current }) {
+      setWordCount(
+        countChapterWords({ schemaVersion: 1, document: current.getJSON() }),
+      )
       dirtyRef.current = true
       setDirty(true)
       setSaved(false)
@@ -192,6 +200,7 @@ export function ManuscriptEditor({
         content,
       })
       revision.current = committed.revision
+      setSavedWordCount(committed.wordCount)
       dirtyRef.current = false
       setDirty(false)
       setSaved(true)
@@ -259,6 +268,25 @@ export function ManuscriptEditor({
       <p id={hintId} className="text-secondary">
         {copy.description}
       </p>
+      <div
+        role="group"
+        aria-label={copy.wordCounts}
+        className="space-y-2 text-secondary"
+      >
+        <p>
+          {wordCount === null
+            ? copy.wordsUnknown
+            : copy.currentWords(new Intl.NumberFormat('en').format(wordCount))}
+        </p>
+        <p>
+          {savedWordCount === null
+            ? copy.savedWordsUnknown
+            : copy.savedWords(
+                new Intl.NumberFormat('en').format(savedWordCount),
+              )}
+        </p>
+        <p className="text-ui">{copy.wordCountHint}</p>
+      </div>
       {!fatal && (
         <>
           {editor && (

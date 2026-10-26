@@ -75,6 +75,31 @@ enum MarkKind {
 }
 
 impl ChapterContent {
+    pub(super) fn word_count(&self) -> i64 {
+        fn visit(node: &Node, counter: &mut super::word_count::WordCounter) {
+            match node {
+                Node::Text { text, .. } => counter.push(text),
+                Node::HardBreak { .. } => counter.boundary(),
+                Node::Doc { content }
+                | Node::BulletList { content }
+                | Node::OrderedList { content, .. }
+                | Node::ListItem { content } => {
+                    for child in content {
+                        visit(child, counter);
+                    }
+                }
+                Node::Paragraph { content } | Node::Heading { content, .. } => {
+                    for child in content {
+                        visit(child, counter);
+                    }
+                    counter.boundary();
+                }
+            }
+        }
+        let mut counter = super::word_count::WordCounter::default();
+        visit(&self.document, &mut counter);
+        counter.count
+    }
     pub(super) fn empty() -> Self {
         Self {
             schema_version: 1,

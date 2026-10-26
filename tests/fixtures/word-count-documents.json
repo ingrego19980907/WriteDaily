@@ -1,0 +1,227 @@
+[
+  {
+    "name": "empty paragraph",
+    "expected": 0,
+    "content": {
+      "schemaVersion": 1,
+      "document": { "type": "doc", "content": [{ "type": "paragraph" }] }
+    }
+  },
+  {
+    "name": "inline mark boundaries do not split words",
+    "expected": 1,
+    "content": {
+      "schemaVersion": 1,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              { "type": "text", "text": "hel", "marks": [{ "type": "bold" }] },
+              { "type": "text", "text": "lo", "marks": [{ "type": "italic" }] }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "apostrophe across inline nodes",
+    "expected": 1,
+    "content": {
+      "schemaVersion": 1,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              { "type": "text", "text": "п" },
+              { "type": "text", "text": "’", "marks": [{ "type": "bold" }] },
+              { "type": "text", "text": "ять" }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "numeric separator across inline nodes",
+    "expected": 1,
+    "content": {
+      "schemaVersion": 1,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              { "type": "text", "text": "12" },
+              { "type": "text", "text": "," },
+              { "type": "text", "text": "345" }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "paragraph boundaries split words",
+    "expected": 2,
+    "content": {
+      "schemaVersion": 1,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [{ "type": "text", "text": "hel" }]
+          },
+          { "type": "paragraph", "content": [{ "type": "text", "text": "lo" }] }
+        ]
+      }
+    }
+  },
+  {
+    "name": "hard breaks split words",
+    "expected": 2,
+    "content": {
+      "schemaVersion": 1,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              { "type": "text", "text": "one" },
+              { "type": "hardBreak" },
+              { "type": "text", "text": "two" }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "headings and nested lists exclude numeric markers",
+    "expected": 5,
+    "content": {
+      "schemaVersion": 1,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "heading",
+            "attrs": { "level": 2 },
+            "content": [{ "type": "text", "text": "Heading words" }]
+          },
+          {
+            "type": "orderedList",
+            "attrs": { "start": 123 },
+            "content": [
+              {
+                "type": "listItem",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [{ "type": "text", "text": "first entry" }]
+                  },
+                  {
+                    "type": "bulletList",
+                    "content": [
+                      {
+                        "type": "listItem",
+                        "content": [
+                          {
+                            "type": "paragraph",
+                            "content": [{ "type": "text", "text": "nested" }]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "connectors cannot cross paragraphs",
+    "expected": 2,
+    "content": {
+      "schemaVersion": 1,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [{ "type": "text", "text": "one'" }]
+          },
+          {
+            "type": "paragraph",
+            "content": [{ "type": "text", "text": "two" }]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "empty headings and list items",
+    "expected": 0,
+    "content": {
+      "schemaVersion": 1,
+      "document": {
+        "type": "doc",
+        "content": [
+          { "type": "heading", "attrs": { "level": 6 } },
+          {
+            "type": "bulletList",
+            "content": [
+              { "type": "listItem", "content": [{ "type": "paragraph" }] }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "nested block boundaries",
+    "expected": 3,
+    "content": {
+      "schemaVersion": 1,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [{ "type": "text", "text": "top" }]
+          },
+          {
+            "type": "bulletList",
+            "content": [
+              {
+                "type": "listItem",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [{ "type": "text", "text": "entry" }]
+                  },
+                  { "type": "paragraph" },
+                  {
+                    "type": "heading",
+                    "attrs": { "level": 1 },
+                    "content": [{ "type": "text", "text": "tail" }]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+]

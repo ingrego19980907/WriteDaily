@@ -1,5 +1,11 @@
 # Decision log
 
+## 2026-10-26 - Word counting (3.7)
+
+Use a documented custom Unicode 17.0.0 L/N/M policy and one pinned generated category table for TypeScript and Rust, avoiding runtime Unicode-version differences and new dependencies. Keep apostrophes/hyphens inside words, numeric period/comma separators, combining marks and block boundaries deterministic. Count contiguous scripts without spaces as runs; do not claim linguistic dictionary segmentation. Retain the source hash, offline generator and Unicode license. See [WORD_COUNTING.md](WORD_COUNTING.md).
+
+Compute native counts with content in the existing revision-checked transaction; never accept client counts. Display current edits separately from committed counts, updating the latter only after native success. Preserve legacy NULL until explicit save instead of adding read-side mutations or an automatic backfill. Reject inconsistent known counts without repair; a future policy change must plan existing-count compatibility. Book aggregation remains 4.1 and autosave remains 3.8.
+
 ## 2026-10-26 - Chapter navigation (3.6)
 
 Keep chapter navigation in the existing editor dialog, using ordered book-scoped summaries and ID-based selection/previous/next controls. Flush dirty content through the established revision-checked save before reading the target; skip writes for clean documents. This is an explicit transition save, not timed autosave. Serialize transitions and lock editing while saving/loading to prevent overlapping writes or mixed chapter responses.

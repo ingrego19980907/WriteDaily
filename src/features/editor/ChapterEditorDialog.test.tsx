@@ -15,6 +15,7 @@ import { protectWritingClose } from '../../services/writing-close'
 import { ChapterEditorDialog } from './ChapterEditorDialog'
 import type { Chapter, ChapterSummary } from './chapter'
 import { createEmptyChapterContent } from './chapter-content'
+import { countChapterWords } from './word-count'
 
 vi.mock('../../services/chapters', () => ({
   getChapter: vi.fn(),
@@ -421,4 +422,71 @@ test('a late dismissed read cannot replace a freshly reopened chapter', async ()
   await screen.findByRole('textbox')
   await act(async () => stale(chapter))
   expect(screen.getByRole('textbox')).toHaveTextContent('Second chapter text')
+})
+
+test('live counts include Unicode words while formatting does not split or add words', async () => {
+  mount()
+  const { editor } = await open()
+  const counts = within(screen.getByRole('group', { name: copy.wordCounts }))
+  expect(counts.getByText(copy.currentWords('0'))).toBeVisible()
+  expect(counts.getByText(copy.savedWordsUnknown)).toBeVisible()
+  act(() => {
+    editor.commands.insertContent({
+      type: 'text',
+      text: "п'ять foo-bar 12,500.75 😀 é",
+    })
+  })
+  expect(counts.getByText(copy.currentWords('4'))).toBeVisible()
+  act(() => {
+    editor.commands.setTextSelection({ from: 1, to: 3 })
+    editor.commands.toggleBold()
+    editor.commands.toggleItalic()
+  })
+  expect(counts.getByText(copy.currentWords('4'))).toBeVisible()
+  expect(saveChapterContent).not.toHaveBeenCalled()
+})
+
+test('saved word count changes only after the corresponding native commit', async () => {
+  const loaded = {
+    ...chapter,
+    wordCount: 2,
+    content: {
+      schemaVersion: 1,
+      document: {
+        type: 'doc',
+        content: [
+          {
+            type: 'paragraph',
+            content: [{ type: 'text', text: 'saved words' }],
+          },
+        ],
+      },
+    },
+  } as Chapter
+  vi.mocked(getChapter).mockResolvedValue(loaded)
+  let commit!: (chapter: Chapter) => void
+  vi.mocked(saveChapterContent).mockReturnValue(
+    new Promise((resolve) => {
+      commit = resolve
+    }),
+  )
+  mount()
+  const { user, editor } = await open()
+  const counts = within(screen.getByRole('group', { name: copy.wordCounts }))
+  expect(counts.getByText(copy.savedWords('2'))).toBeVisible()
+  act(() => {
+    editor.commands.insertContentAt(editor.state.doc.content.size - 1, {
+      type: 'text',
+      text: ' more',
+    })
+  })
+  expect(counts.getByText(copy.currentWords('3'))).toBeVisible()
+  await user.click(screen.getByRole('button', { name: copy.save }))
+  expect(counts.getByText(copy.savedWords('2'))).toBeVisible()
+  const content = vi.mocked(saveChapterContent).mock.calls[0][2].content
+  expect(countChapterWords(content)).toBe(3)
+  await act(async () =>
+    commit({ ...loaded, content, revision: 5, wordCount: 3 }),
+  )
+  expect(counts.getByText(copy.savedWords('3'))).toBeVisible()
 })

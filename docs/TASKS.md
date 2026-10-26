@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Tasks 3.1–3.6 (chapter model/repository/management/editor/toolbar/navigation) are complete; awaiting approval before 3.7 (word counting). Progress is explicitly unknown until actual word counts are available; no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Tasks 3.1–3.7 (chapter model/repository/management/editor/toolbar/navigation/counting) are complete; awaiting approval before 3.8 (autosave). Library progress is explicitly unknown until book aggregation (4.1); no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -61,7 +61,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [x]  | 3.4  | Integrate Tiptap              | Completed (2026-10-25) | 3.3          | Rich text edits and serialization work                                        |
 | [x]  | 3.5  | Add formatting toolbar        | Completed (2026-10-26) | 3.4          | Bold, italic, headings, lists and undo/redo work                              |
 | [x]  | 3.6  | Implement chapter navigation  | Completed (2026-10-26) | 3.5          | Pending edits preserved when switching chapters                               |
-| [ ]  | 3.7  | Implement word counting       | Not started            | 3.6          | Documented counting policy passes Unicode and empty-content tests             |
+| [x]  | 3.7  | Implement word counting       | Completed (2026-10-26) | 3.6          | Documented counting policy passes Unicode and empty-content tests             |
 | [ ]  | 3.8  | Implement autosave            | Not started            | 3.7          | Serialized debounced writes and retry behavior pass failure checks            |
 | [ ]  | 3.9  | Implement save status         | Not started            | 3.8          | Saved appears only after successful commit; errors remain visible             |
 | [ ]  | 3.10 | Add focus mode                | Not started            | 3.9          | Focus mode can be entered and exited by keyboard                              |
@@ -133,6 +133,13 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [ ]  | 8.10 | Tag version 1.0.0           | Not started | 8.9          | Release gates pass and explicit authorization obtained before Git mutation |
 
 ## Historical verification evidence
+
+## Verification evidence: 3.7
+
+- Added shared pinned Unicode 17.0.0 L/N/M data, its complete license and hash-checked offline generator. Pure TypeScript and Rust counters implement the documented apostrophe/hyphen/number/combining-mark/block policy without altering writing. See [WORD_COUNTING.md](WORD_COUNTING.md) for rules and language-segmentation limits.
+- ManuscriptEditor shows live and last committed counts separately; pending/failed saves cannot advance the saved count. Native content saves derive count atomically with body/revision. Rename/reorder preserve counts; legacy NULL stays unknown until explicit content save. Inconsistent known stored counts fail without repair. No dependency, schema migration, automatic backfill, book aggregation or autosave added.
+- Verified 357 Vitest tests, 59 native tests using disposable databases, lint, format:check, typecheck, build and Cargo fmt/Clippy. Shared fixtures cover 40 text and 10 structured-document cases; persistence checks include reopen, empty saves, stale revisions and deferred-commit rollback.
+- Full Edge run passed 68/69; the final test attempted a disabled list conversion on a heading. Corrected the test to return to Paragraph first; all six word-count tests then passed. All 69 scenarios are covered across these runs, including axe/200% reflow at 320/640/1100px. Browser IPC is test-only; no actual native GUI/restart, real-library mutation or manual screen-reader claim. Next: 3.8, awaiting approval.
 
 ## Verification evidence: 3.6
 

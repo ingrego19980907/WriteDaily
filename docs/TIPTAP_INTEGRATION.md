@@ -1,6 +1,6 @@
 # Tiptap integration (3.4)
 
-Implemented on 2026-10-25, extended with formatting and chapter navigation on 2026-10-26. Open a book, create a chapter, choose **Edit chapter text**, write/format, then choose **Save chapter text** or switch chapters. Ordinary editing uses manual saving; chapter navigation saves dirty text before leaving. Word counts, timed autosave and its status UI remain tasks 3.7 onward.
+Implemented on 2026-10-25, extended with formatting and chapter navigation on 2026-10-26. Open a book, create a chapter, choose **Edit chapter text**, write/format, then choose **Save chapter text** or switch chapters. Ordinary editing uses manual saving; chapter navigation saves dirty text before leaving. Word counting is implemented in 3.7; timed autosave and its status UI remain tasks 3.8 onward. See [word counting](WORD_COUNTING.md) for the Unicode policy, live/committed distinction and verification.
 
 ## Chapter navigation (3.6)
 
@@ -40,7 +40,7 @@ Every document-changing transaction is checked against the existing byte/node/de
 
 ## Manual persistence and close handling
 
-ManuscriptEditor retains the loaded chapter revision and submits only validated content through saveChapterContent. It freezes editing while the write is pending, prevents repeated submits/closing, and advances the revision from the committed response. Success appears only after that response. The chapter row receives the new revision so later rename/delete calls stay current. Content writes continue to invalidate word_count to null until task 3.7.
+ManuscriptEditor retains the loaded chapter revision and submits only validated content through saveChapterContent. It freezes editing while the write is pending, prevents repeated submits/closing, and advances the revision from the committed response. Success appears only after that response. The chapter row receives the new revision so later rename/delete calls stay current. As of 3.7, native content writes compute word_count atomically with content/revision; the editor keeps current and committed values distinct. Legacy NULL counts remain unknown until the next explicit content save.
 
 Persistence errors retain the editor text for retry. Conflict/missing/invalid-stored-data errors retain text and block stale saves; no force overwrite, automatic merge or replacement with a fresh document occurs. The user can copy retained text, then explicitly discard and reopen when necessary. There is no automatic recovery/rebase workflow yet.
 

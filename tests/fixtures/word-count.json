@@ -1,0 +1,138 @@
+[
+  { "name": "empty", "text": "", "expected": 0 },
+  { "name": "whitespace", "text": " \t\n\r\u00a0\u3000", "expected": 0 },
+  { "name": "punctuation and emoji", "text": "... — ! 🙂 👩‍💻", "expected": 0 },
+  { "name": "English", "text": "Hello, world!", "expected": 2 },
+  {
+    "name": "Ukrainian",
+    "text": "Ми пишемо українською щодня.",
+    "expected": 4
+  },
+  {
+    "name": "apostrophe variants",
+    "text": "п'ять п’ять пʼять п‘ять",
+    "expected": 4
+  },
+  {
+    "name": "quotes and standalone connectors",
+    "text": "'word' ‘word’ ʼ - ‐ ‑",
+    "expected": 2
+  },
+  {
+    "name": "internal hyphen variants",
+    "text": "будь-який по‐українськи науково‑технічний",
+    "expected": 3
+  },
+  {
+    "name": "en and em dashes separate",
+    "text": "слово—слово слово–слово",
+    "expected": 4
+  },
+  {
+    "name": "repeated connectors separate",
+    "text": "one--two one''two",
+    "expected": 4
+  },
+  {
+    "name": "numbers and decimal groups",
+    "text": "123 0 12,500.75 3.14 -42",
+    "expected": 5
+  },
+  {
+    "name": "punctuation is not always numeric",
+    "text": "one,two 12.a a.12 1..2",
+    "expected": 8
+  },
+  {
+    "name": "mixed letters and digits",
+    "text": "COVID-19 abc123 3D",
+    "expected": 3
+  },
+  { "name": "Unicode number categories", "text": "١٢٣ ४५६ Ⅻ ²", "expected": 4 },
+  {
+    "name": "combining and precomposed accents",
+    "text": "café naïve é",
+    "expected": 3
+  },
+  {
+    "name": "standalone combining marks",
+    "text": "\u0301 \u0345 \u093f",
+    "expected": 0
+  },
+  { "name": "Indic letters and marks", "text": "हिन्दी भाषा", "expected": 2 },
+  { "name": "Arabic with marks", "text": "العَرَبِيَّة لغة", "expected": 2 },
+  { "name": "Persian nonjoiner", "text": "می‌روم", "expected": 1 },
+  { "name": "zero width joiner", "text": "ab‍cd", "expected": 1 },
+  {
+    "name": "discretionary soft hyphen",
+    "text": "co\u00adoperate",
+    "expected": 1
+  },
+  {
+    "name": "zero width space separates",
+    "text": "one\u200btwo",
+    "expected": 2
+  },
+  {
+    "name": "line breaks and tabs",
+    "text": "one\ntwo\tthree\r\nfour",
+    "expected": 4
+  },
+  {
+    "name": "Unicode spaces and BOM",
+    "text": "one\u00a0two\u202fthree\u3000four\ufefffive",
+    "expected": 5
+  },
+  { "name": "emoji do not count", "text": "👩‍💻 works 👍🏽 today", "expected": 2 },
+  { "name": "CJK contiguous runs", "text": "你好世界 日本語", "expected": 2 },
+  { "name": "Thai contiguous run", "text": "ภาษาไทย", "expected": 1 },
+  { "name": "literal markup is writing", "text": "<tag> &amp;", "expected": 2 },
+  {
+    "name": "underscores hashtags addresses",
+    "text": "one_two #tag @name email@example.com",
+    "expected": 7
+  },
+  {
+    "name": "URLs are not special",
+    "text": "https://example.com/path",
+    "expected": 4
+  },
+  {
+    "name": "astral and Unicode 17 letters",
+    "text": "𐐀𐐨 \ud807\uddb0 \ud839\udec0",
+    "expected": 3
+  },
+  { "name": "hyphenated date", "text": "2026-10-26", "expected": 1 },
+  {
+    "name": "fractions percentages colon",
+    "text": ".5 1/2 10% 12:30",
+    "expected": 6
+  },
+  {
+    "name": "ellipsis separates",
+    "text": "word…word word...word",
+    "expected": 4
+  },
+  {
+    "name": "marks at internal connectors",
+    "text": "é-mail re'́entry",
+    "expected": 3
+  },
+  {
+    "name": "controls and line separator",
+    "text": "one\u0000two\u0085three\u2028four",
+    "expected": 4
+  },
+  {
+    "name": "numeric separators require number sides",
+    "text": "3,14 12,345 12.34 12.letters",
+    "expected": 5
+  },
+  { "name": "symbols are not words", "text": "© ™ € + = 😀", "expected": 0 },
+  { "name": "Indic conjunct joiner", "text": "क्‍ष", "expected": 1 },
+  {
+    "name": "multiple internal apostrophes",
+    "text": "rock'n'roll l’esprit O’Neill",
+    "expected": 3
+  }
+]

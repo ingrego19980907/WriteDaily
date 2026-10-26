@@ -138,7 +138,7 @@ fn crud_preserves_unicode_writing_counts_and_parent_across_reopen() {
         serde_json::to_value(&saved.content).unwrap()["document"]["content"][0]["content"][0]["text"],
         text
     );
-    assert_eq!(saved.summary.word_count, None);
+    assert_eq!(saved.summary.word_count, Some(3));
     let renamed = repository
         .rename(&parent.id, &saved.summary.id, 2, details("Renamed"))
         .unwrap();

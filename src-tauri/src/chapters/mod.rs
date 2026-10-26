@@ -1,5 +1,6 @@
 mod content;
 mod repository;
+mod word_count;
 pub use content::ChapterContent;
 pub use repository::ChapterRepository;
 use serde::{Deserialize, Serialize};
@@ -57,3 +58,5 @@ pub enum ChapterError {
 
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod word_count_tests;
