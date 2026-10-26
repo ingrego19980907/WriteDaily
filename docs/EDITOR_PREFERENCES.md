@@ -1,5 +1,7 @@
 # Editor preferences (3.11)
 
+Task 3.12 follow-up: real native process restarts now verify saved 24/32 px preferences alongside rich manuscript content and interrupted-write recovery. See [EDITOR_PERSISTENCE_REVIEW.md](EDITOR_PERSISTENCE_REVIEW.md). The verification limits below describe the earlier 3.11 run.
+
 Open a chapter and expand **Editor settings**. Choose **Manuscript text size** (every integer from 12 through 32 px) and choose **Save editor settings**. Default size is 18 px. The selected draft is not a live preview: the new size applies only after native persistence commits, with a separate settings success message. An unchanged value needs no write. The setting is global across books/chapters and loaded again whenever the editor dialog is opened.
 
 Only manuscript presentation changes. The editor uses size/16 rem for its writing font so root text enlargement is respected (32 px becomes 64 CSS px at 200% root text size). Application controls, chapter titles and saved Tiptap JSON are unchanged. Changing size does not remount Tiptap, move its document selection, reset undo history, dirty the manuscript, increment a chapter revision or trigger a content save. Focus mode inherits the size and hides its controls along with other distractions. Editor font family, language, autosave delay and persistent focus-mode choice are outside 3.11.

@@ -1,5 +1,7 @@
 # Data model
 
+Desktop verification (3.12): exact chapter content/formatting/count/revision and global font preferences survived real native process restarts and an interrupted active SQLite transaction on schema v4. Integrity/FK checks passed and a later write/restart succeeded. Recovery restores the last commit; unsaved memory-only drafts remain non-durable. No schema/data model or production implementation changed in this verification task. See [EDITOR_PERSISTENCE_REVIEW.md](EDITOR_PERSISTENCE_REVIEW.md).
+
 Editor preferences (3.11): production schema v4 adds global editor_preferences through append-only migration 004. STRICT singleton id=1 stores schema_version=1, integer font_size 12–32 (default 18) and independent positive safe-integer revision. Native get/save_editor_preferences validate the snapshot, reject stale revisions and commit updates atomically. It has no book foreign key, survives book deletion and never updates chapter JSON/count/revision. Missing/corrupt settings are rejected without repair or default writes. See [EDITOR_PREFERENCES.md](EDITOR_PREFERENCES.md).
 
 ## Chapter contract (3.1)

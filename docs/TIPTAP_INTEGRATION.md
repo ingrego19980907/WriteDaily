@@ -1,5 +1,7 @@
 # Tiptap integration (3.4)
 
+Task 3.12 verifies the real embedded Tauri editor across six process launches: exact rich JSON/Unicode/count/revision and font preferences survive restarts, rapid chapter navigation flushes safely, native dirty close is refused, and an interrupted SQLite transaction restores the last commit. Memory-only drafts remain non-durable. See [EDITOR_PERSISTENCE_REVIEW.md](EDITOR_PERSISTENCE_REVIEW.md); earlier task-specific test limits below remain historical evidence.
+
 Editor preferences (3.11) add native global font-size persistence independent of the document. A committed 12–32 px preference is applied only through manuscript CSS (in rem); editor JSON/selection/history/dirty state are preserved. The settings panel and content writer combine pending locks for navigation/mutation/close safety. See [EDITOR_PREFERENCES.md](EDITOR_PREFERENCES.md).
 
 Focus mode (3.10) expands this same dialog and hides navigation/formatting/count distractions without remounting the editor or replacing document/selection/history. Save status/errors/manual saving and existing autosave/close guards stay available. Enter/exit use the header toggle; first Escape exits visual mode and restores toggle focus. See [FOCUS_MODE.md](FOCUS_MODE.md) for keyboard behavior, session reset and verification.

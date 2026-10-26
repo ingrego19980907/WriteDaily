@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Tasks 3.1–3.11 (chapter model/repository/management/editor/toolbar/navigation/counting/autosave/status/focus mode/preferences) are complete; awaiting approval before 3.12 (desktop editor persistence/recovery checks). Library progress is explicitly unknown until book aggregation (4.1); no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Milestone 3 (tasks 3.1–3.12) is complete for the current editor and commit-based recovery; awaiting approval before 4.1 (book word-count aggregation). Library progress is explicitly unknown until book aggregation (4.1); no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -66,7 +66,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [x]  | 3.9  | Implement save status         | Completed (2026-10-26) | 3.8          | Saved appears only after successful commit; errors remain visible             |
 | [x]  | 3.10 | Add focus mode                | Completed (2026-10-26) | 3.9          | Focus mode can be entered and exited by keyboard                              |
 | [x]  | 3.11 | Add editor preferences        | Completed (2026-10-26) | 3.10         | Font size persists within validated limits                                    |
-| [ ]  | 3.12 | Test persistence and recovery | Not started            | 3.11         | Formatting, rapid navigation, interrupted saves and restart recovery verified |
+| [x]  | 3.12 | Test persistence and recovery | Completed (2026-10-26) | 3.11         | Formatting, rapid navigation, interrupted saves and restart recovery verified |
 
 ## Milestone 4: Goals & Deadlines
 
@@ -133,6 +133,13 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [ ]  | 8.10 | Tag version 1.0.0           | Not started | 8.9          | Release gates pass and explicit authorization obtained before Git mutation |
 
 ## Historical verification evidence
+
+## Verification evidence: 3.12
+
+- Added test:desktop:editor and a real WebView2 editor scenario reusing the isolated native runner. The common harness validates the private schema before UI writes; forced termination is restricted to its owned copied executable. Real UI writes and native reads verify formatting/Unicode/content/counts/revisions, duplicate-title rapid navigation, autosave, preferences/focus, dirty native-close refusal and restart retention.
+- Observed six visible native launches (five process restarts) in `.cache/desktop-restart/run-w0yHYW/report.json`: passed=true, restoredDefaultBuild=true, command exit 0. Both forced-stop cases preserve the last committed rows; a private SQL trigger and writer-lock probe establish interruption of an active native transaction, followed by real Tauri startup recovery and a successful new save/restart. Inspected native/pending-write screenshots. No real-library access/reset, new dependency, production code or migration change.
+- Verified 401 Vitest and 66 Rust tests, lint, formatting, strict typecheck, Cargo fmt/Clippy and isolated/default native debug builds. Prior 94 Edge tests from 3.11 were not repeated because production UI/layout is unchanged. [EDITOR_PERSISTENCE_REVIEW.md](EDITOR_PERSISTENCE_REVIEW.md) records evidence, reproduction and limits.
+- Milestone 3 acceptance is verified for commit-based recovery. The deliberately interrupted memory-only draft was lost: there is no durable draft journal and no zero-loss crash/power-loss promise. This known boundary is documented rather than presented as automatic draft recovery. Next: 4.1, awaiting approval.
 
 ## Verification evidence: 3.11
 

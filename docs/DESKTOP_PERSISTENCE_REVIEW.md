@@ -1,5 +1,7 @@
 # Desktop persistence review (2.12)
 
+Task 3.12 follow-up: the separate `npm.cmd run test:desktop:editor` scenario now verifies actual chapter/editor/preferences persistence and commit-based crash recovery across six native launches on schema v4. See [EDITOR_PERSISTENCE_REVIEW.md](EDITOR_PERSISTENCE_REVIEW.md). The book/cover observations below remain the historical 2.12 run; that original scenario was not repeated in 3.12.
+
 Later compatibility update (3.11): the reusable restart runner now expects schema v4 after chapter migration 003 and editor-preferences migration 004. It was not rerun in 3.11; the observations/results below describe the actual schema-v2 run from 2.12 and establish no chapter/editor restart verification.
 
 Verified on Windows on 2026-10-25 using the real Tauri debug executable, embedded production frontend at `http://tauri.localhost/`, WebView2 and SQLite/filesystem persistence. This is separate from the Edge tests that use mock IPC fixtures. Milestone 2's desktop-restart gate is satisfied for current book metadata and covers; chapter editing/counting remains later work.

@@ -1,5 +1,11 @@
 # Decision log
 
+## 2026-10-26 - Desktop editor recovery verification (3.12)
+
+Verify the actual embedded Tauri UI/native SQLite path with isolated app directories and six process launches. Keep the existing book/cover runner and reuse its build/window/close machinery; verify the private DB marker/version before writes. Restrict forced termination to the owned copied child. Use a private SQL trigger and writer-lock probe to establish an active interrupted transaction without adding production hooks or mutating real data. Restore the ordinary debug build afterward.
+
+Record the observed durability contract precisely: confirmed commits survive restarts/interrupted writes; uncommitted memory-only edits do not. No new draft journal is introduced by a verification task, and no automatic crash-draft restore/zero-loss guarantee is claimed. This establishes Milestone 3 acceptance for commit-based recovery with the loss window explicit. Any durable journal would require additional persistence/recovery design. See [EDITOR_PERSISTENCE_REVIEW.md](EDITOR_PERSISTENCE_REVIEW.md).
+
 ## 2026-10-26 - Editor preferences (3.11)
 
 Persist one global manuscript-size setting in the existing native SQLite database through append-only migration 004, instead of browser storage or text-formatting attributes. Use integer bounds 12–32 px, default 18, a versioned singleton and independent safe revision. Reject invalid/stale/missing snapshots without repair; commit before applying or announcing success. Keep all existing migration SQL unchanged and preserve writing across upgrades.

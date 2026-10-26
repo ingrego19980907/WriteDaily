@@ -1,5 +1,7 @@
 # Chapter model, repository and editor (3.1–3.4)
 
+Task 3.12 now verifies actual desktop chapter restart/recovery alongside the earlier disposable-database tests: exact rich content/count/revision survives normal restart and active-write interruption; subsequent saves succeed. This is last-commit recovery, not durable restoration of unsaved in-memory drafts. See [EDITOR_PERSISTENCE_REVIEW.md](EDITOR_PERSISTENCE_REVIEW.md).
+
 Implemented: readonly TypeScript contracts and pure metadata/content validation under src/features/editor, native chapter repository/validation under src-tauri/src/chapters, migration 003, registered Tauri commands and src/services/chapters.ts. Task 3.3 connects selected-book chapter management UI for creation, renaming and confirmed deletion. Task 3.4 integrates Tiptap 3.32.0 with manual content saving and close protection; word counting is implemented in 3.7; autosave is implemented in 3.8. See [Tiptap integration](TIPTAP_INTEGRATION.md).
 
 ## Ownership and snapshots

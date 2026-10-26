@@ -26,6 +26,7 @@ assert.equal(
   'This desktop test requires Windows/WebView2.',
 )
 const root = fileURLToPath(new URL('../../', import.meta.url))
+const editorMode = process.argv.includes('--editor')
 const baseConfig = path.join(root, 'src-tauri/tauri.conf.json')
 const originalConfig = await readFile(baseConfig, 'utf8')
 assert.equal(JSON.parse(originalConfig).identifier, 'app.writedaily.desktop')
@@ -159,6 +160,8 @@ async function launch(stage: string): Promise<Page> {
   const window = JSON.parse(nativeWindow())
   assert.equal(window.visible, true)
   assert.equal(window.title, 'WriteDaily')
+  // Prove the directory override before any UI writes, including an empty library.
+  rows()
   report.stages.push({ stage, processId: app.pid, window, url: page.url() })
   console.log(`Desktop stage: ${stage}; PID ${app.pid}`)
   return page
@@ -180,6 +183,29 @@ async function close() {
       timeout.abort()
     }
   }
+  await browser?.close().catch(() => {})
+  browser = undefined
+  app = undefined
+}
+async function forceStop(reason: string) {
+  assert(editorMode, 'Forced termination is confined to the editor fault test.')
+  assert(app && app.exitCode === null)
+  assert.equal(app.spawnfile, executable)
+  assert.equal(path.dirname(executable), run)
+  const owned = app
+  const exited = once(owned, 'exit')
+  assert(
+    owned.kill('SIGKILL'),
+    'Could not terminate the owned isolated test process.',
+  )
+  const result = await exited
+  report.stages.push({
+    stage: 'forced-stop',
+    reason,
+    processId: owned.pid,
+    exitCode: result[0],
+    signal: result[1],
+  })
   await browser?.close().catch(() => {})
   browser = undefined
   app = undefined
@@ -288,162 +314,190 @@ try {
     path.join(root, 'src-tauri/target/debug/write-daily.exe'),
     executable,
   )
-  const title = 'Перезапуск — моя історія'
-  const editedTitle = 'Перезапуск — оновлена історія'
-  const source = path.join(run, 'source-cover.png')
-  const movedSource = path.join(run, 'source-renamed.png')
-  await copyFile(path.join(root, 'src-tauri/icons/32x32.png'), source)
-  let page = await launch('1-create-edit-import')
-  await expect(
-    page.getByText('No books yet. Create your first story.'),
-  ).toBeVisible()
-  await create(page, title, true)
-  await create(page, title)
-  const created = await books(page)
-  assert.equal(created.length, 2)
-  assert.notEqual(created[0].id, created[1].id)
-  const selected = created.find((book) => book.targetWordCount === 60000)!
-  const duplicate = created.find((book) => book.id !== selected.id)!
-  const selectedCard = page
-    .getByRole('article')
-    .filter({ has: page.getByText('Target: 60,000 words', { exact: true }) })
-  await selectedCard
-    .getByRole('button', { name: 'Edit book', exact: true })
-    .click()
-  await page.getByLabel('Title', { exact: true }).fill(editedTitle)
-  await page.getByLabel('Target word count (optional)').fill('84000')
-  await page.getByLabel('Daily word goal (optional)').fill('900')
-  await page.getByLabel('Deadline (optional)').fill('2027-06-15')
-  await page.getByRole('button', { name: 'Save changes', exact: true }).click()
-  await expect(page.getByRole('dialog')).toHaveCount(0)
-  await card(page, editedTitle)
-    .getByText('Manage cover', { exact: true })
-    .click()
-  await card(page, editedTitle)
-    .getByLabel('Cover image')
-    .setInputFiles({
-      name: 'invalid.png',
-      mimeType: 'image/png',
-      buffer: Buffer.from('not an image'),
+  if (editorMode) {
+    const { verifyEditorRestart } = await import('./editor-restart.ts')
+    await verifyEditorRestart({
+      run,
+      databasePath,
+      launch,
+      close,
+      forceStop,
+      nativeWindow,
+      report,
     })
-  await card(page, editedTitle)
-    .getByRole('button', { name: 'Save cover', exact: true })
-    .click()
-  await expect(card(page, editedTitle).getByRole('alert')).toContainText(
-    'valid PNG',
-  )
-  assert.equal(
-    (await books(page)).find((book) => book.id === selected.id)?.coverPath,
-    null,
-  )
-  await cover(page, editedTitle, source)
-  const first = await snapshot(page, 'first')
-  const persisted = first.find((book) => book.id === selected.id)!
-  assert.equal(persisted.dailyWordGoal, 900)
-  assert.equal(persisted.deadline, '2027-06-15')
-  assert.equal(persisted.createdAt, selected.createdAt)
-  assert(persisted.coverPath)
-  const firstCoverPath = path.join(dataRoot, 'development', persisted.coverPath)
-  const firstHash = createHash('sha256')
-    .update(await readFile(firstCoverPath))
-    .digest('hex')
-  await rename(source, movedSource)
-  await close()
-  assert.equal(rows().length, 2)
-
-  page = await launch('2-reopen-replace-delete-duplicate')
-  await expect(
-    card(page, editedTitle).getByRole('img', { name: 'Book cover' }),
-  ).toBeVisible()
-  assert.deepEqual(
-    (await books(page)).sort((a, b) => a.id.localeCompare(b.id)),
-    [...first].sort((a, b) => a.id.localeCompare(b.id)),
-  )
-  assert.equal(
-    createHash('sha256')
+  } else {
+    const title = 'Перезапуск — моя історія'
+    const editedTitle = 'Перезапуск — оновлена історія'
+    const source = path.join(run, 'source-cover.png')
+    const movedSource = path.join(run, 'source-renamed.png')
+    await copyFile(path.join(root, 'src-tauri/icons/32x32.png'), source)
+    let page = await launch('1-create-edit-import')
+    await expect(
+      page.getByText('No books yet. Create your first story.'),
+    ).toBeVisible()
+    await create(page, title, true)
+    await create(page, title)
+    const created = await books(page)
+    assert.equal(created.length, 2)
+    assert.notEqual(created[0].id, created[1].id)
+    const selected = created.find((book) => book.targetWordCount === 60000)!
+    const duplicate = created.find((book) => book.id !== selected.id)!
+    const selectedCard = page
+      .getByRole('article')
+      .filter({ has: page.getByText('Target: 60,000 words', { exact: true }) })
+    await selectedCard
+      .getByRole('button', { name: 'Edit book', exact: true })
+      .click()
+    await page.getByLabel('Title', { exact: true }).fill(editedTitle)
+    await page.getByLabel('Target word count (optional)').fill('84000')
+    await page.getByLabel('Daily word goal (optional)').fill('900')
+    await page.getByLabel('Deadline (optional)').fill('2027-06-15')
+    await page
+      .getByRole('button', { name: 'Save changes', exact: true })
+      .click()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+    await card(page, editedTitle)
+      .getByText('Manage cover', { exact: true })
+      .click()
+    await card(page, editedTitle)
+      .getByLabel('Cover image')
+      .setInputFiles({
+        name: 'invalid.png',
+        mimeType: 'image/png',
+        buffer: Buffer.from('not an image'),
+      })
+    await card(page, editedTitle)
+      .getByRole('button', { name: 'Save cover', exact: true })
+      .click()
+    await expect(card(page, editedTitle).getByRole('alert')).toContainText(
+      'valid PNG',
+    )
+    assert.equal(
+      (await books(page)).find((book) => book.id === selected.id)?.coverPath,
+      null,
+    )
+    await cover(page, editedTitle, source)
+    const first = await snapshot(page, 'first')
+    const persisted = first.find((book) => book.id === selected.id)!
+    assert.equal(persisted.dailyWordGoal, 900)
+    assert.equal(persisted.deadline, '2027-06-15')
+    assert.equal(persisted.createdAt, selected.createdAt)
+    assert(persisted.coverPath)
+    const firstCoverPath = path.join(
+      dataRoot,
+      'development',
+      persisted.coverPath,
+    )
+    const firstHash = createHash('sha256')
       .update(await readFile(firstCoverPath))
-      .digest('hex'),
-    firstHash,
-  )
-  await card(page, editedTitle)
-    .getByRole('button', { name: 'Open book', exact: true })
-    .click()
-  await expect(
-    page.getByRole('region', { name: editedTitle, exact: true }),
-  ).toContainText('Target: 84,000 words')
-  await page.getByRole('button', { name: 'Back to library' }).click()
-  await card(page, editedTitle)
-    .getByRole('button', { name: 'Edit book', exact: true })
-    .click()
-  await page.getByLabel('Daily word goal (optional)').fill('1000')
-  await page.getByRole('button', { name: 'Save changes', exact: true }).click()
-  await expect(page.getByRole('dialog')).toHaveCount(0)
-  assert.equal(
-    (await books(page)).find((book) => book.id === selected.id)?.coverPath,
-    persisted.coverPath,
-  )
-  await cover(page, editedTitle, movedSource)
-  const replaced = (await books(page)).find((book) => book.id === selected.id)!
-  assert.notEqual(replaced.coverPath, persisted.coverPath)
-  assert(
-    !(await readdir(path.dirname(firstCoverPath))).includes(
-      path.basename(firstCoverPath),
-    ),
-  )
-  await card(page, title)
-    .getByRole('button', { name: 'Delete book', exact: true })
-    .click()
-  await page.getByRole('button', { name: 'Cancel', exact: true }).click()
-  assert((await books(page)).some((book) => book.id === duplicate.id))
-  await removeBook(page, title)
-  const second = await snapshot(page, 'second')
-  await close()
-  assert.equal(rows().length, 1)
+      .digest('hex')
+    await rename(source, movedSource)
+    await close()
+    assert.equal(rows().length, 2)
 
-  page = await launch('3-reopen-remove-cover')
-  assert.deepEqual(await books(page), second)
-  assert.equal(second[0].dailyWordGoal, 1000)
-  await expect(
-    card(page, editedTitle).getByRole('img', { name: 'Book cover' }),
-  ).toBeVisible()
-  await card(page, editedTitle)
-    .getByText('Manage cover', { exact: true })
-    .click()
-  await card(page, editedTitle)
-    .getByRole('button', { name: 'Remove cover', exact: true })
-    .click()
-  await expect(
-    card(page, editedTitle).getByText('Cover removed.', { exact: true }),
-  ).toBeVisible()
-  const third = await snapshot(page, 'third')
-  assert.equal(third[0].coverPath, null)
-  await close()
-  assert.equal(rows()[0].cover_path, null)
+    page = await launch('2-reopen-replace-delete-duplicate')
+    await expect(
+      card(page, editedTitle).getByRole('img', { name: 'Book cover' }),
+    ).toBeVisible()
+    assert.deepEqual(
+      (await books(page)).sort((a, b) => a.id.localeCompare(b.id)),
+      [...first].sort((a, b) => a.id.localeCompare(b.id)),
+    )
+    assert.equal(
+      createHash('sha256')
+        .update(await readFile(firstCoverPath))
+        .digest('hex'),
+      firstHash,
+    )
+    await card(page, editedTitle)
+      .getByRole('button', { name: 'Open book', exact: true })
+      .click()
+    await expect(
+      page.getByRole('region', { name: editedTitle, exact: true }),
+    ).toContainText('Target: 84,000 words')
+    await page.getByRole('button', { name: 'Back to library' }).click()
+    await card(page, editedTitle)
+      .getByRole('button', { name: 'Edit book', exact: true })
+      .click()
+    await page.getByLabel('Daily word goal (optional)').fill('1000')
+    await page
+      .getByRole('button', { name: 'Save changes', exact: true })
+      .click()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+    assert.equal(
+      (await books(page)).find((book) => book.id === selected.id)?.coverPath,
+      persisted.coverPath,
+    )
+    await cover(page, editedTitle, movedSource)
+    const replaced = (await books(page)).find(
+      (book) => book.id === selected.id,
+    )!
+    assert.notEqual(replaced.coverPath, persisted.coverPath)
+    assert(
+      !(await readdir(path.dirname(firstCoverPath))).includes(
+        path.basename(firstCoverPath),
+      ),
+    )
+    await card(page, title)
+      .getByRole('button', { name: 'Delete book', exact: true })
+      .click()
+    await page.getByRole('button', { name: 'Cancel', exact: true }).click()
+    assert((await books(page)).some((book) => book.id === duplicate.id))
+    await removeBook(page, title)
+    const second = await snapshot(page, 'second')
+    await close()
+    assert.equal(rows().length, 1)
 
-  page = await launch('4-reopen-delete-covered-book')
-  assert.deepEqual(await books(page), third)
-  await expect(
-    card(page, editedTitle).getByText('No cover yet', { exact: true }),
-  ).toBeVisible()
-  await cover(page, editedTitle, movedSource)
-  await removeBook(page, editedTitle)
-  await snapshot(page, 'fourth')
-  await close()
-  assert.equal(rows().length, 0)
+    page = await launch('3-reopen-remove-cover')
+    assert.deepEqual(await books(page), second)
+    assert.equal(second[0].dailyWordGoal, 1000)
+    await expect(
+      card(page, editedTitle).getByRole('img', { name: 'Book cover' }),
+    ).toBeVisible()
+    await card(page, editedTitle)
+      .getByText('Manage cover', { exact: true })
+      .click()
+    await card(page, editedTitle)
+      .getByRole('button', { name: 'Remove cover', exact: true })
+      .click()
+    await expect(
+      card(page, editedTitle).getByText('Cover removed.', { exact: true }),
+    ).toBeVisible()
+    const third = await snapshot(page, 'third')
+    assert.equal(third[0].coverPath, null)
+    await close()
+    assert.equal(rows()[0].cover_path, null)
 
-  page = await launch('5-confirm-empty-after-restart')
-  await expect(
-    page.getByText('No books yet. Create your first story.'),
-  ).toBeVisible()
-  assert.deepEqual(await books(page), [])
-  assert.deepEqual(await readdir(path.join(dataRoot, 'development/covers')), [])
-  await snapshot(page, 'fifth')
-  await close()
-  assert.equal(rows().length, 0)
+    page = await launch('4-reopen-delete-covered-book')
+    assert.deepEqual(await books(page), third)
+    await expect(
+      card(page, editedTitle).getByText('No cover yet', { exact: true }),
+    ).toBeVisible()
+    await cover(page, editedTitle, movedSource)
+    await removeBook(page, editedTitle)
+    await snapshot(page, 'fourth')
+    await close()
+    assert.equal(rows().length, 0)
+
+    page = await launch('5-confirm-empty-after-restart')
+    await expect(
+      page.getByText('No books yet. Create your first story.'),
+    ).toBeVisible()
+    assert.deepEqual(await books(page), [])
+    assert.deepEqual(
+      await readdir(path.join(dataRoot, 'development/covers')),
+      [],
+    )
+    await snapshot(page, 'fifth')
+    await close()
+    assert.equal(rows().length, 0)
+  }
   assert.equal(await readFile(baseConfig, 'utf8'), originalConfig)
   report.passed = true
   console.log(
-    'Real desktop restart persistence: PASS (five native process launches).',
+    editorMode
+      ? 'Real desktop editor recovery: PASS (six native process launches).'
+      : 'Real desktop restart persistence: PASS (five native process launches).',
   )
 } catch (error) {
   report.error = error instanceof Error ? error.stack : String(error)
@@ -455,6 +509,8 @@ try {
   } catch (error) {
     console.error('Graceful close failed:', error)
     process.exitCode = 1
+    if (editorMode && app?.exitCode === null)
+      await forceStop('failure-cleanup').catch(console.error)
   }
   // Leave the ordinary debug executable/config context restored, never pointing at test storage.
   try {

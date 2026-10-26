@@ -1,5 +1,7 @@
 # Architecture
 
+Desktop editor recovery (3.12): test:desktop:editor drives the real embedded Tauri app across six isolated process launches. Exact persisted/editor snapshots survive normal restarts, rapid navigation and an interrupted active SQLite transaction; normal close protects dirty writing. Recovery restores the last successful commit, not unsaved in-memory drafts. No recovery journal or production hook was added. Private SQL fault injection and owned-child termination live only in the desktop test harness. See [EDITOR_PERSISTENCE_REVIEW.md](EDITOR_PERSISTENCE_REVIEW.md).
+
 Editor preferences (3.11): pure editor-preferences.ts validates global font size/snapshots; a narrow service calls get/save_editor_preferences; EditorPreferencesPanel owns load/draft/commit feedback. ChapterEditorDialog applies only committed sizes through a rem-based manuscript CSS variable and combines preference/content pending refs for navigation/mutation/close locks. Rust editor_preferences owns strict singleton reads and revision-checked IMMEDIATE updates, adapted through preference_commands. Append-only migration 004 advances SQLite to v4 without changing manuscript rows. No dependency/native capability change. See [EDITOR_PREFERENCES.md](EDITOR_PREFERENCES.md).
 
 Focus mode (3.10): ChapterEditorDialog owns a session-local layout flag and pressed header toggle. Modal's optional fullscreen/header-action/Escape props expand the same dialog; ManuscriptEditor hides distractions without remounting Tiptap or changing autosave/revision state. First Escape restores the normal layout and button focus; normal Close still uses existing dirty/pending guards. Header actions remain available during writes and are locked during chapter transitions. No native/dependency/persistence change. See [FOCUS_MODE.md](FOCUS_MODE.md).
@@ -75,9 +77,9 @@ docs/                  product, architecture, decisions and task tracking
 
 Reserved directories contain only `.gitkeep` markers so Git retains the approved structure. They contain no working features, placeholder services or mock persistence. Add implementations during their approved tasks; avoid empty abstractions. UI invokes typed services; services cross a narrow Tauri boundary; persistence owns validation, migrations, transactions and managed file access. Components never issue raw SQL or arbitrary filesystem calls. Decide exact Rust command/plugin boundaries before task 2.2; only the existing main-window core capability is granted; no persistence plugin permissions are configured.
 
-## Reliability proposal (verify in milestone 3)
+## Reliability contract (verified in 3.12)
 
-Debounce chapter saves by 2 seconds after edits (implemented in 3.8); serialize writes per chapter, attach revisions, and atomically persist content and word count. Activity tracking is not implemented and remains milestone 5. Status transitions: unsaved → saving → saved only after successful commit; errors remain visible with retry and retained text. Flush pending work on chapter navigation. Closing must wait for pending saves or show a recoverable failure decision, never silently discard text. Preserve last committed revision on interruption; assess a durable recovery journal for edits still inside the debounce window during recovery acceptance in 3.12. Do not promise zero-loss recovery until tested.
+Debounce chapter saves by 2 seconds after edits (implemented in 3.8); serialize writes per chapter, attach revisions, and atomically persist content and word count. Activity tracking is not implemented and remains milestone 5. Status transitions: unsaved → saving → saved only after successful commit; errors remain visible with retry and retained text. Flush pending work on chapter navigation. Closing must wait for pending saves or show a recoverable failure decision, never silently discard text. Last committed body/count/revision recovery after forced transaction interruption is verified in 3.12. Edits still only in memory before commit are non-durable and were lost in the explicit interruption test. No durable recovery journal or zero-loss crash/power-loss guarantee is implemented.
 
 ## Cross-platform and localization
 
@@ -113,7 +115,7 @@ npm 11.19.1 is the declared package manager; package-lock.json and src-tauri/Car
 
 Tauri identifies the application as app.writedaily.desktop, version 0.0.0 (matching npm and Cargo manifests). The main window defaults to 1100 by 760, minimum 640 by 480. Dev hooks use npm run dev at http://127.0.0.1:5173; build hooks use npm run build and embed ../dist relative to src-tauri. Bundling is configured but installer creation/testing is not verified. Scaffold icons are temporary. Windows GUI startup and React rendering were visually verified in task 0.9; no production-ready or macOS validation is claimed.
 
-This document distinguishes installed foundation tooling from proposed product architecture. Database schema, native persistence API, autosave recovery journal, precise streak rules and restore transaction strategy must be finalized and tested in their respective tasks.
+This document distinguishes installed foundation tooling from proposed product architecture. Implemented schema/native persistence and commit-based editor recovery are verified in their task records. A durable draft journal is not implemented; precise streak rules and backup/restore transaction strategy remain their respective tasks.
 
 ## Colors and typography (1.1)
 
