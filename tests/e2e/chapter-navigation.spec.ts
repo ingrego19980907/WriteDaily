@@ -1,3 +1,4 @@
+import { startWriting, previewChapter } from './editor-mode'
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test, type Page } from '@playwright/test'
 import type { Editor } from '@tiptap/core'
@@ -12,7 +13,7 @@ async function open(page: Page, scenario = '') {
     .first()
     .click()
   const field = page.getByRole('textbox', { name: 'Chapter manuscript' })
-  await expect(field).toHaveAttribute('contenteditable', 'true')
+  await expect(field).toHaveAttribute('contenteditable', 'false')
   return {
     field,
     choose: page.getByRole('combobox', { name: 'Choose chapter' }),
@@ -29,23 +30,28 @@ for (const width of [320, 640, 1100]) {
       page.getByRole('button', { name: 'Previous chapter' }),
     ).toBeDisabled()
     await expect(choose).toHaveValue(first)
+    await startWriting(page)
     await field.fill('First chapter Україна é')
     await field.press('Control+a')
     await field.press('Control+b')
+    await previewChapter(page)
     await page.getByRole('button', { name: 'Next chapter' }).click()
     await expect(choose).toHaveValue(second)
-    await expect(field).toHaveAttribute('contenteditable', 'true')
+    await expect(field).toHaveAttribute('contenteditable', 'false')
     await expect(field).toHaveText('')
     await expect(
       page.getByRole('button', { name: 'Next chapter' }),
     ).toBeDisabled()
+    await startWriting(page)
     await field.fill('Second chapter writing')
+    await previewChapter(page)
     await page.getByRole('button', { name: 'Previous chapter' }).click()
     await expect(choose).toHaveValue(first)
     await expect(field.locator('strong')).toHaveText('First chapter Україна é')
     await expect(
       page.getByRole('dialog').getByRole('heading', { level: 3 }),
     ).toBeFocused()
+    await previewChapter(page)
     await choose.selectOption(second)
     await expect(field).toHaveText('Second chapter writing')
     expect(
@@ -85,7 +91,9 @@ test('navigation waits for a pending commit before reading or enabling the targe
   page,
 }) => {
   const { field, choose } = await open(page, 'editor-pending')
+  await startWriting(page)
   await field.fill('Await this commit')
+  await previewChapter(page)
   await page.getByRole('button', { name: 'Next chapter' }).click()
   await expect(choose).toBeDisabled()
   await expect(field).toHaveAttribute('contenteditable', 'false')
@@ -102,6 +110,7 @@ test('navigation waits for a pending commit before reading or enabling the targe
     (window as unknown as { completeTestSave: () => void }).completeTestSave(),
   )
   await expect(choose).toHaveValue(second)
+  await previewChapter(page)
   await page.getByRole('button', { name: 'Previous chapter' }).click()
   await expect(field).toHaveText('Await this commit')
 })
@@ -110,7 +119,9 @@ test('failed navigation save retains writing and retries without an empty target
   page,
 }) => {
   const { field, choose } = await open(page, 'editor-failure')
+  await startWriting(page)
   await field.fill('Retry this writing')
+  await previewChapter(page)
   await page.getByRole('button', { name: 'Next chapter' }).click()
   await expect(page.getByRole('alert')).toContainText('Could not save')
   await expect(choose).toHaveValue(first)
@@ -122,8 +133,10 @@ test('failed navigation save retains writing and retries without an empty target
       ).testChapterReads(),
     ),
   ).toEqual([first])
+  await previewChapter(page)
   await page.getByRole('button', { name: 'Next chapter' }).click()
   await expect(choose).toHaveValue(second)
+  await previewChapter(page)
   await page.getByRole('button', { name: 'Previous chapter' }).click()
   await expect(field).toHaveText('Retry this writing')
 })
@@ -132,7 +145,9 @@ test('conflict cancels navigation and retains the original editor document (test
   page,
 }) => {
   const { field, choose } = await open(page, 'editor-conflict')
+  await startWriting(page)
   await field.fill('Do not overwrite my draft')
+  await previewChapter(page)
   await choose.selectOption(second)
   await expect(page.getByRole('alert')).toContainText('changed elsewhere')
   await expect(choose).toHaveValue(first)
@@ -150,13 +165,15 @@ test('target read failure keeps current content and retry does not resave commit
   page,
 }) => {
   const { field, choose } = await open(page, 'navigation-failure')
+  await startWriting(page)
   await field.fill('Committed before target failure')
+  await previewChapter(page)
   await page.getByRole('button', { name: 'Next chapter' }).click()
   await expect(page.getByRole('alert')).toContainText(
     'Could not open the selected chapter',
   )
   await expect(field).toHaveText('Committed before target failure')
-  await expect(field).toHaveAttribute('contenteditable', 'true')
+  await expect(field).toHaveAttribute('contenteditable', 'false')
   await page.getByRole('button', { name: 'Retry opening chapter' }).click()
   await expect(choose).toHaveValue(second)
   expect(
@@ -175,6 +192,7 @@ test('rapid next clicks are serialized and a slow read cannot mix documents (tes
   const original = await field.evaluate((element) =>
     (element as HTMLElement & { editor: Editor }).editor.getJSON(),
   )
+  await previewChapter(page)
   await page.getByRole('button', { name: 'Next chapter' }).dblclick()
   await expect(choose).toBeDisabled()
   await expect(field).toHaveAttribute('contenteditable', 'false')
@@ -204,6 +222,7 @@ test('unsupported target content does not replace the current chapter (test IPC)
   const original = await field.evaluate((element) =>
     (element as HTMLElement & { editor: Editor }).editor.getJSON(),
   )
+  await previewChapter(page)
   await choose.selectOption(second)
   await expect(page.getByRole('alert')).toContainText('cannot be safely opened')
   await expect(choose).toHaveValue(first)

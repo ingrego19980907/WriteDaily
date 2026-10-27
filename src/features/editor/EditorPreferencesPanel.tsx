@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { en } from '../../app/i18n/en'
 import { Button } from '../../components/ui/Button'
 import {
@@ -8,6 +9,7 @@ import {
 import {
   DEFAULT_FONT_SIZE,
   FONT_SIZES,
+  isFontSize,
   type EditorPreferences,
 } from './editor-preferences'
 import { chapterErrorCode } from './chapter-errors'
@@ -18,7 +20,11 @@ export function EditorPreferencesPanel({
   onFontSize,
   onPending,
   disabled,
+  controlsTarget,
+  compact = false,
 }: {
+  controlsTarget?: HTMLElement | null
+  compact?: boolean
   onFontSize: (fontSize: number) => void
   onPending: (pending: boolean) => void
   disabled: boolean
@@ -64,14 +70,14 @@ export function EditorPreferencesPanel({
     }
   }, [load])
 
-  async function save() {
+  async function save(next = draft) {
     if (
       !snapshot ||
       pending.current ||
       disabled ||
       loading ||
       blocked ||
-      draft === snapshot.fontSize
+      next === snapshot.fontSize
     )
       return
     const token = ++request.current
@@ -80,7 +86,7 @@ export function EditorPreferencesPanel({
     setSaved(false)
     onPending(true)
     try {
-      const result = await saveEditorPreferences(draft, snapshot.revision)
+      const result = await saveEditorPreferences(next, snapshot.revision)
       if (token !== request.current) return
       setSnapshot(result)
       setDraft(result.fontSize)
@@ -111,64 +117,123 @@ export function EditorPreferencesPanel({
     }
   }
 
+  function changeSize(next: number) {
+    if (pending.current || disabled || loading || blocked || !isFontSize(next))
+      return
+    setDraft(next)
+    setSaved(false)
+    if (compact) void save(next)
+  }
+
+  const controls = snapshot ? (
+    <form
+      className={compact ? 'editor-font-controls' : 'space-y-3'}
+      onSubmit={(event) => {
+        event.preventDefault()
+        void save()
+      }}
+    >
+      <label
+        htmlFor={sizeId}
+        className={compact ? 'sr-only' : 'block font-semibold'}
+      >
+        {copy.fontSize}
+      </label>
+      {compact && (
+        <Button
+          variant="ghost"
+          aria-label={copy.decrease}
+          title={copy.decrease}
+          disabled={disabled || saving || loading || blocked || draft <= 12}
+          onClick={() => {
+            changeSize(Math.max(12, draft - 1))
+          }}
+        >
+          −
+        </Button>
+      )}
+      <select
+        id={sizeId}
+        className={
+          compact ? 'input editor-font-select' : 'input w-full min-w-0'
+        }
+        value={draft}
+        aria-describedby={hintId}
+        disabled={disabled || saving || loading || blocked}
+        onChange={(event) => {
+          changeSize(Number(event.target.value))
+        }}
+      >
+        {FONT_SIZES.map((size) => (
+          <option key={size} value={size}>
+            {compact ? size : copy.size(size)}
+          </option>
+        ))}
+      </select>
+      {compact && (
+        <Button
+          variant="ghost"
+          aria-label={copy.increase}
+          title={copy.increase}
+          disabled={disabled || saving || loading || blocked || draft >= 32}
+          onClick={() => {
+            changeSize(Math.min(32, draft + 1))
+          }}
+        >
+          +
+        </Button>
+      )}
+      {!compact && (
+        <Button
+          aria-label={saving ? copy.saving : copy.save}
+          title={copy.save}
+          type="submit"
+          disabled={
+            disabled ||
+            saving ||
+            loading ||
+            blocked ||
+            draft === snapshot.fontSize
+          }
+        >
+          {saving ? copy.saving : copy.save}
+        </Button>
+      )}
+    </form>
+  ) : null
   return (
     <div className="min-w-0 space-y-2">
-      <details className="rounded-lg border border-secondary p-3">
-        <summary className="cursor-pointer font-semibold">{copy.title}</summary>
-        <div className="mt-3 space-y-3">
-          <p id={hintId} className="text-secondary">
-            {copy.hint}
-          </p>
-          {snapshot && (
-            <form
-              className="space-y-3"
-              onSubmit={(event) => {
-                event.preventDefault()
-                void save()
-              }}
-            >
-              <label htmlFor={sizeId} className="block font-semibold">
-                {copy.fontSize}
-              </label>
-              <select
-                id={sizeId}
-                className="input w-full min-w-0"
-                value={draft}
-                aria-describedby={hintId}
-                disabled={disabled || saving || loading || blocked}
-                onChange={(event) => {
-                  setDraft(Number(event.target.value))
-                  setSaved(false)
-                }}
-              >
-                {FONT_SIZES.map((size) => (
-                  <option key={size} value={size}>
-                    {copy.size(size)}
-                  </option>
-                ))}
-              </select>
-              <Button
-                type="submit"
-                disabled={
-                  disabled ||
-                  saving ||
-                  loading ||
-                  blocked ||
-                  draft === snapshot.fontSize
-                }
-              >
-                {saving ? copy.saving : copy.save}
-              </Button>
-            </form>
-          )}
-        </div>
-      </details>
+      {compact ? (
+        controlsTarget ? (
+          createPortal(
+            <div className="editor-font-settings">
+              <span id={hintId} className="sr-only">
+                {compact ? copy.autoHint : copy.hint}
+              </span>
+              {controls}
+            </div>,
+            controlsTarget,
+          )
+        ) : null
+      ) : (
+        <details className="rounded-lg border border-secondary p-3">
+          <summary className="cursor-pointer font-semibold">
+            {copy.title}
+          </summary>
+          <div className="mt-3 space-y-3">
+            <p id={hintId} className="text-secondary">
+              {compact ? copy.autoHint : copy.hint}
+            </p>
+            {controls}
+          </div>
+        </details>
+      )}
       <p role="status" aria-label={copy.status} aria-atomic="true">
         {loading
           ? copy.loading
           : saving
             ? copy.saving
-            : saved
+            : saved && !compact
               ? copy.saved
               : ''}
       </p>
@@ -177,6 +242,17 @@ export function EditorPreferencesPanel({
           <p role="alert" className="text-error">
             {failure}
           </p>
+          {compact && snapshot && !blocked && (
+            <Button
+              variant="secondary"
+              disabled={disabled || saving || loading}
+              onClick={() => {
+                void save()
+              }}
+            >
+              {copy.retry}
+            </Button>
+          )}
           <Button
             variant="secondary"
             disabled={disabled || saving || loading}

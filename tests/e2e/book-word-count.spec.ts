@@ -1,3 +1,4 @@
+import { startWriting, previewChapter } from './editor-mode'
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
 
@@ -17,19 +18,22 @@ for (const width of [320, 640, 1100]) {
       .getByRole('button', { name: 'Edit chapter text', exact: true })
       .last()
       .click()
+    await startWriting(page)
     const field = page.getByRole('textbox', { name: 'Chapter manuscript' })
     await field.fill('one two')
     await page
       .getByRole('button', { name: 'Save chapter text', exact: true })
       .click()
-    await expect(
-      page.getByRole('group', { name: 'Word count', exact: true }),
-    ).toContainText('2 saved words')
+    await expect(page.locator('.manuscript-counts')).toContainText(
+      '2 saved words',
+    )
     // The other legacy chapter is still unknown: never present a partial sum.
     await expect(total).toHaveText('Word count unavailable')
+    await previewChapter(page)
     await page
       .getByRole('button', { name: 'Previous chapter', exact: true })
       .click()
+    await startWriting(page)
     await field.fill('alpha beta gamma')
     await page
       .getByRole('button', { name: 'Save chapter text', exact: true })
@@ -124,6 +128,7 @@ for (const scenario of ['book-count-pending', 'book-count-failure']) {
       .getByRole('button', { name: 'Edit chapter text', exact: true })
       .last()
       .click()
+    await startWriting(page)
     await page
       .getByRole('textbox', { name: 'Chapter manuscript' })
       .fill('one two')

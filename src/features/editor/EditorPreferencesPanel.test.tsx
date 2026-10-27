@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, expect, test, vi } from 'vitest'
+import { useState } from 'react'
 import { en } from '../../app/i18n/en'
 import {
   getEditorPreferences,
@@ -157,4 +158,98 @@ test('external manuscript/navigation lock rejects form submission', async () => 
   )
   fireEvent.submit(field.closest('form')!)
   expect(saveEditorPreferences).not.toHaveBeenCalled()
+})
+
+function CompactHarness({
+  onFontSize,
+  onPending,
+}: {
+  onFontSize: (size: number) => void
+  onPending: (pending: boolean) => void
+}) {
+  const [target, setTarget] = useState<HTMLDivElement | null>(null)
+  return (
+    <>
+      <div ref={setTarget} />
+      <EditorPreferencesPanel
+        compact
+        controlsTarget={target}
+        onFontSize={onFontSize}
+        onPending={onPending}
+        disabled={false}
+      />
+    </>
+  )
+}
+
+test('compact controls save each accepted action automatically without a save button or success message', async () => {
+  const user = userEvent.setup()
+  const onFontSize = vi.fn()
+  vi.mocked(saveEditorPreferences).mockImplementation(
+    async (fontSize, revision) => ({
+      schemaVersion: 1,
+      fontSize,
+      revision: revision + 1,
+    }),
+  )
+  render(<CompactHarness onFontSize={onFontSize} onPending={vi.fn()} />)
+  const field = await screen.findByRole('combobox', { name: copy.fontSize })
+  expect(
+    screen.queryByRole('button', { name: copy.save }),
+  ).not.toBeInTheDocument()
+  await user.click(screen.getByRole('button', { name: copy.increase }))
+  await waitFor(() => expect(onFontSize).toHaveBeenLastCalledWith(19))
+  expect(saveEditorPreferences).toHaveBeenLastCalledWith(19, 1)
+  await user.click(screen.getByRole('button', { name: copy.decrease }))
+  await waitFor(() => expect(onFontSize).toHaveBeenLastCalledWith(18))
+  expect(saveEditorPreferences).toHaveBeenLastCalledWith(18, 2)
+  await user.selectOptions(field, '24')
+  await waitFor(() => expect(onFontSize).toHaveBeenLastCalledWith(24))
+  expect(saveEditorPreferences).toHaveBeenLastCalledWith(24, 3)
+  expect(saveEditorPreferences).toHaveBeenCalledTimes(3)
+  expect(screen.queryByText(copy.saved)).not.toBeInTheDocument()
+})
+
+test('compact automatic saving applies only committed settings and rejects overlapping changes', async () => {
+  let resolve!: (value: EditorPreferences) => void
+  vi.mocked(saveEditorPreferences).mockReturnValue(
+    new Promise((done) => {
+      resolve = done
+    }),
+  )
+  const onFontSize = vi.fn()
+  const onPending = vi.fn()
+  const user = userEvent.setup()
+  render(<CompactHarness onFontSize={onFontSize} onPending={onPending} />)
+  const field = await screen.findByRole('combobox', { name: copy.fontSize })
+  await user.selectOptions(field, '32')
+  expect(saveEditorPreferences).toHaveBeenCalledExactlyOnceWith(32, 1)
+  expect(field).toBeDisabled()
+  expect(onFontSize).toHaveBeenLastCalledWith(18)
+  expect(onPending).toHaveBeenLastCalledWith(true)
+  fireEvent.change(field, { target: { value: '20' } })
+  expect(saveEditorPreferences).toHaveBeenCalledTimes(1)
+  await act(async () => resolve({ ...initial, fontSize: 32, revision: 2 }))
+  expect(onFontSize).toHaveBeenLastCalledWith(32)
+  expect(field).toHaveValue('32')
+  expect(onPending).toHaveBeenLastCalledWith(false)
+  expect(screen.queryByText(copy.saved)).not.toBeInTheDocument()
+})
+
+test('compact auto-save failure retains the selection for an explicit safe retry', async () => {
+  vi.mocked(saveEditorPreferences)
+    .mockRejectedValueOnce({ code: 'persistence' })
+    .mockResolvedValueOnce({ ...initial, fontSize: 24, revision: 2 })
+  const user = userEvent.setup()
+  const onFontSize = vi.fn()
+  render(<CompactHarness onFontSize={onFontSize} onPending={vi.fn()} />)
+  const field = await screen.findByRole('combobox', { name: copy.fontSize })
+  await user.selectOptions(field, '24')
+  expect(await screen.findByRole('alert')).toHaveTextContent(copy.failure)
+  expect(onFontSize).toHaveBeenLastCalledWith(18)
+  expect(field).toHaveValue('24')
+  await user.click(screen.getByRole('button', { name: copy.retry }))
+  await waitFor(() => expect(onFontSize).toHaveBeenLastCalledWith(24))
+  expect(saveEditorPreferences).toHaveBeenLastCalledWith(24, 1)
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
 })

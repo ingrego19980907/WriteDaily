@@ -1,3 +1,4 @@
+import { startWriting } from './editor-mode'
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test, type Page } from '@playwright/test'
 
@@ -8,6 +9,7 @@ async function open(page: Page, scenario = '') {
     .getByRole('button', { name: 'Edit chapter text', exact: true })
     .last()
     .click()
+  await startWriting(page)
   const field = page.getByRole('textbox', { name: 'Chapter manuscript' })
   await expect(field).toHaveAttribute('contenteditable', 'true')
   await page.clock.install({ time: new Date('2026-10-26T10:00:00Z') })
@@ -47,6 +49,7 @@ for (const width of [320, 640, 1100]) {
       .getByRole('button', { name: 'Edit chapter text', exact: true })
       .last()
       .click()
+    await startWriting(page)
     await expect(status).toHaveText('No unsaved changes.')
     await expect(field).toHaveText('new draft')
     await page.clock.resume()

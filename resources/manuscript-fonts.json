@@ -1,0 +1,82 @@
+[
+  {
+    "name": "Arial",
+    "fallback": "sans-serif"
+  },
+  {
+    "name": "Bahnschrift",
+    "fallback": "sans-serif"
+  },
+  {
+    "name": "Calibri",
+    "fallback": "sans-serif"
+  },
+  {
+    "name": "Cambria",
+    "fallback": "serif"
+  },
+  {
+    "name": "Candara",
+    "fallback": "sans-serif"
+  },
+  {
+    "name": "Consolas",
+    "fallback": "monospace"
+  },
+  {
+    "name": "Constantia",
+    "fallback": "serif"
+  },
+  {
+    "name": "Corbel",
+    "fallback": "sans-serif"
+  },
+  {
+    "name": "Courier New",
+    "fallback": "monospace"
+  },
+  {
+    "name": "Georgia",
+    "fallback": "serif"
+  },
+  {
+    "name": "Lucida Console",
+    "fallback": "monospace"
+  },
+  {
+    "name": "Lucida Sans Unicode",
+    "fallback": "sans-serif"
+  },
+  {
+    "name": "Palatino Linotype",
+    "fallback": "serif"
+  },
+  {
+    "name": "Segoe UI",
+    "fallback": "sans-serif"
+  },
+  {
+    "name": "Segoe Print",
+    "fallback": "cursive"
+  },
+  {
+    "name": "Segoe Script",
+    "fallback": "cursive"
+  },
+  {
+    "name": "Tahoma",
+    "fallback": "sans-serif"
+  },
+  {
+    "name": "Times New Roman",
+    "fallback": "serif"
+  },
+  {
+    "name": "Trebuchet MS",
+    "fallback": "sans-serif"
+  },
+  {
+    "name": "Verdana",
+    "fallback": "sans-serif"
+  }
+]

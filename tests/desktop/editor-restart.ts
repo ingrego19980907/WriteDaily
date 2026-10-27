@@ -75,11 +75,24 @@ async function openBook(page: Page, title: string) {
     page.getByRole('heading', { name: 'Chapters', exact: true }),
   ).toBeVisible()
 }
+async function startWriting(page: Page) {
+  const start = page.getByRole('button', { name: 'Start writing', exact: true })
+  if (await start.count()) await start.click()
+  await expect(field(page)).toHaveAttribute('contenteditable', 'true')
+}
+async function previewChapter(page: Page) {
+  const exit = page.getByRole('button', {
+    name: 'Exit focus mode',
+    exact: true,
+  })
+  if (await exit.count()) await exit.click()
+}
 async function openChapter(page: Page, index = 0) {
   await page
     .getByRole('button', { name: 'Edit chapter text', exact: true })
     .nth(index)
     .click()
+  await startWriting(page)
   await expect(field(page)).toHaveAttribute('contenteditable', 'true')
 }
 async function pauseDebounce(page: Page) {
@@ -183,11 +196,11 @@ export async function verifyEditorRestart(h: Harness) {
   const toolbar = page.getByRole('toolbar', { name: 'Text formatting' })
   await toolbar.getByRole('button', { name: 'Bold', exact: true }).click()
   await toolbar.getByRole('button', { name: 'Italic', exact: true }).click()
-  await toolbar.getByRole('button', { name: 'Heading 2', exact: true }).click()
+  await toolbar.getByRole('button', { name: 'H2', exact: true }).click()
   await append(page, '')
   await field(page).press('Enter')
   const paragraph = toolbar.getByRole('button', {
-    name: 'Paragraph',
+    name: 'H2',
     exact: true,
   })
   if ((await paragraph.getAttribute('aria-pressed')) !== 'true')
@@ -212,14 +225,14 @@ export async function verifyEditorRestart(h: Harness) {
   )
   await expect(field(page).locator('ol li')).toHaveCount(2)
   await expect(field(page).locator('ul li')).toHaveCount(1)
-  await page.getByText('Editor settings', { exact: true }).click()
+  await field(page).press('Control+a')
   await page
     .getByRole('combobox', { name: 'Manuscript text size' })
     .selectOption('24')
-  await page
-    .getByRole('button', { name: 'Save editor settings', exact: true })
-    .click()
-  await expect(field(page)).toHaveCSS('font-size', '24px')
+  await manualSave(page)
+  await expect(
+    field(page).locator('span[data-font-size="24"]').first(),
+  ).toHaveCSS('font-size', '24px')
   let expectedUi = await editorJson(page)
   const firstSnapshot = await capture(page, 'editor-first', bookId)
   assert.equal(firstSnapshot.documents[0].wordCount, 14)
@@ -229,20 +242,22 @@ export async function verifyEditorRestart(h: Harness) {
   page = await h.launch('editor-2-restore-navigation-native-close')
   await openBook(page, title)
   await openChapter(page)
-  await expect(field(page)).toHaveCSS('font-size', '24px')
+  await expect(
+    field(page).locator('span[data-font-size="24"]').first(),
+  ).toHaveCSS('font-size', '24px')
   assert.deepEqual(await editorJson(page), expectedUi)
   assert.deepEqual(
     await invoke<Chapter>(page, 'get_chapter', { bookId, id: first.id }),
     firstSnapshot.documents[0],
   )
   assert.deepEqual(rows(), firstRows)
-  await page
-    .getByRole('button', { name: 'Enter focus mode', exact: true })
-    .click()
-  await expect(field(page)).toHaveCSS('font-size', '24px')
-  await field(page).press('Escape')
+  await startWriting(page)
+  await expect(
+    field(page).locator('span[data-font-size="24"]').first(),
+  ).toHaveCSS('font-size', '24px')
   await append(page, ' rapid')
   const rapidUi = await editorJson(page)
+  await previewChapter(page)
   await page
     .getByRole('button', { name: 'Next chapter', exact: true })
     .evaluate((element) => {
@@ -252,7 +267,7 @@ export async function verifyEditorRestart(h: Harness) {
   await expect(
     page.getByRole('combobox', { name: 'Choose chapter' }),
   ).toHaveValue(second.id)
-  await expect(field(page)).toHaveAttribute('contenteditable', 'true')
+  await startWriting(page)
   const flushed = await invoke<Chapter>(page, 'get_chapter', {
     bookId,
     id: first.id,
@@ -266,6 +281,7 @@ export async function verifyEditorRestart(h: Harness) {
     id: second.id,
   })
   assert.equal(savedSecond.wordCount, 4)
+  await previewChapter(page)
   await page
     .getByRole('button', { name: 'Previous chapter', exact: true })
     .evaluate((element) => {
@@ -275,7 +291,7 @@ export async function verifyEditorRestart(h: Harness) {
   await expect(
     page.getByRole('combobox', { name: 'Choose chapter' }),
   ).toHaveValue(first.id)
-  await expect(field(page)).toHaveAttribute('contenteditable', 'true')
+  await startWriting(page)
   assert.deepEqual(await editorJson(page), rapidUi)
   await pauseDebounce(page)
   await append(page, ' unsaved close')
@@ -294,7 +310,9 @@ export async function verifyEditorRestart(h: Harness) {
   page = await h.launch('editor-3-uncommitted-memory-interruption')
   await openBook(page, title)
   await openChapter(page)
-  await expect(field(page)).toHaveCSS('font-size', '24px')
+  await expect(
+    field(page).locator('span[data-font-size="24"]').first(),
+  ).toHaveCSS('font-size', '24px')
   assert.deepEqual(await editorJson(page), expectedUi)
   await pauseDebounce(page)
   await append(page, ' IN_MEMORY_ONLY')
@@ -313,7 +331,9 @@ export async function verifyEditorRestart(h: Harness) {
   page = await h.launch('editor-4-active-sqlite-write-interruption')
   await openBook(page, title)
   await openChapter(page)
-  await expect(field(page)).toHaveCSS('font-size', '24px')
+  await expect(
+    field(page).locator('span[data-font-size="24"]').first(),
+  ).toHaveCSS('font-size', '24px')
   assert.deepEqual(await editorJson(page), expectedUi)
   await expect(field(page)).not.toContainText('IN_MEMORY_ONLY')
   const fault = database(true)
@@ -355,7 +375,9 @@ export async function verifyEditorRestart(h: Harness) {
   assert.deepEqual(rows(), committedRows)
   await openBook(page, title)
   await openChapter(page)
-  await expect(field(page)).toHaveCSS('font-size', '24px')
+  await expect(
+    field(page).locator('span[data-font-size="24"]').first(),
+  ).toHaveCSS('font-size', '24px')
   assert.deepEqual(await editorJson(page), expectedUi)
   assert.deepEqual(
     await invoke<Chapter>(page, 'get_chapter', { bookId, id: first.id }),
@@ -370,20 +392,20 @@ export async function verifyEditorRestart(h: Harness) {
   cleanup.close()
   await append(page, ' recovered')
   await manualSave(page)
-  expectedUi = await editorJson(page)
-  await page.getByText('Editor settings', { exact: true }).click()
+  await field(page).press('Control+a')
   await page
     .getByRole('combobox', { name: 'Manuscript text size' })
     .selectOption('32')
-  await page
-    .getByRole('button', { name: 'Save editor settings', exact: true })
-    .click()
-  await expect(field(page)).toHaveCSS('font-size', '32px')
+  await manualSave(page)
+  expectedUi = await editorJson(page)
+  await expect(
+    field(page).locator('span[data-font-size="32"]').first(),
+  ).toHaveCSS('font-size', '32px')
   const recovered = await capture(page, 'editor-recovered', bookId)
   assert.equal(recovered.documents[0].wordCount, 18)
   assert.equal(
     recovered.documents[0].revision,
-    committed.documents[0].revision + 1,
+    committed.documents[0].revision + 2,
   )
   await h.close()
   const recoveredRows = rows()
@@ -392,7 +414,9 @@ export async function verifyEditorRestart(h: Harness) {
   assert.deepEqual(rows(), recoveredRows)
   await openBook(page, title)
   await openChapter(page)
-  await expect(field(page)).toHaveCSS('font-size', '32px')
+  await expect(
+    field(page).locator('span[data-font-size="32"]').first(),
+  ).toHaveCSS('font-size', '32px')
   assert.deepEqual(await editorJson(page), expectedUi)
   assert.deepEqual(
     await invoke<Chapter>(page, 'get_chapter', { bookId, id: first.id }),

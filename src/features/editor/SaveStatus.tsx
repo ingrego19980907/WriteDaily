@@ -10,7 +10,13 @@ export type SaveState =
   | 'blocked'
   | 'unavailable'
 
-export function SaveStatus({ state }: { state: SaveState }) {
+export function SaveStatus({
+  state,
+  compact = false,
+}: {
+  state: SaveState
+  compact?: boolean
+}) {
   const copy = en.writing
   const labels: Record<SaveState, string> = {
     preparing: copy.savePreparing,
@@ -28,7 +34,11 @@ export function SaveStatus({ state }: { state: SaveState }) {
       aria-label={copy.saveStatus}
       aria-live="polite"
       aria-atomic="true"
-      className="min-w-0 rounded-lg border border-secondary p-3 break-words text-secondary"
+      className={
+        compact
+          ? 'manuscript-save-status'
+          : 'min-w-0 rounded-lg border border-secondary p-3 break-words text-secondary'
+      }
     >
       {labels[state]}
     </p>

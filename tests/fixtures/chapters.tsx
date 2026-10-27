@@ -61,7 +61,7 @@ const seed = validateChapterContent({
   document: {
     type: 'doc',
     content: contentCases
-      .filter((item) => item.valid)
+      .filter((item) => item.valid && item.input.schemaVersion === 1)
       .flatMap((item) => item.input.document.content),
   },
 })

@@ -42,7 +42,7 @@ Status: Foundation complete through task 0.9, including Windows development-wind
 
 ## Technology direction
 
-Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs 421 domain/component/service/editor tests and 108 Edge scenarios verified in the full browser run. Native persistence is additionally covered by 67 Rust tests. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
+Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs 446 domain/component/service/editor tests and 110 Edge scenarios verified in the full browser run. Native persistence is additionally covered by 68 Rust tests. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
 
 ## Organization
 
@@ -180,3 +180,9 @@ Public native books module supplies typed DTOs, validation and BookRepository; i
 Native validation matches frontend metadata normalization through shared JSON fixtures, and additionally checks UUIDs, full stored timestamps/order and managed cover reference shape. Serde maps camelCase DTOs and rejects unsupported input fields/types. No silent row repair/filtering. Direct repository deletion without a cleanup coordinator still refuses covered books. CoverStore uses the internal transactional deletion method that enqueues old cover paths before commit; filesystem work stays outside the repository. Future IPC wraps this blocking API, handles database lock/errors and owns user confirmation policy. Existing migration SQL is unchanged.
 
 Daily goal configuration (4.2): DailyGoal renders committed Book.dailyWordGoal on cards and editor headers. BookDetailsDialog reuses the existing metadata validation/save path with daily-specific help; blank removes the optional target. No native schema/command change or activity-derived percentage is introduced. See [DAILY_GOALS.md](DAILY_GOALS.md).
+
+ED.6 style panel: ChapterEditorDialog retains the single EditorPreferencesPanel state owner across chapters; its compact form is portalled into a stable slot above the active ManuscriptEditor. FormattingToolbar keeps Bold/Italic available in focus mode and the complete existing toolbar otherwise. Global text-size persistence and native/close guards are unchanged; no second preference service or per-selection font schema is introduced.
+
+ED.7 preference autosave: compact font controls pass the explicit next size into the existing guarded settings-save operation on change. Loading and moving the portal do not save. No queue or optimistic applied font is introduced: pending controls are disabled, commits alone apply presentation, and failed selections remain available for retry. Manuscript content saving remains independent.
+
+ED.8 supersedes global font controls: FontSizeControls operates on Tiptap selection/stored marks; ChapterEditorDialog no longer mounts the preference panel or routes its portal/pending state. Content serializer/validators support v1 and v2, with bounded inline fontSize attributes in v2 only. Save/count/revision atomicity stays native-owned. Legacy preference services/table remain retained but are not the product font-formatting path. See [INLINE_FONT_SIZE.md](INLINE_FONT_SIZE.md).

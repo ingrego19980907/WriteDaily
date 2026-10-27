@@ -19,6 +19,12 @@ enum Node {
     Doc { content: Vec<Node> },
     #[serde(rename = "paragraph")]
     Paragraph {
+        #[serde(
+            default,
+            deserialize_with = "paragraph_attrs",
+            skip_serializing_if = "Option::is_none"
+        )]
+        attrs: Option<ParagraphAttrs>,
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         content: Vec<Node>,
     },
@@ -53,6 +59,59 @@ enum Node {
 #[serde(deny_unknown_fields)]
 struct HeadingAttrs {
     level: i64,
+    #[serde(
+        rename = "textAlign",
+        default,
+        deserialize_with = "alignment_attr",
+        skip_serializing_if = "Option::is_none"
+    )]
+    text_align: Option<String>,
+}
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct ParagraphAttrs {
+    text_align: String,
+}
+fn paragraph_attrs<'de, D: serde::Deserializer<'de>>(
+    decoder: D,
+) -> Result<Option<ParagraphAttrs>, D::Error> {
+    ParagraphAttrs::deserialize(decoder).map(Some)
+}
+fn alignment_attr<'de, D: serde::Deserializer<'de>>(
+    decoder: D,
+) -> Result<Option<String>, D::Error> {
+    String::deserialize(decoder).map(Some)
+}
+fn valid_alignment(value: &str) -> bool {
+    ["left", "center", "right", "justify"].contains(&value)
+}
+fn has_unsupported_alignment(node: &Node, version: i64) -> bool {
+    match node {
+        Node::Paragraph { attrs, content } => {
+            attrs
+                .as_ref()
+                .is_some_and(|attrs| version < 4 || !valid_alignment(&attrs.text_align))
+                || content
+                    .iter()
+                    .any(|child| has_unsupported_alignment(child, version))
+        }
+        Node::Heading { attrs, content } => {
+            attrs
+                .text_align
+                .as_ref()
+                .is_some_and(|alignment| version < 4 || !valid_alignment(alignment))
+                || content
+                    .iter()
+                    .any(|child| has_unsupported_alignment(child, version))
+        }
+        Node::Doc { content }
+        | Node::BulletList { content }
+        | Node::OrderedList { content, .. }
+        | Node::ListItem { content } => content
+            .iter()
+            .any(|child| has_unsupported_alignment(child, version)),
+        _ => false,
+    }
 }
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -62,16 +121,59 @@ struct ListAttrs {
     kind: Option<String>,
 }
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct Mark {
-    #[serde(rename = "type")]
-    kind: MarkKind,
+#[serde(tag = "type", rename_all = "camelCase", deny_unknown_fields)]
+enum Mark {
+    Bold {},
+    Italic {},
+    Underline {},
+    FontSize { attrs: FontSizeAttrs },
+    FontFamily { attrs: FontFamilyAttrs },
 }
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-enum MarkKind {
-    Bold,
-    Italic,
+#[serde(deny_unknown_fields)]
+struct FontSizeAttrs {
+    size: i64,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct FontFamilyAttrs {
+    family: String,
+}
+fn valid_font_family(value: &str) -> bool {
+    #[derive(Deserialize)]
+    struct Font {
+        name: String,
+    }
+    static FONTS: std::sync::OnceLock<Vec<Font>> = std::sync::OnceLock::new();
+    FONTS
+        .get_or_init(|| {
+            serde_json::from_str(include_str!("../../../resources/manuscript-fonts.json"))
+                .expect("bundled font catalog")
+        })
+        .iter()
+        .any(|font| font.name == value)
+}
+
+fn has_unsupported_marks(node: &Node, version: i64) -> bool {
+    match node {
+        Node::Text { marks, .. } | Node::HardBreak { marks } => {
+            marks.iter().any(|mark| match mark {
+                Mark::FontSize { .. } => version < 2,
+                Mark::Underline {} => version < 3,
+                Mark::FontFamily { .. } => version < 5,
+                _ => false,
+            })
+        }
+        Node::Doc { content }
+        | Node::Paragraph { content, .. }
+        | Node::Heading { content, .. }
+        | Node::BulletList { content }
+        | Node::OrderedList { content, .. }
+        | Node::ListItem { content } => content
+            .iter()
+            .any(|child| has_unsupported_marks(child, version)),
+    }
 }
 
 impl ChapterContent {
@@ -88,7 +190,7 @@ impl ChapterContent {
                         visit(child, counter);
                     }
                 }
-                Node::Paragraph { content } | Node::Heading { content, .. } => {
+                Node::Paragraph { content, .. } | Node::Heading { content, .. } => {
                     for child in content {
                         visit(child, counter);
                     }
@@ -104,7 +206,10 @@ impl ChapterContent {
         Self {
             schema_version: 1,
             document: Node::Doc {
-                content: vec![Node::Paragraph { content: vec![] }],
+                content: vec![Node::Paragraph {
+                    attrs: None,
+                    content: vec![],
+                }],
             },
         }
     }
@@ -151,13 +256,18 @@ impl ChapterContent {
     }
 
     fn validate(&self) -> Result<(), ChapterError> {
-        if self.schema_version != 1 {
+        if !matches!(self.schema_version, 1..=5) {
             return Err(ChapterError::Validation("unsupported_version"));
         }
         if !matches!(self.document, Node::Doc { .. }) {
             return Err(ChapterError::Validation("invalid_document"));
         }
         validate_node(&self.document, "doc", 1, &mut 0)?;
+        if has_unsupported_marks(&self.document, self.schema_version)
+            || has_unsupported_alignment(&self.document, self.schema_version)
+        {
+            return Err(ChapterError::Validation("invalid_document"));
+        }
         if serde_json::to_vec(self)
             .map_err(|_| ChapterError::Validation("invalid_document"))?
             .len()
@@ -230,7 +340,7 @@ fn validate_node(
             validate_marks(marks)?;
             return Ok(());
         }
-        Node::Paragraph { content } => (content, "inline"),
+        Node::Paragraph { content, .. } => (content, "inline"),
         Node::Heading { attrs, content } => {
             if !(1..=6).contains(&attrs.level) {
                 return Err(invalid());
@@ -267,9 +377,27 @@ fn validate_node(
 }
 
 fn validate_marks(marks: &[Mark]) -> Result<(), ChapterError> {
-    if marks.len() > 2 || (marks.len() == 2 && marks[0] == marks[1]) {
-        Err(ChapterError::Validation("invalid_document"))
-    } else {
-        Ok(())
+    let invalid = || ChapterError::Validation("invalid_document");
+    if marks.len() > 5 {
+        return Err(invalid());
     }
+    for (index, mark) in marks.iter().enumerate() {
+        if marks[..index]
+            .iter()
+            .any(|previous| std::mem::discriminant(previous) == std::mem::discriminant(mark))
+        {
+            return Err(invalid());
+        }
+        if let Mark::FontFamily { attrs } = mark
+            && !valid_font_family(&attrs.family)
+        {
+            return Err(invalid());
+        }
+        if let Mark::FontSize { attrs } = mark
+            && !(12..=32).contains(&attrs.size)
+        {
+            return Err(invalid());
+        }
+    }
+    Ok(())
 }

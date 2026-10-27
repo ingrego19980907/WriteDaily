@@ -7,6 +7,7 @@ import {
   type RefObject,
   type CSSProperties,
 } from 'react'
+import { createPortal } from 'react-dom'
 import { EditorContent, useEditor } from '@tiptap/react'
 import type { JSONContent } from '@tiptap/core'
 import { en } from '../../app/i18n/en'
@@ -42,7 +43,13 @@ export function ManuscriptEditor({
   focusMode = false,
   fontSize = DEFAULT_FONT_SIZE,
   preferencesPendingRef,
+  formattingTarget,
+  footerTarget,
+  preview = false,
 }: {
+  formattingTarget?: HTMLDivElement | null
+  footerTarget?: HTMLDivElement | null
+  preview?: boolean
   chapter: Chapter
   document: JSONContent
   canCloseRef: RefObject<() => boolean>
@@ -72,10 +79,15 @@ export function ManuscriptEditor({
     countChapterWords(chapter.content),
   )
   const [savedWordCount, setSavedWordCount] = useState(chapter.wordCount)
+  const previewRef = useRef(preview)
+  useEffect(() => {
+    previewRef.current = preview
+  }, [preview])
   const dirtyRef = useRef(false)
   const savingRef = useRef(false)
   const revision = useRef(chapter.revision)
   const hintId = useId()
+  const rootRef = useRef<HTMLDivElement>(null)
   const headingRef = useRef<HTMLHeadingElement>(null)
   const [extensions] = useState(() => [
     ...chapterExtensions(),
@@ -84,7 +96,7 @@ export function ManuscriptEditor({
   const editor = useEditor({
     extensions,
     content: document,
-    editable: ready && !saving && !fatal && !navigationLocked,
+    editable: !preview && ready && !saving && !fatal && !navigationLocked,
     immediatelyRender: false,
     shouldRerenderOnTransaction: false,
     enableContentCheck: true,
@@ -92,12 +104,26 @@ export function ManuscriptEditor({
     editorProps: {
       attributes: {
         role: 'textbox',
+        tabindex: '0',
         'aria-label': copy.label,
         'aria-multiline': 'true',
+        'aria-readonly': preview ? 'true' : 'false',
         'aria-describedby': hintId,
         spellcheck: 'true',
       },
+      handleKeyDown(view, event) {
+        if (
+          !view.editable &&
+          (event.ctrlKey || event.metaKey) &&
+          ['b', 'i', 'u', 'z', 'y'].includes(event.key.toLowerCase())
+        ) {
+          event.preventDefault()
+          return true
+        }
+        return false
+      },
       handlePaste(view, event) {
+        if (!view.editable) return true
         const text = event.clipboardData?.getData('text/plain')
         if (event.clipboardData?.files.length || !text) {
           setFailure(copy.pasteRejected)
@@ -106,14 +132,14 @@ export function ManuscriptEditor({
         view.dispatch(view.state.tr.insertText(text).scrollIntoView())
         return true
       },
-      handleDrop() {
-        setFailure(copy.pasteRejected)
+      handleDrop(view) {
+        if (view.editable) setFailure(copy.pasteRejected)
         return true
       },
     },
     onUpdate({ editor: current }) {
       setWordCount(
-        countChapterWords({ schemaVersion: 1, document: current.getJSON() }),
+        countChapterWords(serializeEditorDocument(current.getJSON())),
       )
       dirtyRef.current = true
       setDirty(true)
@@ -128,8 +154,11 @@ export function ManuscriptEditor({
   })
 
   useEffect(() => {
-    editor?.setEditable(ready && !saving && !fatal && !navigationLocked, false)
-  }, [editor, ready, saving, fatal, navigationLocked])
+    editor?.setEditable(
+      !preview && ready && !saving && !fatal && !navigationLocked,
+      false,
+    )
+  }, [editor, ready, saving, fatal, navigationLocked, preview])
 
   useEffect(() => {
     if (ready && focusOnReady) headingRef.current?.focus()
@@ -256,7 +285,10 @@ export function ManuscriptEditor({
       savingRef.current = false
       setSaving(false)
       onPending(false)
-      editor.setEditable(ready && !fatal && !navigationLocked, false)
+      editor.setEditable(
+        !previewRef.current && ready && !fatal && !navigationLocked,
+        false,
+      )
     }
   }, [
     editor,
@@ -269,6 +301,31 @@ export function ManuscriptEditor({
     onSaved,
     navigationLocked,
   ])
+
+  useEffect(() => {
+    const shortcut = (event: KeyboardEvent) => {
+      if (
+        preview ||
+        !(event.ctrlKey || event.metaKey) ||
+        event.altKey ||
+        event.shiftKey ||
+        event.key.toLowerCase() !== 's'
+      )
+        return
+      const dialog = rootRef.current?.closest('[role="dialog"]')
+      if (
+        !dialog ||
+        !(event.target instanceof Node) ||
+        !dialog.contains(event.target)
+      )
+        return
+      event.preventDefault()
+      if (!event.repeat && !event.isComposing && !navigationLocked) void save()
+    }
+    const ownerDocument = rootRef.current?.ownerDocument
+    ownerDocument?.addEventListener('keydown', shortcut)
+    return () => ownerDocument?.removeEventListener('keydown', shortcut)
+  }, [save, navigationLocked, preview])
 
   useEffect(() => {
     if (
@@ -326,64 +383,11 @@ export function ManuscriptEditor({
                 ? 'saved'
                 : 'unchanged'
 
-  return (
-    <div
-      className={`min-w-0 space-y-4${focusMode ? ' manuscript-focus' : ''}`}
-      style={{ '--editor-font-size': `${fontSize / 16}rem` } as CSSProperties}
-    >
-      <h3
-        ref={headingRef}
-        tabIndex={-1}
-        className={
-          focusMode ? 'sr-only' : 'font-writing text-writing break-words'
-        }
-      >
-        {chapter.title}
-      </h3>
-      <p id={hintId} className={focusMode ? 'sr-only' : 'text-secondary'}>
-        {focusMode ? copy.focusHint : copy.description}
-      </p>
-      <SaveStatus state={saveState} />
-      <div
-        hidden={focusMode}
-        role="group"
-        aria-label={copy.wordCounts}
-        className="space-y-2 text-secondary"
-      >
-        <p>
-          {wordCount === null
-            ? copy.wordsUnknown
-            : copy.currentWords(new Intl.NumberFormat('en').format(wordCount))}
-        </p>
-        <p>
-          {savedWordCount === null
-            ? copy.savedWordsUnknown
-            : copy.savedWords(
-                new Intl.NumberFormat('en').format(savedWordCount),
-              )}
-        </p>
-        <p className="text-ui">{copy.wordCountHint}</p>
-      </div>
-      {!fatal && (
-        <>
-          {editor && (
-            <div hidden={focusMode}>
-              <FormattingToolbar
-                editor={editor}
-                disabled={!ready || saving || navigationLocked}
-              />
-            </div>
-          )}
-          <EditorContent editor={editor} className="manuscript" />
-        </>
-      )}
-      {(failure || saveFailure) && (
-        <div role="alert" className="space-y-2 text-error">
-          {saveFailure && <p>{saveFailure}</p>}
-          {failure && failure !== saveFailure && <p>{failure}</p>}
-        </div>
-      )}
+  const footer = (
+    <div className="manuscript-footer">
       <Button
+        aria-keyshortcuts="Control+S Meta+S"
+        title={copy.saveShortcut}
         disabled={
           !editor ||
           !ready ||
@@ -399,6 +403,116 @@ export function ManuscriptEditor({
       >
         {saving ? copy.saving : copy.save}
       </Button>
+      <div className="manuscript-footer__info">
+        <SaveStatus state={saveState} compact />
+        <p
+          id={hintId}
+          className={focusMode ? 'sr-only' : 'manuscript-hint text-secondary'}
+          title={focusMode ? undefined : copy.wordCountHint}
+          tabIndex={focusMode ? undefined : 0}
+          aria-describedby={focusMode ? undefined : `${hintId}-count`}
+        >
+          {focusMode ? copy.focusHint : copy.description}
+        </p>
+        <span id={`${hintId}-count`} className="sr-only">
+          {copy.wordCountHint}
+        </span>
+
+        <div
+          hidden={focusMode}
+          role="group"
+          aria-label={copy.wordCounts}
+          className="manuscript-counts"
+        >
+          <span>
+            <span aria-hidden="true">
+              {wordCount === null
+                ? copy.countPlaceholder
+                : new Intl.NumberFormat('en').format(wordCount)}
+            </span>
+            <span className="sr-only">
+              {wordCount === null
+                ? copy.wordsUnknown
+                : copy.currentWords(
+                    new Intl.NumberFormat('en').format(wordCount),
+                  )}
+            </span>
+          </span>
+          <span aria-hidden="true">/</span>
+          <span>
+            <span aria-hidden="true">
+              {savedWordCount === null
+                ? copy.countPlaceholder
+                : new Intl.NumberFormat('en').format(savedWordCount)}
+            </span>
+            <span className="sr-only">
+              {savedWordCount === null
+                ? copy.savedWordsUnknown
+                : copy.savedWords(
+                    new Intl.NumberFormat('en').format(savedWordCount),
+                  )}
+            </span>
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+
+  return (
+    <div
+      ref={rootRef}
+      className={`min-w-0 space-y-4${focusMode ? ' manuscript-focus' : ''}`}
+      style={{ '--editor-font-size': `${fontSize / 16}rem` } as CSSProperties}
+    >
+      <h3
+        ref={headingRef}
+        tabIndex={-1}
+        className={
+          focusMode ? 'sr-only' : 'font-writing text-writing break-words'
+        }
+      >
+        {chapter.title}
+      </h3>
+      {!fatal && (
+        <>
+          {!preview &&
+            editor &&
+            (focusMode && formattingTarget ? (
+              createPortal(
+                <FormattingToolbar
+                  compact
+                  editor={editor}
+                  disabled={!ready || saving || navigationLocked}
+                />,
+                formattingTarget,
+              )
+            ) : (
+              <div>
+                <FormattingToolbar
+                  compact={focusMode}
+                  editor={editor}
+                  disabled={!ready || saving || navigationLocked}
+                />
+              </div>
+            ))}
+          <EditorContent editor={editor} className="manuscript" />
+        </>
+      )}
+      {(failure || saveFailure) && (
+        <div role="alert" className="space-y-2 text-error">
+          {saveFailure && <p>{saveFailure}</p>}
+          {failure && failure !== saveFailure && <p>{failure}</p>}
+        </div>
+      )}
+      {!preview &&
+        (focusMode && footerTarget
+          ? createPortal(footer, footerTarget)
+          : footer)}
+      {preview && (
+        <p id={hintId} className="text-secondary text-sm">
+          {copy.previewHint}
+        </p>
+      )}
       {closing && dirty && (
         <div className="space-y-3">
           <label className="flex items-start gap-3 py-3">

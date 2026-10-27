@@ -42,7 +42,7 @@ test.each(cases)(
   },
 )
 
-test('schema contains only the v1 nodes and marks', () => {
+test('schema contains only the supported v1/v2/v3 nodes and marks', () => {
   const schema = getSchema(chapterExtensions())
   expect(Object.keys(schema.nodes).sort()).toEqual(
     [
@@ -56,7 +56,13 @@ test('schema contains only the v1 nodes and marks', () => {
       'hardBreak',
     ].sort(),
   )
-  expect(Object.keys(schema.marks).sort()).toEqual(['bold', 'italic'])
+  expect(Object.keys(schema.marks).sort()).toEqual([
+    'bold',
+    'fontFamily',
+    'fontSize',
+    'italic',
+    'underline',
+  ])
 })
 
 test('real rich-text transactions serialize supported formatting and undo without changing Unicode', () => {

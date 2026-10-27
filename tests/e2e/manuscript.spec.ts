@@ -1,3 +1,4 @@
+import { startWriting } from './editor-mode'
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test, type Page } from '@playwright/test'
 import type { Editor } from '@tiptap/core'
@@ -9,6 +10,7 @@ async function openEditor(page: Page, scenario = '') {
     .getByRole('button', { name: 'Edit chapter text', exact: true })
     .first()
     .click()
+  if (scenario !== 'editor-invalid') await startWriting(page)
   return page.getByRole('textbox', { name: 'Chapter manuscript' })
 }
 
@@ -19,6 +21,11 @@ for (const width of [320, 640, 1100]) {
     await page.setViewportSize({ width, height: 850 })
     const field = await openEditor(page)
     await expect(field).toHaveAttribute('contenteditable', 'true')
+    const bounds = await page.getByRole('dialog').boundingBox()
+    expect(bounds!.x).toBeCloseTo(0, 0)
+    expect(bounds!.y).toBeCloseTo(0, 0)
+    expect(bounds!.width).toBeCloseTo(width, 0)
+    expect(bounds!.height).toBeCloseTo(850, 0)
     const baseline = await field.evaluate((element) =>
       (element as HTMLElement & { editor: Editor }).editor.getJSON(),
     )
@@ -39,9 +46,14 @@ for (const width of [320, 640, 1100]) {
     await expect(field.locator('strong').last()).toContainText('bold')
     await page.keyboard.press('Escape')
     await expect(page.getByRole('dialog')).toBeVisible()
+    await page
+      .getByRole('dialog')
+      .getByRole('button', { name: 'Close', exact: true })
+      .click()
     await expect(page.getByRole('alert')).toContainText(
       'There is unsaved writing',
     )
+    await startWriting(page)
     await page
       .getByRole('button', { name: 'Save chapter text', exact: true })
       .click()
@@ -62,6 +74,7 @@ for (const width of [320, 640, 1100]) {
       .getByRole('button', { name: 'Edit chapter text', exact: true })
       .first()
       .click()
+    await startWriting(page)
     await expect(field).toHaveAttribute('contenteditable', 'true')
     expect(
       await field.evaluate((element) =>
@@ -134,7 +147,10 @@ test('conflict preserves writing and discard requires explicit acknowledgement (
   await expect(
     page.getByRole('button', { name: 'Save chapter text', exact: true }),
   ).toBeDisabled()
-  await page.keyboard.press('Escape')
+  await page
+    .getByRole('dialog')
+    .getByRole('button', { name: 'Close', exact: true })
+    .click()
   await expect(
     page.getByRole('button', { name: 'Discard changes and close' }),
   ).toBeDisabled()

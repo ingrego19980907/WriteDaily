@@ -186,6 +186,7 @@ export const en = {
   },
   writing: {
     wordCounts: 'Word count',
+    countPlaceholder: '\u2014',
     currentWords: (count: string) =>
       `${count} ${count === '1' ? 'word' : 'words'} in current text`,
     savedWords: (count: string) =>
@@ -209,19 +210,27 @@ export const en = {
       'Use Left and Right Arrow, Home or End to move between formatting buttons. Press Enter or Space to apply, then continue writing.',
     bold: 'Bold',
     italic: 'Italic',
+    underline: 'Underline',
+    alignment: {
+      left: 'Align left',
+      center: 'Align center',
+      right: 'Align right',
+      justify: 'Justify',
+    },
     paragraph: 'Paragraph',
     heading: (level: number) => `Heading ${level}`,
+    compactHeading: (level: number) => `H${level}`,
     bulletList: 'Bullet list',
     orderedList: 'Numbered list',
     undo: 'Undo',
     redo: 'Redo',
     title: 'Chapter text',
-    enterFocus: 'Enter focus mode',
+    enterFocus: 'Start writing',
     exitFocus: 'Exit focus mode',
+    previewHint: 'Preview. Select Start writing to edit this chapter.',
     focusHint:
       'Focus mode hides chapter navigation, formatting controls and word counts. Press Escape or Exit focus mode to return. Changes still save automatically.',
-    description:
-      'Changes save automatically after 2 seconds without editing. You can also save now. Paste inserts plain text.',
+    description: 'Changes save automatically after 2 seconds without editing.',
     label: 'Chapter manuscript',
     loading: 'Loading saved chapter text…',
     loadFailure:
@@ -230,6 +239,7 @@ export const en = {
       'This saved content cannot be safely opened in this editor. No changes were made.',
     close: 'Close',
     save: 'Save chapter text',
+    saveShortcut: 'Save chapter text (Ctrl+S / Command+S)',
     saving: 'Saving chapter text…',
     saved: 'Chapter text saved.',
     saveStatus: 'Save status',
@@ -262,9 +272,18 @@ export const en = {
   editorPreferences: {
     title: 'Editor settings',
     fontSize: 'Manuscript text size',
+    fontFamily: 'Manuscript font family',
     size: (size: number) => `${size} px`,
     hint: 'Choose a size from 12 to 32 px and save it for all chapters. Only manuscript display changes; your text and formatting stay the same.',
     save: 'Save editor settings',
+    decrease: 'Decrease text size',
+    increase: 'Increase text size',
+    mixed: 'Mixed',
+    selectionHint:
+      'Applies to selected text, or text you type next. Changes save with the chapter.',
+    retry: 'Retry saving settings',
+    autoHint:
+      'Text size changes save automatically. The size is applied after saving succeeds.',
     saving: 'Saving editor settings…',
     saved: 'Editor settings saved.',
     loading: 'Loading editor settings…',

@@ -1,3 +1,4 @@
+import { startWriting } from './editor-mode'
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test, type Page } from '@playwright/test'
 
@@ -8,11 +9,12 @@ async function open(page: Page, scenario = '') {
     .getByRole('button', { name: 'Edit chapter text', exact: true })
     .last()
     .click()
+  await startWriting(page)
   const field = page.getByRole('textbox', { name: 'Chapter manuscript' })
   await expect(field).toHaveAttribute('contenteditable', 'true')
   return {
     field,
-    counts: page.getByRole('group', { name: 'Word count', exact: true }),
+    counts: page.locator('.manuscript-counts'),
   }
 }
 
@@ -22,6 +24,10 @@ for (const width of [320, 640, 1100]) {
   }, testInfo) => {
     await page.setViewportSize({ width, height: 850 })
     const { field, counts } = await open(page)
+    expect(
+      await counts.locator('[aria-hidden="true"]').allTextContents(),
+    ).toEqual(['0', '/', '\u2014'])
+
     await expect(counts).toContainText('0 words in current text')
     await expect(counts).toContainText('Saved word count unavailable')
     await field.fill("п'ять foo-bar 12,500.75 😀 é")
@@ -46,6 +52,7 @@ for (const width of [320, 640, 1100]) {
       .getByRole('button', { name: 'Edit chapter text', exact: true })
       .last()
       .click()
+    await startWriting(page)
     await expect(counts).toContainText('4 saved words')
     await expect(counts).toContainText('4 words in current text')
     expect(
@@ -61,7 +68,9 @@ for (const width of [320, 640, 1100]) {
         .locator('.modal-body')
         .evaluate((element) => element.scrollWidth <= element.clientWidth),
     ).toBe(true)
-    await counts.screenshot({ path: testInfo.outputPath('word-count.png') })
+    await page
+      .locator('.manuscript-footer')
+      .screenshot({ path: testInfo.outputPath('word-count.png') })
   })
 }
 
@@ -113,9 +122,9 @@ test('literal markup, block changes and list markers follow the word policy (tes
   await page.keyboard.insertText('two')
   await expect(counts).toContainText('3 words in current text')
   const toolbar = page.getByRole('toolbar', { name: 'Text formatting' })
-  await toolbar.getByRole('button', { name: 'Heading 3', exact: true }).click()
+  await toolbar.getByRole('button', { name: 'H3', exact: true }).click()
   await expect(counts).toContainText('3 words in current text')
-  await toolbar.getByRole('button', { name: 'Paragraph', exact: true }).click()
+  await toolbar.getByRole('button', { name: 'H3', exact: true }).click()
   await toolbar
     .getByRole('button', { name: 'Numbered list', exact: true })
     .click()

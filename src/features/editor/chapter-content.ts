@@ -1,9 +1,14 @@
+import { isFontFamily } from './font-families'
+
 export const CHAPTER_CONTENT_VERSION = 1
 export const CHAPTER_CONTENT_MAX_BYTES = 5 * 1024 * 1024
 export const CHAPTER_CONTENT_MAX_NODES = 100_000
 export const CHAPTER_CONTENT_MAX_DEPTH = 64
 
-export type ChapterMark = { readonly type: 'bold' | 'italic' }
+export type ChapterMark =
+  | { readonly type: 'bold' | 'italic' | 'underline' }
+  | { readonly type: 'fontFamily'; readonly attrs: { readonly family: string } }
+  | { readonly type: 'fontSize'; readonly attrs: { readonly size: number } }
 export type ChapterInline =
   | {
       readonly type: 'text'
@@ -11,7 +16,9 @@ export type ChapterInline =
       readonly marks?: readonly ChapterMark[]
     }
   | { readonly type: 'hardBreak'; readonly marks?: readonly ChapterMark[] }
+export type TextAlignment = 'left' | 'center' | 'right' | 'justify'
 export type ChapterParagraph = {
+  readonly attrs?: { readonly textAlign: TextAlignment }
   readonly type: 'paragraph'
   readonly content?: readonly ChapterInline[]
 }
@@ -23,7 +30,10 @@ export type ChapterBlock =
   | ChapterParagraph
   | {
       readonly type: 'heading'
-      readonly attrs: { readonly level: 1 | 2 | 3 | 4 | 5 | 6 }
+      readonly attrs: {
+        readonly level: 1 | 2 | 3 | 4 | 5 | 6
+        readonly textAlign?: TextAlignment
+      }
       readonly content?: readonly ChapterInline[]
     }
   | {
@@ -43,7 +53,7 @@ export type ChapterDocument = {
   readonly content: readonly [ChapterBlock, ...ChapterBlock[]]
 }
 export type ChapterContent = {
-  readonly schemaVersion: typeof CHAPTER_CONTENT_VERSION
+  readonly schemaVersion: 1 | 2 | 3 | 4 | 5
   readonly document: ChapterDocument
 }
 export type ChapterContentError =
@@ -99,24 +109,54 @@ export function validateChapterContent(
   input: unknown,
 ): ChapterContentValidation {
   if (!record(input)) return { success: false, code: 'invalid_type' }
-  if (input.schemaVersion !== CHAPTER_CONTENT_VERSION)
+  if (
+    input.schemaVersion !== 1 &&
+    input.schemaVersion !== 2 &&
+    input.schemaVersion !== 3 &&
+    input.schemaVersion !== 4 &&
+    input.schemaVersion !== 5
+  )
     return { success: false, code: 'unsupported_version' }
   if (!keys(input, ['schemaVersion', 'document']))
     return { success: false, code: 'invalid_document' }
+  const contentVersion = input.schemaVersion
   let count = 0
   let textBytes = 0
   let failure: ChapterContentError = 'invalid_document'
   const ancestors = new Set<object>()
   const encoder = new TextEncoder()
   function marks(value: unknown): boolean {
-    if (!Array.isArray(value) || value.length > 2 || !array(value)) return false
+    if (!Array.isArray(value) || value.length > 5 || !array(value)) return false
     const seen = new Set<string>()
     return value.every((mark) => {
-      if (
-        !record(mark) ||
+      if (!record(mark) || typeof mark.type !== 'string' || seen.has(mark.type))
+        return false
+      if (mark.type === 'fontFamily') {
+        if (
+          contentVersion < 5 ||
+          !keys(mark, ['type', 'attrs']) ||
+          !record(mark.attrs) ||
+          !keys(mark.attrs, ['family']) ||
+          !isFontFamily(mark.attrs.family)
+        )
+          return false
+      } else if (mark.type === 'fontSize') {
+        if (
+          contentVersion < 2 ||
+          !keys(mark, ['type', 'attrs']) ||
+          !record(mark.attrs) ||
+          !keys(mark.attrs, ['size']) ||
+          typeof mark.attrs.size !== 'number' ||
+          !Number.isInteger(mark.attrs.size) ||
+          mark.attrs.size < 12 ||
+          mark.attrs.size > 32
+        )
+          return false
+      } else if (
         !keys(mark, ['type']) ||
-        (mark.type !== 'bold' && mark.type !== 'italic') ||
-        seen.has(mark.type)
+        (mark.type !== 'bold' &&
+          mark.type !== 'italic' &&
+          !(mark.type === 'underline' && contentVersion >= 3))
       )
         return false
       seen.add(mark.type)
@@ -162,7 +202,9 @@ export function validateChapterContent(
           ? ['type', 'text', 'marks']
           : type === 'hardBreak'
             ? ['type', 'marks']
-            : type === 'heading' || type === 'orderedList'
+            : type === 'heading' ||
+                type === 'orderedList' ||
+                (type === 'paragraph' && contentVersion >= 4)
               ? ['type', 'attrs', 'content']
               : ['type', 'content']
       if (!keys(value, allowed)) return false
@@ -189,13 +231,37 @@ export function validateChapterContent(
       if (type === 'heading') {
         if (
           !record(value.attrs) ||
-          !keys(value.attrs, ['level']) ||
+          !keys(
+            value.attrs,
+            contentVersion >= 4 ? ['level', 'textAlign'] : ['level'],
+          ) ||
           !Number.isInteger(value.attrs.level) ||
           Number(value.attrs.level) < 1 ||
           Number(value.attrs.level) > 6
         )
           return false
       }
+      if (
+        (type === 'paragraph' || type === 'heading') &&
+        record(value.attrs) &&
+        Object.hasOwn(value.attrs, 'textAlign')
+      ) {
+        if (
+          contentVersion < 4 ||
+          !['left', 'center', 'right', 'justify'].includes(
+            value.attrs.textAlign as string,
+          )
+        )
+          return false
+      }
+      if (
+        type === 'paragraph' &&
+        Object.hasOwn(value, 'attrs') &&
+        (!record(value.attrs) ||
+          !keys(value.attrs, ['textAlign']) ||
+          !Object.hasOwn(value.attrs, 'textAlign'))
+      )
+        return false
       if (type === 'orderedList') {
         if (
           !record(value.attrs) ||

@@ -4,7 +4,14 @@
     "valid": true,
     "input": {
       "schemaVersion": 1,
-      "document": { "type": "doc", "content": [{ "type": "paragraph" }] }
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph"
+          }
+        ]
+      }
     }
   },
   {
@@ -21,7 +28,14 @@
               {
                 "type": "text",
                 "text": "  Україна 🖋 é\n\t<tag>\u0000  ",
-                "marks": [{ "type": "bold" }, { "type": "italic" }]
+                "marks": [
+                  {
+                    "type": "bold"
+                  },
+                  {
+                    "type": "italic"
+                  }
+                ]
               }
             ]
           }
@@ -39,8 +53,15 @@
         "content": [
           {
             "type": "heading",
-            "attrs": { "level": 6 },
-            "content": [{ "type": "hardBreak", "marks": [] }]
+            "attrs": {
+              "level": 6
+            },
+            "content": [
+              {
+                "type": "hardBreak",
+                "marks": []
+              }
+            ]
           }
         ]
       }
@@ -56,18 +77,28 @@
         "content": [
           {
             "type": "orderedList",
-            "attrs": { "start": 9007199254740991, "type": null },
+            "attrs": {
+              "start": 9007199254740991,
+              "type": null
+            },
             "content": [
               {
                 "type": "listItem",
                 "content": [
-                  { "type": "paragraph", "content": [] },
+                  {
+                    "type": "paragraph",
+                    "content": []
+                  },
                   {
                     "type": "bulletList",
                     "content": [
                       {
                         "type": "listItem",
-                        "content": [{ "type": "paragraph" }]
+                        "content": [
+                          {
+                            "type": "paragraph"
+                          }
+                        ]
                       }
                     ]
                   }
@@ -83,8 +114,15 @@
     "name": "unknown version",
     "valid": false,
     "input": {
-      "schemaVersion": 2,
-      "document": { "type": "doc", "content": [{ "type": "paragraph" }] }
+      "schemaVersion": 6,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph"
+          }
+        ]
+      }
     }
   },
   {
@@ -93,7 +131,14 @@
     "input": {
       "schemaVersion": 1,
       "extra": true,
-      "document": { "type": "doc", "content": [{ "type": "paragraph" }] }
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph"
+          }
+        ]
+      }
     }
   },
   {
@@ -101,7 +146,10 @@
     "valid": false,
     "input": {
       "schemaVersion": 1,
-      "document": { "type": "doc", "content": [] }
+      "document": {
+        "type": "doc",
+        "content": []
+      }
     }
   },
   {
@@ -111,7 +159,14 @@
       "schemaVersion": 1,
       "document": {
         "type": "doc",
-        "content": [{ "type": "image", "attrs": { "src": "bad" } }]
+        "content": [
+          {
+            "type": "image",
+            "attrs": {
+              "src": "bad"
+            }
+          }
+        ]
       }
     }
   },
@@ -122,7 +177,12 @@
       "schemaVersion": 1,
       "document": {
         "type": "doc",
-        "content": [{ "type": "paragraph", "attrs": {} }]
+        "content": [
+          {
+            "type": "paragraph",
+            "attrs": {}
+          }
+        ]
       }
     }
   },
@@ -133,7 +193,12 @@
       "schemaVersion": 1,
       "document": {
         "type": "doc",
-        "content": [{ "type": "paragraph", "content": null }]
+        "content": [
+          {
+            "type": "paragraph",
+            "content": null
+          }
+        ]
       }
     }
   },
@@ -144,7 +209,12 @@
       "schemaVersion": 1,
       "document": {
         "type": "doc",
-        "content": [{ "type": "text", "text": "writing" }]
+        "content": [
+          {
+            "type": "text",
+            "text": "writing"
+          }
+        ]
       }
     }
   },
@@ -155,7 +225,12 @@
       "schemaVersion": 1,
       "document": {
         "type": "doc",
-        "content": [{ "type": "heading", "attrs": {} }]
+        "content": [
+          {
+            "type": "heading",
+            "attrs": {}
+          }
+        ]
       }
     }
   },
@@ -166,7 +241,14 @@
       "schemaVersion": 1,
       "document": {
         "type": "doc",
-        "content": [{ "type": "heading", "attrs": { "level": 1.5 } }]
+        "content": [
+          {
+            "type": "heading",
+            "attrs": {
+              "level": 1.5
+            }
+          }
+        ]
       }
     }
   },
@@ -177,7 +259,12 @@
       "schemaVersion": 1,
       "document": {
         "type": "doc",
-        "content": [{ "type": "bulletList", "content": [] }]
+        "content": [
+          {
+            "type": "bulletList",
+            "content": []
+          }
+        ]
       }
     }
   },
@@ -191,9 +278,18 @@
         "content": [
           {
             "type": "orderedList",
-            "attrs": { "start": 9007199254740992 },
+            "attrs": {
+              "start": 9007199254740992
+            },
             "content": [
-              { "type": "listItem", "content": [{ "type": "paragraph" }] }
+              {
+                "type": "listItem",
+                "content": [
+                  {
+                    "type": "paragraph"
+                  }
+                ]
+              }
             ]
           }
         ]
@@ -210,9 +306,19 @@
         "content": [
           {
             "type": "orderedList",
-            "attrs": { "start": 1, "type": "decimal" },
+            "attrs": {
+              "start": 1,
+              "type": "decimal"
+            },
             "content": [
-              { "type": "listItem", "content": [{ "type": "paragraph" }] }
+              {
+                "type": "listItem",
+                "content": [
+                  {
+                    "type": "paragraph"
+                  }
+                ]
+              }
             ]
           }
         ]
@@ -232,7 +338,14 @@
             "content": [
               {
                 "type": "listItem",
-                "content": [{ "type": "heading", "attrs": { "level": 1 } }]
+                "content": [
+                  {
+                    "type": "heading",
+                    "attrs": {
+                      "level": 1
+                    }
+                  }
+                ]
               }
             ]
           }
@@ -248,7 +361,15 @@
       "document": {
         "type": "doc",
         "content": [
-          { "type": "paragraph", "content": [{ "type": "text", "text": "" }] }
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": ""
+              }
+            ]
+          }
         ]
       }
     }
@@ -267,7 +388,14 @@
               {
                 "type": "text",
                 "text": "x",
-                "marks": [{ "type": "bold" }, { "type": "bold" }]
+                "marks": [
+                  {
+                    "type": "bold"
+                  },
+                  {
+                    "type": "bold"
+                  }
+                ]
               }
             ]
           }
@@ -289,7 +417,12 @@
               {
                 "type": "text",
                 "text": "x",
-                "marks": [{ "type": "bold", "attrs": {} }]
+                "marks": [
+                  {
+                    "type": "bold",
+                    "attrs": {}
+                  }
+                ]
               }
             ]
           }
@@ -307,7 +440,1691 @@
         "content": [
           {
             "type": "paragraph",
-            "content": [{ "type": "hardBreak", "marks": null }]
+            "content": [
+              {
+                "type": "hardBreak",
+                "marks": null
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "v2 inline size with both marks",
+    "valid": true,
+    "input": {
+      "schemaVersion": 2,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontSize",
+                    "attrs": {
+                      "size": 24
+                    }
+                  },
+                  {
+                    "type": "bold"
+                  },
+                  {
+                    "type": "italic"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "v2 minimum size",
+    "valid": true,
+    "input": {
+      "schemaVersion": 2,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontSize",
+                    "attrs": {
+                      "size": 12
+                    }
+                  },
+                  {
+                    "type": "bold"
+                  },
+                  {
+                    "type": "italic"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "v2 maximum size",
+    "valid": true,
+    "input": {
+      "schemaVersion": 2,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontSize",
+                    "attrs": {
+                      "size": 32
+                    }
+                  },
+                  {
+                    "type": "bold"
+                  },
+                  {
+                    "type": "italic"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "v1 rejects inline size",
+    "valid": false,
+    "input": {
+      "schemaVersion": 1,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontSize",
+                    "attrs": {
+                      "size": 24
+                    }
+                  },
+                  {
+                    "type": "bold"
+                  },
+                  {
+                    "type": "italic"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "v2 too small",
+    "valid": false,
+    "input": {
+      "schemaVersion": 2,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontSize",
+                    "attrs": {
+                      "size": 11
+                    }
+                  },
+                  {
+                    "type": "bold"
+                  },
+                  {
+                    "type": "italic"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "v2 too large",
+    "valid": false,
+    "input": {
+      "schemaVersion": 2,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontSize",
+                    "attrs": {
+                      "size": 33
+                    }
+                  },
+                  {
+                    "type": "bold"
+                  },
+                  {
+                    "type": "italic"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "v2 fractional size",
+    "valid": false,
+    "input": {
+      "schemaVersion": 2,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontSize",
+                    "attrs": {
+                      "size": 18.5
+                    }
+                  },
+                  {
+                    "type": "bold"
+                  },
+                  {
+                    "type": "italic"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "v2 string size",
+    "valid": false,
+    "input": {
+      "schemaVersion": 2,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontSize",
+                    "attrs": {
+                      "size": "24"
+                    }
+                  },
+                  {
+                    "type": "bold"
+                  },
+                  {
+                    "type": "italic"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "v2 duplicate sizes",
+    "valid": false,
+    "input": {
+      "schemaVersion": 2,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontSize",
+                    "attrs": {
+                      "size": 12
+                    }
+                  },
+                  {
+                    "type": "fontSize",
+                    "attrs": {
+                      "size": 24
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "v2 missing size",
+    "valid": false,
+    "input": {
+      "schemaVersion": 2,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontSize",
+                    "attrs": {}
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "v2 arbitrary style rejected",
+    "valid": false,
+    "input": {
+      "schemaVersion": 2,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontSize",
+                    "attrs": {
+                      "size": 24,
+                      "style": "color:red"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "underline v3",
+    "valid": true,
+    "input": {
+      "schemaVersion": 3,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "underline"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "four composed marks v3",
+    "valid": true,
+    "input": {
+      "schemaVersion": 3,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "bold"
+                  },
+                  {
+                    "type": "italic"
+                  },
+                  {
+                    "type": "underline"
+                  },
+                  {
+                    "type": "fontSize",
+                    "attrs": {
+                      "size": 24
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "underline rejected v1",
+    "valid": false,
+    "input": {
+      "schemaVersion": 1,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "underline"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "underline rejected v2",
+    "valid": false,
+    "input": {
+      "schemaVersion": 2,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "underline"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "duplicate underline",
+    "valid": false,
+    "input": {
+      "schemaVersion": 3,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "underline"
+                  },
+                  {
+                    "type": "underline"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "underline attributes rejected",
+    "valid": false,
+    "input": {
+      "schemaVersion": 3,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "underline",
+                    "attrs": {}
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "v4 paragraph left",
+    "valid": true,
+    "input": {
+      "schemaVersion": 4,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "attrs": {
+              "textAlign": "left"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "v4 paragraph center",
+    "valid": true,
+    "input": {
+      "schemaVersion": 4,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "attrs": {
+              "textAlign": "center"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "v4 paragraph right",
+    "valid": true,
+    "input": {
+      "schemaVersion": 4,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "attrs": {
+              "textAlign": "right"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "v4 paragraph justify",
+    "valid": true,
+    "input": {
+      "schemaVersion": 4,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "attrs": {
+              "textAlign": "justify"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "v4 heading left",
+    "valid": true,
+    "input": {
+      "schemaVersion": 4,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "heading",
+            "attrs": {
+              "textAlign": "left",
+              "level": 2
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "v4 heading center",
+    "valid": true,
+    "input": {
+      "schemaVersion": 4,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "heading",
+            "attrs": {
+              "textAlign": "center",
+              "level": 2
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "v4 heading right",
+    "valid": true,
+    "input": {
+      "schemaVersion": 4,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "heading",
+            "attrs": {
+              "textAlign": "right",
+              "level": 2
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "v4 heading justify",
+    "valid": true,
+    "input": {
+      "schemaVersion": 4,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "heading",
+            "attrs": {
+              "textAlign": "justify",
+              "level": 2
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "legacy alignment",
+    "valid": false,
+    "input": {
+      "schemaVersion": 3,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "attrs": {
+              "textAlign": "center"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "invalid alignment",
+    "valid": false,
+    "input": {
+      "schemaVersion": 4,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "attrs": {
+              "textAlign": "diagonal"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "null alignment",
+    "valid": false,
+    "input": {
+      "schemaVersion": 4,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "attrs": {
+              "textAlign": null
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "extra alignment attribute",
+    "valid": false,
+    "input": {
+      "schemaVersion": 4,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "attrs": {
+              "textAlign": "center",
+              "style": "x"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "invalid heading alignment ''",
+    "valid": false,
+    "input": {
+      "schemaVersion": 4,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "heading",
+            "attrs": {
+              "level": 2,
+              "textAlign": ""
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "invalid heading alignment None",
+    "valid": false,
+    "input": {
+      "schemaVersion": 4,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "heading",
+            "attrs": {
+              "level": 2,
+              "textAlign": null
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "invalid heading alignment 'diagonal'",
+    "valid": false,
+    "input": {
+      "schemaVersion": 4,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "heading",
+            "attrs": {
+              "level": 2,
+              "textAlign": "diagonal"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "font family Arial",
+    "valid": true,
+    "input": {
+      "schemaVersion": 5,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontFamily",
+                    "attrs": {
+                      "family": "Arial"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "font family Bahnschrift",
+    "valid": true,
+    "input": {
+      "schemaVersion": 5,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontFamily",
+                    "attrs": {
+                      "family": "Bahnschrift"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "font family Calibri",
+    "valid": true,
+    "input": {
+      "schemaVersion": 5,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontFamily",
+                    "attrs": {
+                      "family": "Calibri"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "font family Cambria",
+    "valid": true,
+    "input": {
+      "schemaVersion": 5,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontFamily",
+                    "attrs": {
+                      "family": "Cambria"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "font family Candara",
+    "valid": true,
+    "input": {
+      "schemaVersion": 5,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontFamily",
+                    "attrs": {
+                      "family": "Candara"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "font family Consolas",
+    "valid": true,
+    "input": {
+      "schemaVersion": 5,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontFamily",
+                    "attrs": {
+                      "family": "Consolas"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "font family Constantia",
+    "valid": true,
+    "input": {
+      "schemaVersion": 5,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontFamily",
+                    "attrs": {
+                      "family": "Constantia"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "font family Corbel",
+    "valid": true,
+    "input": {
+      "schemaVersion": 5,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontFamily",
+                    "attrs": {
+                      "family": "Corbel"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "font family Courier New",
+    "valid": true,
+    "input": {
+      "schemaVersion": 5,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontFamily",
+                    "attrs": {
+                      "family": "Courier New"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "font family Georgia",
+    "valid": true,
+    "input": {
+      "schemaVersion": 5,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontFamily",
+                    "attrs": {
+                      "family": "Georgia"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "font family Lucida Console",
+    "valid": true,
+    "input": {
+      "schemaVersion": 5,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontFamily",
+                    "attrs": {
+                      "family": "Lucida Console"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "font family Lucida Sans Unicode",
+    "valid": true,
+    "input": {
+      "schemaVersion": 5,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontFamily",
+                    "attrs": {
+                      "family": "Lucida Sans Unicode"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "font family Palatino Linotype",
+    "valid": true,
+    "input": {
+      "schemaVersion": 5,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontFamily",
+                    "attrs": {
+                      "family": "Palatino Linotype"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "font family Segoe UI",
+    "valid": true,
+    "input": {
+      "schemaVersion": 5,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontFamily",
+                    "attrs": {
+                      "family": "Segoe UI"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "font family Segoe Print",
+    "valid": true,
+    "input": {
+      "schemaVersion": 5,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontFamily",
+                    "attrs": {
+                      "family": "Segoe Print"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "font family Segoe Script",
+    "valid": true,
+    "input": {
+      "schemaVersion": 5,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontFamily",
+                    "attrs": {
+                      "family": "Segoe Script"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "font family Tahoma",
+    "valid": true,
+    "input": {
+      "schemaVersion": 5,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontFamily",
+                    "attrs": {
+                      "family": "Tahoma"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "font family Times New Roman",
+    "valid": true,
+    "input": {
+      "schemaVersion": 5,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontFamily",
+                    "attrs": {
+                      "family": "Times New Roman"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "font family Trebuchet MS",
+    "valid": true,
+    "input": {
+      "schemaVersion": 5,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontFamily",
+                    "attrs": {
+                      "family": "Trebuchet MS"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "font family Verdana",
+    "valid": true,
+    "input": {
+      "schemaVersion": 5,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontFamily",
+                    "attrs": {
+                      "family": "Verdana"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "legacy family",
+    "valid": false,
+    "input": {
+      "schemaVersion": 4,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "x",
+                "marks": [
+                  {
+                    "type": "fontFamily",
+                    "attrs": {
+                      "family": "Arial"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "unknown family",
+    "valid": false,
+    "input": {
+      "schemaVersion": 5,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "x",
+                "marks": [
+                  {
+                    "type": "fontFamily",
+                    "attrs": {
+                      "family": "Unknown font"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "extra family attributes",
+    "valid": false,
+    "input": {
+      "schemaVersion": 5,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "x",
+                "marks": [
+                  {
+                    "type": "fontFamily",
+                    "attrs": {
+                      "family": "Arial",
+                      "style": "x"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "null family",
+    "valid": false,
+    "input": {
+      "schemaVersion": 5,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "x",
+                "marks": [
+                  {
+                    "type": "fontFamily",
+                    "attrs": {
+                      "family": null
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "missing family",
+    "valid": false,
+    "input": {
+      "schemaVersion": 5,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "x",
+                "marks": [
+                  {
+                    "type": "fontFamily",
+                    "attrs": {}
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "all five marks",
+    "valid": true,
+    "input": {
+      "schemaVersion": 5,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "attrs": {
+              "textAlign": "center"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "bold"
+                  },
+                  {
+                    "type": "italic"
+                  },
+                  {
+                    "type": "underline"
+                  },
+                  {
+                    "type": "fontSize",
+                    "attrs": {
+                      "size": 24
+                    }
+                  },
+                  {
+                    "type": "fontFamily",
+                    "attrs": {
+                      "family": "Arial"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "duplicate family",
+    "valid": false,
+    "input": {
+      "schemaVersion": 5,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "attrs": {
+              "textAlign": "center"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "Alpha beta",
+                "marks": [
+                  {
+                    "type": "fontFamily",
+                    "attrs": {
+                      "family": "Arial"
+                    }
+                  },
+                  {
+                    "type": "fontFamily",
+                    "attrs": {
+                      "family": "Arial"
+                    }
+                  }
+                ]
+              }
+            ]
           }
         ]
       }

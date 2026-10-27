@@ -13,7 +13,10 @@ export type ModalProps = {
   children: ReactNode
   onCloseAutoFocus?: ComponentProps<typeof Dialog.Content>['onCloseAutoFocus']
   onEscapeKeyDown?: ComponentProps<typeof Dialog.Content>['onEscapeKeyDown']
+  size?: 'default' | 'large'
   fullScreen?: boolean
+  headerCenter?: ReactNode
+  footer?: ReactNode
   headerActions?: ReactNode
 }
 
@@ -28,7 +31,10 @@ export function Modal({
   onCloseAutoFocus,
   onEscapeKeyDown,
   fullScreen = false,
+  size = 'default',
   headerActions,
+  headerCenter,
+  footer,
 }: ModalProps) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -38,17 +44,22 @@ export function Modal({
         <Dialog.Content
           onCloseAutoFocus={onCloseAutoFocus}
           onEscapeKeyDown={onEscapeKeyDown}
-          className={`modal-content${fullScreen ? ' modal-content--fullscreen' : ''}`}
+          className={`modal-content${size === 'large' ? ' modal-content--large' : ''}${fullScreen ? ' modal-content--fullscreen' : ''}`}
           {...(!description ? { 'aria-describedby': undefined } : {})}
         >
-          <div className="modal-header">
+          <div
+            className={`modal-header${headerCenter ? ' modal-header--centered' : ''}`}
+          >
             <Dialog.Title className="modal-title">{title}</Dialog.Title>
-            {headerActions}
-            <Dialog.Close asChild>
-              <Button variant="ghost" className="shrink-0">
-                {closeLabel}
-              </Button>
-            </Dialog.Close>
+            {headerCenter}
+            <div className="modal-header-actions">
+              {headerActions}
+              <Dialog.Close asChild>
+                <Button variant="ghost" className="shrink-0">
+                  {closeLabel}
+                </Button>
+              </Dialog.Close>
+            </div>
           </div>
           <div className="modal-body">
             {description && (
@@ -58,6 +69,7 @@ export function Modal({
             )}
             {children}
           </div>
+          {footer}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

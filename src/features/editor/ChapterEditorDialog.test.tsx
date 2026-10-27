@@ -67,10 +67,24 @@ const mount = (onSaved = vi.fn(), chapters?: ChapterSummary[]) =>
       onSaved={onSaved}
     />,
   )
+function previewControl(...args: Parameters<typeof screen.getByRole>) {
+  const exit = screen.queryByRole('button', { name: copy.exitFocus })
+  if (exit) fireEvent.click(exit)
+  return screen.getByRole(...args)
+}
+function writingStatus() {
+  startWriting()
+  return screen.getByRole('status', { name: copy.saveStatus })
+}
+function startWriting() {
+  const start = screen.queryByRole('button', { name: copy.enterFocus })
+  if (start) fireEvent.click(start)
+}
 async function open() {
   const user = userEvent.setup()
   await user.click(screen.getByRole('button', { name: en.chapters.open }))
   const field = await screen.findByRole('textbox', { name: copy.label })
+  startWriting()
   await waitFor(() => expect(field).toHaveAttribute('contenteditable', 'true'))
   return {
     user,
@@ -94,6 +108,7 @@ test('loads by identity and saves validated real editor JSON only after a commit
   act(() => {
     editor.commands.insertContent({ type: 'text', text: '  Україна é <tag>  ' })
   })
+  startWriting()
   await user.click(screen.getByRole('button', { name: copy.save }))
   expect(saveChapterContent).toHaveBeenCalledWith('book', 'chapter', {
     expectedRevision: 4,
@@ -101,7 +116,7 @@ test('loads by identity and saves validated real editor JSON only after a commit
   })
   expect(field).toHaveAttribute('contenteditable', 'false')
   expect(screen.queryByText(copy.saved)).not.toBeInTheDocument()
-  await user.keyboard('{Escape}')
+  await user.click(screen.getByRole('button', { name: copy.close }))
   expect(screen.getByRole('dialog')).toBeVisible()
   await act(async () => commit({ ...chapter, revision: 5 }))
   expect(await screen.findByText(copy.saved)).toBeVisible()
@@ -111,6 +126,7 @@ test('loads by identity and saves validated real editor JSON only after a commit
     editor.commands.insertContent({ type: 'text', text: 'next' })
   })
   vi.mocked(saveChapterContent).mockResolvedValue({ ...chapter, revision: 6 })
+  startWriting()
   await user.click(screen.getByRole('button', { name: copy.save }))
   expect(saveChapterContent).toHaveBeenLastCalledWith(
     'book',
@@ -128,6 +144,7 @@ test.each(['persistence', 'conflict', 'not_found', 'invalid_stored_data'])(
     act(() => {
       editor.commands.insertContent({ type: 'text', text: 'Keep my writing' })
     })
+    startWriting()
     await user.click(screen.getByRole('button', { name: copy.save }))
     expect(await screen.findByRole('alert')).toHaveTextContent(
       code === 'conflict'
@@ -139,7 +156,7 @@ test.each(['persistence', 'conflict', 'not_found', 'invalid_stored_data'])(
             : copy.failure,
     )
     expect(editor.state.doc.textContent).toBe('Keep my writing')
-    await user.keyboard('{Escape}')
+    await user.click(screen.getByRole('button', { name: copy.close }))
     expect(screen.getByRole('dialog')).toBeVisible()
     expect(screen.getByRole('alert')).toHaveTextContent(copy.unsaved)
     expect(screen.getByRole('button', { name: copy.discard })).toBeDisabled()
@@ -186,7 +203,7 @@ test.each(['unsupported', 'missing'])(
     if (kind === 'unsupported')
       vi.mocked(getChapter).mockResolvedValue({
         ...chapter,
-        content: { ...chapter.content, schemaVersion: 2 },
+        content: { ...chapter.content, schemaVersion: 6 },
       } as unknown as Chapter)
     else vi.mocked(getChapter).mockRejectedValue({ code: 'not_found' })
     mount()
@@ -241,14 +258,14 @@ test('navigation commits dirty writing before reading the target and restores it
   act(() => {
     editor.commands.insertContent({ type: 'text', text: 'My first draft' })
   })
-  await user.click(screen.getByRole('button', { name: copy.nextChapter }))
+  await user.click(previewControl('button', { name: copy.nextChapter }))
   expect(getChapter).toHaveBeenCalledTimes(1)
   expect(screen.getByRole('textbox')).toHaveAttribute(
     'contenteditable',
     'false',
   )
   expect(
-    screen.getByRole('combobox', { name: copy.chooseChapter }),
+    previewControl('combobox', { name: copy.chooseChapter }),
   ).toBeDisabled()
   const change = vi.mocked(saveChapterContent).mock.calls[0][2]
   const committed = { ...chapter, revision: 5, content: change.content }
@@ -264,7 +281,7 @@ test('navigation commits dirty writing before reading the target and restores it
     expect(screen.getByRole('heading', { name: chapter.title })).toHaveFocus(),
   )
   vi.mocked(getChapter).mockResolvedValueOnce(committed)
-  await user.click(screen.getByRole('button', { name: copy.previousChapter }))
+  await user.click(previewControl('button', { name: copy.previousChapter }))
   await waitFor(() =>
     expect(screen.getByRole('textbox')).toHaveTextContent('My first draft'),
   )
@@ -281,7 +298,7 @@ test.each(['persistence', 'conflict'])(
       editor.commands.insertContent({ type: 'text', text: 'Keep this draft' })
     })
     await user.selectOptions(
-      screen.getByRole('combobox', { name: copy.chooseChapter }),
+      previewControl('combobox', { name: copy.chooseChapter }),
       second.id,
     )
     expect(await screen.findByRole('alert')).toHaveTextContent(
@@ -289,7 +306,7 @@ test.each(['persistence', 'conflict'])(
     )
     expect(getChapter).toHaveBeenCalledTimes(1)
     expect(
-      screen.getByRole('combobox', { name: copy.chooseChapter }),
+      previewControl('combobox', { name: copy.chooseChapter }),
     ).toHaveValue(chapter.id)
     expect(screen.getByRole('textbox')).toHaveTextContent('Keep this draft')
     expect(
@@ -319,14 +336,14 @@ test('failed target loading retains the committed current session and retry does
       text: 'Saved before failure',
     })
   })
-  await user.click(screen.getByRole('button', { name: copy.nextChapter }))
+  await user.click(previewControl('button', { name: copy.nextChapter }))
   expect(await screen.findByRole('alert')).toHaveTextContent(copy.switchFailure)
   expect(editor.isDestroyed).toBe(false)
   expect(screen.getByRole('textbox')).toHaveTextContent('Saved before failure')
   await waitFor(() =>
     expect(screen.getByRole('textbox')).toHaveAttribute(
       'contenteditable',
-      'true',
+      'false',
     ),
   )
   await user.click(screen.getByRole('button', { name: copy.retryChapter }))
@@ -347,14 +364,14 @@ test('unsupported target data leaves the current document open instead of creati
     } as unknown as Chapter)
   mount(vi.fn(), [chapter, second])
   const { user, editor } = await open()
-  await user.click(screen.getByRole('button', { name: copy.nextChapter }))
+  await user.click(previewControl('button', { name: copy.nextChapter }))
   expect(await screen.findByRole('alert')).toHaveTextContent(copy.invalid)
   expect(
     (screen.getByRole('textbox') as HTMLElement & { editor: Editor }).editor,
   ).toBe(editor)
-  expect(
-    screen.getByRole('combobox', { name: copy.chooseChapter }),
-  ).toHaveValue(chapter.id)
+  expect(previewControl('combobox', { name: copy.chooseChapter })).toHaveValue(
+    chapter.id,
+  )
   expect(saveChapterContent).not.toHaveBeenCalled()
 })
 
@@ -371,13 +388,13 @@ test('rapid navigation requests are serialized while target loading locks curren
   mount(vi.fn(), [chapter, second, third])
   const { user } = await open()
   await user.selectOptions(
-    screen.getByRole('combobox', { name: copy.chooseChapter }),
+    previewControl('combobox', { name: copy.chooseChapter }),
     second.id,
   )
   expect(
-    screen.getByRole('combobox', { name: copy.chooseChapter }),
+    previewControl('combobox', { name: copy.chooseChapter }),
   ).toBeDisabled()
-  fireEvent.change(screen.getByRole('combobox', { name: copy.chooseChapter }), {
+  fireEvent.change(previewControl('combobox', { name: copy.chooseChapter }), {
     target: { value: third.id },
   })
   expect(getChapter).toHaveBeenCalledTimes(2)
@@ -389,7 +406,7 @@ test('rapid navigation requests are serialized while target loading locks curren
   await act(async () => resolve(second))
   await waitFor(() =>
     expect(
-      screen.getByRole('combobox', { name: copy.chooseChapter }),
+      previewControl('combobox', { name: copy.chooseChapter }),
     ).toHaveValue(second.id),
   )
   expect(screen.getByRole('textbox')).toHaveTextContent('Second chapter text')
@@ -410,9 +427,10 @@ test('manual-save pending state blocks navigation until its commit finishes', as
   act(() => {
     editor.commands.insertContent({ type: 'text', text: 'Pending manual save' })
   })
+  startWriting()
   await user.click(screen.getByRole('button', { name: copy.save }))
-  expect(screen.getByRole('button', { name: copy.nextChapter })).toBeDisabled()
-  fireEvent.change(screen.getByRole('combobox', { name: copy.chooseChapter }), {
+  expect(previewControl('button', { name: copy.nextChapter })).toBeDisabled()
+  fireEvent.change(previewControl('combobox', { name: copy.chooseChapter }), {
     target: { value: second.id },
   })
   expect(getChapter).toHaveBeenCalledTimes(1)
@@ -423,7 +441,7 @@ test('manual-save pending state blocks navigation until its commit finishes', as
       content: vi.mocked(saveChapterContent).mock.calls[0][2].content,
     }),
   )
-  await user.click(screen.getByRole('button', { name: copy.nextChapter }))
+  await user.click(previewControl('button', { name: copy.nextChapter }))
   await waitFor(() =>
     expect(screen.getByRole('textbox')).toHaveTextContent(
       'Second chapter text',
@@ -458,22 +476,26 @@ test('a late dismissed read cannot replace a freshly reopened chapter', async ()
 test('live counts include Unicode words while formatting does not split or add words', async () => {
   mount()
   const { editor } = await open()
-  const counts = within(screen.getByRole('group', { name: copy.wordCounts }))
-  expect(counts.getByText(copy.currentWords('0'))).toBeVisible()
-  expect(counts.getByText(copy.savedWordsUnknown)).toBeVisible()
+  const counts = within(
+    screen
+      .getByRole('dialog')
+      .querySelector<HTMLElement>('.manuscript-counts')!,
+  )
+  expect(counts.getByText(copy.currentWords('0'))).toBeInTheDocument()
+  expect(counts.getByText(copy.savedWordsUnknown)).toBeInTheDocument()
   act(() => {
     editor.commands.insertContent({
       type: 'text',
       text: "п'ять foo-bar 12,500.75 😀 é",
     })
   })
-  expect(counts.getByText(copy.currentWords('4'))).toBeVisible()
+  expect(counts.getByText(copy.currentWords('4'))).toBeInTheDocument()
   act(() => {
     editor.commands.setTextSelection({ from: 1, to: 3 })
     editor.commands.toggleBold()
     editor.commands.toggleItalic()
   })
-  expect(counts.getByText(copy.currentWords('4'))).toBeVisible()
+  expect(counts.getByText(copy.currentWords('4'))).toBeInTheDocument()
   expect(saveChapterContent).not.toHaveBeenCalled()
 })
 
@@ -503,23 +525,28 @@ test('saved word count changes only after the corresponding native commit', asyn
   )
   mount()
   const { user, editor } = await open()
-  const counts = within(screen.getByRole('group', { name: copy.wordCounts }))
-  expect(counts.getByText(copy.savedWords('2'))).toBeVisible()
+  const counts = within(
+    screen
+      .getByRole('dialog')
+      .querySelector<HTMLElement>('.manuscript-counts')!,
+  )
+  expect(counts.getByText(copy.savedWords('2'))).toBeInTheDocument()
   act(() => {
     editor.commands.insertContentAt(editor.state.doc.content.size - 1, {
       type: 'text',
       text: ' more',
     })
   })
-  expect(counts.getByText(copy.currentWords('3'))).toBeVisible()
+  expect(counts.getByText(copy.currentWords('3'))).toBeInTheDocument()
+  startWriting()
   await user.click(screen.getByRole('button', { name: copy.save }))
-  expect(counts.getByText(copy.savedWords('2'))).toBeVisible()
+  expect(counts.getByText(copy.savedWords('2'))).toBeInTheDocument()
   const content = vi.mocked(saveChapterContent).mock.calls[0][2].content
   expect(countChapterWords(content)).toBe(3)
   await act(async () =>
     commit({ ...loaded, content, revision: 5, wordCount: 3 }),
   )
-  expect(counts.getByText(copy.savedWords('3'))).toBeVisible()
+  expect(counts.getByText(copy.savedWords('3'))).toBeInTheDocument()
 })
 
 test('autosave debounces edits, commits the latest document and reuses the committed revision', async () => {
@@ -587,7 +614,7 @@ test('slow autosave is serialized and cannot announce success or permit close be
   })
   expect(field).toHaveAttribute('contenteditable', 'false')
   fireEvent.click(screen.getByRole('button', { name: copy.saving }))
-  fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
+  fireEvent.click(screen.getByRole('button', { name: copy.close }))
   await act(async () => {
     await vi.advanceTimersByTimeAsync(20000)
   })
@@ -684,7 +711,7 @@ test('save status follows edits and commit, clears pending notices and invalidat
   )
   mount()
   const { editor } = await open()
-  const status = screen.getByRole('status', { name: copy.saveStatus })
+  const status = writingStatus()
   expect(status).toHaveTextContent(copy.saveUnchanged)
   expect(status).toHaveAttribute('aria-live', 'polite')
   expect(status).toHaveAttribute('aria-atomic', 'true')
@@ -697,12 +724,12 @@ test('save status follows edits and commit, clears pending notices and invalidat
   act(() => {
     editor.commands.insertContent({ type: 'text', text: ' more' })
   })
-  expect(screen.getByRole('status', { name: copy.saveStatus })).toBe(status)
+  expect(writingStatus()).toBe(status)
   await act(async () => {
     await vi.advanceTimersByTimeAsync(2000)
   })
   expect(status).toHaveTextContent(copy.saving)
-  fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
+  fireEvent.click(screen.getByRole('button', { name: copy.close }))
   expect(screen.getByRole('alert')).toHaveTextContent(copy.pending)
   expect(status).not.toHaveTextContent(copy.saved)
   await act(async () => {
@@ -724,7 +751,7 @@ test('save status follows edits and commit, clears pending notices and invalidat
   await act(async () => {
     await vi.advanceTimersByTimeAsync(2000)
   })
-  fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
+  fireEvent.click(screen.getByRole('button', { name: copy.close }))
   expect(screen.getByRole('alert')).toHaveTextContent(copy.pending)
   await act(async () => {
     fail({ code: 'persistence' })
@@ -740,10 +767,11 @@ test.each(['persistence', 'conflict', 'not_found', 'invalid_stored_data'])(
     vi.mocked(saveChapterContent).mockRejectedValueOnce({ code })
     mount()
     const { editor, user } = await open()
-    const status = screen.getByRole('status', { name: copy.saveStatus })
+    const status = writingStatus()
     act(() => {
       editor.commands.insertContent({ type: 'text', text: 'retained' })
     })
+    startWriting()
     await user.click(screen.getByRole('button', { name: copy.save }))
     expect(status).toHaveTextContent(
       code === 'persistence' ? copy.savePaused : copy.saveBlocked,
@@ -752,7 +780,7 @@ test.each(['persistence', 'conflict', 'not_found', 'invalid_stored_data'])(
     act(() => {
       editor.commands.insertContent({ type: 'text', text: ' edits' })
     })
-    await user.keyboard('{Escape}')
+    await user.click(screen.getByRole('button', { name: copy.close }))
     expect(screen.getByRole('alert')).toHaveTextContent(message)
     expect(screen.getByRole('alert')).toHaveTextContent(copy.unsaved)
     expect(status).not.toHaveTextContent(copy.saved)
@@ -763,6 +791,7 @@ test.each(['persistence', 'conflict', 'not_found', 'invalid_stored_data'])(
           commit = resolve
         }),
       )
+      startWriting()
       await user.click(screen.getByRole('button', { name: copy.save }))
       expect(status).toHaveTextContent(copy.saving)
       expect(screen.getByRole('alert')).toHaveTextContent(message)
@@ -786,6 +815,7 @@ test('save status distinguishes guard preparation from unavailable editing', asy
   mount()
   const user = userEvent.setup()
   await user.click(screen.getByRole('button', { name: en.chapters.open }))
+  startWriting()
   const status = await screen.findByRole('status', { name: copy.saveStatus })
   expect(status).toHaveTextContent(copy.savePreparing)
   await act(async () => {
@@ -805,19 +835,16 @@ test('chapter navigation starts a fresh neutral save status after a committed ou
   act(() => {
     editor.commands.insertContent({ type: 'text', text: 'outgoing' })
   })
+  startWriting()
   await user.click(screen.getByRole('button', { name: copy.save }))
-  expect(
-    screen.getByRole('status', { name: copy.saveStatus }),
-  ).toHaveTextContent(copy.saved)
-  await user.click(screen.getByRole('button', { name: copy.nextChapter }))
+  expect(writingStatus()).toHaveTextContent(copy.saved)
+  await user.click(previewControl('button', { name: copy.nextChapter }))
   await waitFor(() =>
     expect(screen.getByRole('textbox')).toHaveTextContent(
       'Second chapter text',
     ),
   )
-  expect(
-    screen.getByRole('status', { name: copy.saveStatus }),
-  ).toHaveTextContent(copy.saveUnchanged)
+  expect(writingStatus()).toHaveTextContent(copy.saveUnchanged)
 })
 
 test('focus mode is keyboard reversible without replacing writing, selection, history or dirty status', async () => {
@@ -831,7 +858,7 @@ test('focus mode is keyboard reversible without replacing writing, selection, hi
   const before = editor.getJSON()
   const selection = editor.state.selection.toJSON()
   const undoAvailable = editor.can().undo()
-  const button = screen.getByRole('button', { name: copy.enterFocus })
+  const button = previewControl('button', { name: copy.enterFocus })
   button.focus()
   await user.keyboard('{Enter}')
   const exit = screen.getByRole('button', { name: copy.exitFocus })
@@ -841,7 +868,9 @@ test('focus mode is keyboard reversible without replacing writing, selection, hi
   expect(
     screen.queryByRole('navigation', { name: copy.navigation }),
   ).not.toBeInTheDocument()
-  expect(screen.queryByRole('toolbar')).not.toBeInTheDocument()
+  expect(
+    within(screen.getByRole('toolbar')).getAllByRole('button'),
+  ).toHaveLength(15)
   expect(
     screen.queryByRole('group', { name: copy.wordCounts }),
   ).not.toBeInTheDocument()
@@ -849,15 +878,13 @@ test('focus mode is keyboard reversible without replacing writing, selection, hi
   expect(editor.getJSON()).toEqual(before)
   expect(editor.state.selection.toJSON()).toEqual(selection)
   expect(editor.can().undo()).toBe(undoAvailable)
-  expect(
-    screen.getByRole('status', { name: copy.saveStatus }),
-  ).toHaveTextContent(copy.saveWaiting)
+  expect(writingStatus()).toHaveTextContent(copy.saveWaiting)
   await user.keyboard('{Escape}')
   expect(screen.getByRole('dialog')).not.toHaveClass(
     'modal-content--fullscreen',
   )
-  expect(screen.getByRole('button', { name: copy.enterFocus })).toHaveFocus()
-  expect(screen.getByRole('toolbar')).toBeVisible()
+  expect(previewControl('button', { name: copy.enterFocus })).toHaveFocus()
+  expect(screen.queryByRole('toolbar')).not.toBeInTheDocument()
   expect(screen.getByRole('textbox')).toBe(field)
   expect(saveChapterContent).not.toHaveBeenCalled()
   await user.keyboard('{Escape}')
@@ -874,7 +901,7 @@ test('focus mode keeps autosave pending locks, commit status and retryable error
   )
   mount()
   const { user, editor, field } = await open()
-  await user.click(screen.getByRole('button', { name: copy.enterFocus }))
+  await user.click(previewControl('button', { name: copy.enterFocus }))
   vi.useFakeTimers()
   act(() => {
     editor.commands.insertContent({ type: 'text', text: 'Focus writing' })
@@ -883,9 +910,7 @@ test('focus mode keeps autosave pending locks, commit status and retryable error
     await vi.advanceTimersByTimeAsync(2000)
   })
   expect(field).toHaveAttribute('contenteditable', 'false')
-  expect(
-    screen.getByRole('status', { name: copy.saveStatus }),
-  ).toHaveTextContent(copy.saving)
+  expect(writingStatus()).toHaveTextContent(copy.saving)
   fireEvent.click(screen.getByRole('button', { name: copy.exitFocus }))
   expect(screen.getByRole('dialog')).not.toHaveClass(
     'modal-content--fullscreen',
@@ -894,7 +919,7 @@ test('focus mode keeps autosave pending locks, commit status and retryable error
   await act(async () => {
     fail({ code: 'persistence' })
   })
-  fireEvent.click(screen.getByRole('button', { name: copy.enterFocus }))
+  fireEvent.click(previewControl('button', { name: copy.enterFocus }))
   expect(screen.getByRole('alert')).toHaveTextContent(copy.failure)
   expect(field).toHaveAttribute('contenteditable', 'true')
   vi.mocked(saveChapterContent).mockResolvedValue({
@@ -905,9 +930,7 @@ test('focus mode keeps autosave pending locks, commit status and retryable error
   await act(async () => {
     fireEvent.click(screen.getByRole('button', { name: copy.save }))
   })
-  expect(
-    screen.getByRole('status', { name: copy.saveStatus }),
-  ).toHaveTextContent(copy.saved)
+  expect(writingStatus()).toHaveTextContent(copy.saved)
   expect(screen.getByRole('dialog')).toHaveClass('modal-content--fullscreen')
   expect(saveChapterContent).toHaveBeenCalledTimes(2)
 })
@@ -918,7 +941,7 @@ test('explicit close in focus mode retains dirty text and discard acknowledgemen
   act(() => {
     editor.commands.insertContent({ type: 'text', text: 'Do not lose this' })
   })
-  await user.click(screen.getByRole('button', { name: copy.enterFocus }))
+  await user.click(previewControl('button', { name: copy.enterFocus }))
   await user.click(
     within(screen.getByRole('dialog')).getByRole('button', {
       name: copy.close,
@@ -935,13 +958,13 @@ test('explicit close in focus mode retains dirty text and discard acknowledgemen
   expect(screen.getByRole('dialog')).not.toHaveClass(
     'modal-content--fullscreen',
   )
-  expect(screen.getByRole('button', { name: copy.enterFocus })).toBeVisible()
+  expect(previewControl('button', { name: copy.enterFocus })).toBeVisible()
 })
 
 test('one Escape exits focus mode, repeated Escape cannot dismiss the clean editor', async () => {
   mount()
   const { user } = await open()
-  await user.click(screen.getByRole('button', { name: copy.enterFocus }))
+  await user.click(previewControl('button', { name: copy.enterFocus }))
   fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape', repeat: true })
   expect(screen.getByRole('button', { name: copy.exitFocus })).toBeVisible()
   await user.keyboard('{Escape}')
@@ -951,104 +974,92 @@ test('one Escape exits focus mode, repeated Escape cannot dismiss the clean edit
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 })
 
-test('committed global size changes display without changing the current editor JSON, selection or save revision', async () => {
-  vi.mocked(getEditorPreferences).mockResolvedValue({
-    schemaVersion: 1,
-    fontSize: 24,
-    revision: 1,
-  })
-  let commit!: (snapshot: {
-    schemaVersion: 1
-    fontSize: number
-    revision: number
-  }) => void
-  vi.mocked(saveEditorPreferences).mockReturnValue(
-    new Promise((resolve) => {
-      commit = resolve
-    }),
-  )
+test('inline font controls format only a selection and never call global settings persistence', async () => {
   mount()
   const { user, editor, field } = await open()
   act(() => {
-    editor.commands.insertContent({ type: 'text', text: 'Kept writing' })
-    editor.commands.setTextSelection({ from: 1, to: 5 })
+    editor.commands.insertContent({ type: 'text', text: 'Alpha beta' })
+    editor.commands.setTextSelection({ from: 1, to: 6 })
   })
-  const document = editor.getJSON()
-  const selection = editor.state.selection.toJSON()
-  const container = field.closest('[style]')!
-  await waitFor(() =>
-    expect(container).toHaveStyle('--editor-font-size: 1.5rem'),
+  await user.selectOptions(
+    screen.getByRole('combobox', { name: en.editorPreferences.fontSize }),
+    '24',
   )
-  await user.click(screen.getByText(en.editorPreferences.title))
+  expect(field.querySelector('span[data-font-size="24"]')).toHaveTextContent(
+    'Alpha',
+  )
+  expect(field.textContent).toBe('Alpha beta')
+  expect(editor.getJSON().content?.[0].content?.[1].marks).toBeUndefined()
+  expect(saveEditorPreferences).not.toHaveBeenCalled()
+  expect(getEditorPreferences).not.toHaveBeenCalled()
+  expect(
+    screen.queryByRole('status', { name: en.editorPreferences.status }),
+  ).not.toBeInTheDocument()
+})
+
+test('a cursor font size formats future typing and preserves the existing dirty guard', async () => {
+  mount()
+  const { user, editor, field } = await open()
+  act(() => {
+    editor.commands.insertContent({ type: 'text', text: 'Alpha' })
+    editor.commands.setTextSelection(6)
+    editor.commands.toggleItalic()
+  })
   await user.selectOptions(
     screen.getByRole('combobox', { name: en.editorPreferences.fontSize }),
     '32',
   )
-  await user.click(
-    screen.getByRole('button', { name: en.editorPreferences.save }),
+  act(() => {
+    editor.commands.insertContent({ type: 'text', text: ' beta' })
+  })
+  expect(field.querySelector('span[data-font-size="32"]')?.textContent).toBe(
+    ' beta',
   )
-  expect(container).toHaveStyle('--editor-font-size: 1.5rem')
+  expect(editor.getJSON().content?.[0].content?.[0].marks).toBeUndefined()
   expect(
-    screen.getByRole('combobox', { name: copy.chooseChapter }),
-  ).toBeDisabled()
-  expect(screen.getByRole('button', { name: copy.enterFocus })).toBeDisabled()
-  const [shouldBlock, onBlocked] = vi.mocked(protectWritingClose).mock.calls[0]
-  expect(shouldBlock()).toBe(true)
-  act(() => onBlocked())
+    editor
+      .getJSON()
+      .content?.[0].content?.[1].marks?.map((mark) => mark.type)
+      .sort(),
+  ).toEqual(['fontSize', 'italic'])
   await user.click(
     within(screen.getByRole('dialog')).getByRole('button', {
       name: copy.close,
     }),
   )
   expect(screen.getByRole('dialog')).toBeVisible()
-  await act(async () => {
-    commit({ schemaVersion: 1, fontSize: 32, revision: 2 })
-  })
-  expect(container).toHaveStyle('--editor-font-size: 2rem')
-  expect(screen.getByRole('textbox')).toBe(field)
-  expect(editor.getJSON()).toEqual(document)
-  expect(editor.state.selection.toJSON()).toEqual(selection)
-  expect(saveChapterContent).not.toHaveBeenCalled()
-  expect(
-    screen.getByRole('status', { name: copy.saveStatus }),
-  ).toHaveTextContent(copy.saveWaiting)
-  await user.click(screen.getByRole('button', { name: copy.enterFocus }))
-  expect(screen.getByRole('textbox').closest('[style]')).toHaveStyle(
-    '--editor-font-size: 2rem',
-  )
+  expect(screen.getByRole('alert')).toHaveTextContent('unsaved writing')
 })
 
-test('pending preference write protects a clean native window without stale manuscript-save feedback', async () => {
-  let commit!: (snapshot: {
-    schemaVersion: 1
-    fontSize: number
-    revision: number
-  }) => void
-  vi.mocked(saveEditorPreferences).mockReturnValue(
-    new Promise((resolve) => {
-      commit = resolve
-    }),
-  )
+test('chapter preview is read-only with no formatting/save controls until Start writing', async () => {
   mount()
-  const { user } = await open()
-  await user.click(screen.getByText(en.editorPreferences.title))
-  await user.selectOptions(
-    screen.getByRole('combobox', { name: en.editorPreferences.fontSize }),
-    '20',
-  )
-  await user.click(
-    screen.getByRole('button', { name: en.editorPreferences.save }),
-  )
-  const [shouldBlock, onBlocked] = vi.mocked(protectWritingClose).mock.calls[0]
-  expect(shouldBlock()).toBe(true)
-  act(() => onBlocked())
-  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  const user = userEvent.setup()
+  await user.click(screen.getByRole('button', { name: en.chapters.open }))
+  const field = await screen.findByRole('textbox', { name: copy.label })
+  await waitFor(() => expect(field).toHaveAttribute('contenteditable', 'false'))
+  expect(field).toHaveAttribute('aria-readonly', 'true')
+  expect(screen.queryByRole('toolbar')).not.toBeInTheDocument()
   expect(
-    screen.getByRole('status', { name: en.editorPreferences.status }),
-  ).toHaveTextContent(en.editorPreferences.saving)
-  await act(async () => {
-    commit({ schemaVersion: 1, fontSize: 20, revision: 2 })
+    screen.queryByRole('button', { name: copy.save }),
+  ).not.toBeInTheDocument()
+  expect(
+    screen.queryByRole('combobox', { name: en.editorPreferences.fontFamily }),
+  ).not.toBeInTheDocument()
+  const editor = (field as HTMLElement & { editor: Editor }).editor
+  const original = editor.getJSON()
+  fireEvent.paste(field, {
+    clipboardData: { files: [], getData: () => 'Do not insert' },
   })
-  expect(shouldBlock()).toBe(false)
-  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  expect(editor.getJSON()).toEqual(original)
+  expect(saveChapterContent).not.toHaveBeenCalled()
+  await user.click(screen.getByRole('button', { name: copy.enterFocus }))
+  expect(field).toHaveAttribute('contenteditable', 'true')
+  expect(field).toHaveAttribute('aria-readonly', 'false')
+  expect(screen.getByRole('toolbar')).toBeVisible()
+  expect(screen.getByRole('button', { name: copy.save })).toBeDisabled()
+  await user.click(screen.getByRole('button', { name: copy.exitFocus }))
+  expect(field).toHaveAttribute('contenteditable', 'false')
+  expect(
+    screen.queryByRole('button', { name: copy.save }),
+  ).not.toBeInTheDocument()
 })

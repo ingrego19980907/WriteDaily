@@ -120,7 +120,7 @@ Task 3.10 adds optional fullScreen, headerActions and onEscapeKeyDown props. Ful
 
 Radix portals the modal into document.body, blocks outside interaction, traps focus, handles Escape/backdrop/Close requests and restores focus to its trigger. The controlled onOpenChange callback lets a caller refuse a close request while an unsaved form needs confirmation. Default focus follows Radix's first-focusable policy (the header Close action in the tested content); forms can manage their own initial field focus. No automatic saving, discard confirmation or destructive alert-dialog behavior is included.
 
-Content uses a surface background, secondary border, 1rem radius and a soft --shadow-modal. The --color-overlay token mixes foreground at 40% opacity; the shadow mixes foreground at 20%. Width is min(32rem, 100vw - 2rem), maximum height 100dvh - 2rem. The body scrolls independently while header/Close stay visible. No animation or runtime font request is introduced. Compact and wide visual previews were inspected in actual Tauri; temporary preview sources were removed. Current application accessibility/layout review passed in 1.9.
+Content uses a surface background, secondary border, 1rem radius and a soft --shadow-modal. The --color-overlay token mixes foreground at 40% opacity; the shadow mixes foreground at 20%. Default width is min(32rem, 100vw - 2rem), maximum height 100dvh - 2rem. Chapter text opts into size=large with width 100vw - 2rem and height 100dvh - 2rem, leaving 1rem around the popup. Its body fills the remaining height and aligns content to the top. Full-screen focus mode overrides this size. The body scrolls independently while header/Close stay visible. No animation or runtime font request is introduced. Compact and wide visual previews were inspected in actual Tauri; temporary preview sources were removed. Current application accessibility/layout review passed in 1.9.
 
 ## Card
 
@@ -155,3 +155,61 @@ ProgressBar has a forced-colors override: Canvas track, CanvasText boundary, Hig
 Global Tailwind/base CSS must be imported before component modules at an application/test entry point to establish cascade layer order. The browser fixture now follows this rule and guards actual button fills/padding and field borders. Recheck real feature screens and manual assistive-technology behavior as they are added; release accessibility remains task 8.3.
 
 Daily goals (4.2): a shared text-secondary, wrapping DailyGoal paragraph displays the committed target or No daily goal in the card/editor context. The existing labelled form input includes whole-number/blank-removal help and existing inline errors/focus. No target-derived daily completion percentage or achievement color is shown.
+
+Editor footer (ED.2): the existing manual Save action remains full-sized at the left; compact SaveStatus and the current/saved numeric pair align right in a sticky surface-backed footer. Secondary text uses 0.75rem type, wrapping at narrow widths. Visible suffixes are omitted while complete count labels remain screen-reader-only; unknown numeric values use an em dash. Counting policy is native hover-title help on the focusable autosave hint, with an aria-describedby equivalent for keyboard/screen-reader access. Focus mode hides the numeric pair and retains the save status.
+
+ED.3: the autosave/plain-text-paste hint now sits in the footer information group immediately before the compact counters, inheriting its small type and wrapping. The native counting-policy hover title and accessible description stay attached to the same focusable hint.
+
+ED.4: footer information uses a two-row grid: save status above, shortened autosave hint followed by the current/saved numeric pair below. The hint reads Changes save automatically after 2 seconds without editing. Its counting-policy hover help is retained.
+
+Editor keyboard save (ED.5): the existing Save chapter text action supports Ctrl+S and Command+S inside the active chapter dialog. A localized button hover title and aria-keyshortcuts expose the binding. The same save guards, pending lock and commit-only status apply.
+
+Compact styles (ED.6): a sticky, wrapping surface panel above manuscript text combines font-size minus/select/plus controls with formatting. B/I use typographic glyphs, pressed colors and complete accessible names/tooltips; other normal-mode operations retain their full labels. Buttons keep 2.75rem targets. Focus mode shows the font controls plus B/I. Each size action automatically persists the selected global text size, applying it only after success; settings errors/status remain visible. No underline mark or per-selection font-size schema is added.
+
+ED.7: the compact style panel omits the font apply/check button and successful-save caption. Each accepted size/step action starts persistence automatically; pending controls are disabled. Failures remain visible and offer retry or reload as appropriate.
+
+ED.8 current font semantics: the size selector and minus/plus format the selection or future typing, with Mixed for heterogeneous ranges. They no longer alter global preferences or show settings-save captions. Inline formatting uses chapter autosave/Ctrl+S and the existing save status. Normal/focus panels share this behavior; legacy global-control notes above are superseded.
+
+## List controls (ED.9)
+
+Bullet and numbered lists use 20px currentColor outline SVG icons with rounded strokes, accessible English names/tooltips and existing pressed/disabled/focus states. List actions precede bold/italic in the wrapping toolbar beside font-size controls. The toolbar aligns to the top of the font controls; narrow screens wrap without horizontal overflow. Focus mode includes both list actions. Arrow/Home/End navigation follows the visible action order; font controls retain native Tab behavior. No dropdown is shown because each button directly toggles its list type.
+
+## Focus toolbar pinning (ED.10)
+
+In focus mode the toolbar wrapper itself is sticky within the full manuscript container, so the panel stays at the modal scroll viewport top through long documents and new paragraphs. Regular-mode toolbar positioning is unchanged. The modal header remains outside the scroll body. Focus-mode browser coverage checks middle/end scrolling and typing at 320/1100px.
+
+## Focus header and footer (ED.11)
+
+Focus mode uses the current chapter title as the dialog heading. The compact formatting panel renders into a header slot alongside the title and focus/close controls; responsive wrapping accommodates small viewports. Long titles truncate visually while retaining their full accessible name. Header/footer heights are capped with independent scrolling at large text sizes to preserve writing space. The save footer renders outside the scrolling body: save action at the left edge, compact live status at the right. React portals preserve the existing editor instance, guarded save action and save-status lifecycle. Exiting focus mode restores regular controls. This supersedes the ED.10 in-body sticky wrapper.
+
+## Centered focus formatting and history (ED.12)
+
+The focused header uses equal flexible side columns around the formatting panel, keeping its center at the viewport center regardless of title/action widths. At 64rem and below it stacks title, centered formatting and right-aligned close/focus controls in DOM order. Header/footer height limits and scroll access remain. Undo/redo are available in compact mode as mirrored 20px currentColor rounded-stroke arrows, with English names/tooltips, native disabled history state and existing keyboard navigation. The same history icons appear in regular mode.
+
+## Underline formatting (ED.13)
+
+An underlined U button follows Italic in normal and focus toolbars. It preserves selection, exposes an English name/tooltip and pressed state, and uses the same disabled guards and keyboard navigation as bold/italic. Cursor-only activation formats subsequent input. Chapter content v3 adds the attribute-free underline mark, compatible with bold/italic/fontSize (four unique marks maximum); v1/v2 remain readable and strict. Saves retain existing debounce, Ctrl+S and revision checks. No SQL migration or dependency is required.
+
+## Focus headings (ED.14)
+
+Focus formatting includes H1, H2, H3 and H4 after Underline and before history controls. Labels, tooltips and accessible names use the same compact English copy; pressed states reflect the active block. Clicking the active heading returns to paragraph. Regular mode keeps Heading 1 through Heading 6. The focused action group wraps onto its own row when needed so the larger set remains usable on narrow screens. Content grammar/persistence are unchanged.
+
+## Focus alignment and smaller controls (ED.15)
+
+Focus mode adds left/center/right/justified paragraph alignment using matching 18px outline icons and centralized English labels/tooltips. Alignment affects the current paragraph/heading or all intersecting text blocks in a selection; mixed selections have no active alignment. Default alignment is left. Marks, heading levels, text and word counts are preserved. Toolbar buttons and size selector use a 2.25rem (36px baseline) minimum height; buttons retain visible focus and exceed the 24px target-size minimum.
+
+Content v4 adds optional textAlign attributes to paragraphs/headings, restricted to left/center/right/justify. v1-v3 remain readable and the serializer emits the oldest grammar preserving all formatting. Editor-generated null/default alignment attributes are omitted from persisted JSON, without changing writing or other attributes. Native saves keep body/count/revision atomic; no SQL migration or dependency is required.
+
+## Named font families (ED.16)
+
+Both toolbar modes include a labelled native font-family selector before size controls, with twenty named Windows system fonts from resources/manuscript-fonts.json. Georgia matches the existing unmarked writing default. Mixed selections show Mixed; cursor changes become stored typing marks. Selector ranges are captured on pointer/keyboard focus, restored only when necessary, and consumed once so later typing keeps its current cursor and other marks. The bounded family mark saves through the existing chapter autosave/Ctrl+S flow.
+
+The shared catalog contains Arial, Bahnschrift, Calibri, Cambria, Candara, Consolas, Constantia, Corbel, Courier New, Georgia, Lucida Console, Lucida Sans Unicode, Palatino Linotype, Segoe UI, Segoe Print, Segoe Script, Tahoma, Times New Roman, Trebuchet MS and Verdana. System fonts are used locally; no proprietary font files are redistributed or network fonts loaded. Missing fonts on another machine use the catalog's serif/sans-serif/monospace/cursive fallback while retaining the selected family name.
+
+Content v5 adds fontFamily marks with one allowlisted family attribute and up to five unique composed marks. v1-v4 remain readable; the serializer emits the oldest grammar preserving the document. Native validation reads the same catalog. Header stacking begins at 80rem to accommodate the wider centered panel; controls continue to wrap at compact sizes. No SQL migration or dependency is required.
+
+## Preview before writing (ED.17)
+
+Chapter text now opens as a selectable read-only preview, with chapter navigation and a Start writing action (English copy for the requested writing-entry label). The preview has no formatting controls, manual save button or editing footer. Its textbox declares aria-readonly and remains keyboard-focusable for reading/copying; typing, paste/drop and formatting/undo shortcuts cannot modify it. Start writing enables the existing focused editor, toolbar and save footer.
+
+Exiting focused writing returns to preview without replacing the editor, writing, selection or history. Unsaved drafts remain intact, existing autosave can finish, failed saves remain visible and dismissal guards still require explicit discard. Users can re-enter writing to retry saving. Pending-save completion consults the current preview state before enabling editing, preventing a late commit from unlocking preview. No persistence format or service changes.

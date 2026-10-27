@@ -1,5 +1,10 @@
 # Chapter model, repository and editor (3.1–3.4)
 
+Current extension (ED.16): content v5 adds allowlisted fontFamily marks; v1-v4 remain readable. See [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md#named-font-families-ed16).
+Current extension (ED.15): content v4 adds optional paragraph/heading textAlign (left/center/right/justify); v1-v3 remain readable. Database schema/migrations are unchanged. See [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md#focus-alignment-and-smaller-controls-ed15).
+Current extension (ED.13): content v3 adds attribute-free underline marks and permits four unique composed marks. v1/v2 remain readable; serialization uses the oldest grammar that preserves the document. See [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md#underline-formatting-ed13).
+ED.8 content compatibility update: v1 remains valid; content v2 adds a unique fontSize mark with integer size 12..32 and no extra attributes, composable with bold/italic. Database schema remains v4 and migrations are unchanged. Serializer uses v2 only when needed, and both native/frontend boundaries reject unsupported data without repair. See [INLINE_FONT_SIZE.md](INLINE_FONT_SIZE.md).
+
 Task 3.12 now verifies actual desktop chapter restart/recovery alongside the earlier disposable-database tests: exact rich content/count/revision survives normal restart and active-write interruption; subsequent saves succeed. This is last-commit recovery, not durable restoration of unsaved in-memory drafts. See [EDITOR_PERSISTENCE_REVIEW.md](EDITOR_PERSISTENCE_REVIEW.md).
 
 Implemented: readonly TypeScript contracts and pure metadata/content validation under src/features/editor, native chapter repository/validation under src-tauri/src/chapters, migration 003, registered Tauri commands and src/services/chapters.ts. Task 3.3 connects selected-book chapter management UI for creation, renaming and confirmed deletion. Task 3.4 integrates Tiptap 3.32.0 with manual content saving and close protection; word counting is implemented in 3.7; autosave is implemented in 3.8. See [Tiptap integration](TIPTAP_INTEGRATION.md).

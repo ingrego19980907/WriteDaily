@@ -7,8 +7,6 @@ import { getChapter } from '../../services/chapters'
 import type { Chapter, ChapterSummary } from './chapter'
 import { prepareEditorDocument } from './editor-schema'
 import { ManuscriptEditor } from './ManuscriptEditor'
-import { EditorPreferencesPanel } from './EditorPreferencesPanel'
-import { DEFAULT_FONT_SIZE } from './editor-preferences'
 import '../../components/ui/input.css'
 
 const copy = en.writing
@@ -37,12 +35,12 @@ export function ChapterEditorDialog({
   const [switchFailure, setSwitchFailure] = useState('')
   const [switching, setSwitching] = useState(false)
   const [writingPending, setWritingPending] = useState(false)
-  const [preferencesPending, setPreferencesPending] = useState(false)
-  const [fontSize, setFontSize] = useState(DEFAULT_FONT_SIZE)
-  const preferencesPendingRef = useRef(false)
   const [failedTarget, setFailedTarget] = useState<string | null>(null)
   const [focusOnReady, setFocusOnReady] = useState(false)
   const [focusMode, setFocusMode] = useState(false)
+  const [formattingTarget, setFormattingTarget] =
+    useState<HTMLDivElement | null>(null)
+  const [footerTarget, setFooterTarget] = useState<HTMLDivElement | null>(null)
   const focusModeRef = useRef(false)
   const focusButton = useRef<HTMLButtonElement>(null)
   const request = useRef(0)
@@ -63,17 +61,7 @@ export function ChapterEditorDialog({
     (pending: boolean) => {
       writingPendingRef.current = pending
       setWritingPending(pending)
-      onPending(
-        pending || switchingRef.current || preferencesPendingRef.current,
-      )
-    },
-    [onPending],
-  )
-  const reportPreferencesPending = useCallback(
-    (pending: boolean) => {
-      preferencesPendingRef.current = pending
-      setPreferencesPending(pending)
-      onPending(pending || switchingRef.current || writingPendingRef.current)
+      onPending(pending || switchingRef.current)
     },
     [onPending],
   )
@@ -93,7 +81,7 @@ export function ChapterEditorDialog({
   }
   function changeOpen(next: boolean) {
     if (!next) {
-      if (switchingRef.current || preferencesPendingRef.current) return
+      if (switchingRef.current) return
       if (canClose.current()) close()
       return
     }
@@ -103,7 +91,6 @@ export function ChapterEditorDialog({
     setSwitchFailure('')
     setFailedTarget(null)
     setFocusOnReady(false)
-    setFontSize(DEFAULT_FONT_SIZE)
     focusModeRef.current = false
     setFocusMode(false)
     setLoaded(null)
@@ -130,7 +117,6 @@ export function ChapterEditorDialog({
       id === loaded.chapter.id ||
       switchingRef.current ||
       writingPendingRef.current ||
-      preferencesPendingRef.current ||
       !ordered.some((item) => item.id === id)
     )
       return
@@ -164,7 +150,7 @@ export function ChapterEditorDialog({
     } finally {
       switchingRef.current = false
       if (request.current === current) setSwitching(false)
-      onPending(writingPendingRef.current || preferencesPendingRef.current)
+      onPending(writingPendingRef.current)
     }
   }
 
@@ -177,8 +163,9 @@ export function ChapterEditorDialog({
           {en.chapters.open}
         </Button>
       }
-      title={copy.title}
+      title={focusMode && loaded ? loaded.chapter.title : copy.title}
       closeLabel={copy.close}
+      size="large"
       fullScreen={focusMode}
       onEscapeKeyDown={(event) => {
         if (event.repeat || event.isComposing) {
@@ -190,21 +177,36 @@ export function ChapterEditorDialog({
           focusButton.current?.focus()
         }
       }}
+      footer={
+        focusMode ? (
+          <div ref={setFooterTarget} className="chapter-editor-footer" />
+        ) : undefined
+      }
+      headerCenter={
+        focusMode && loaded ? (
+          <div
+            ref={setFormattingTarget}
+            className="chapter-editor-formatting-slot"
+          />
+        ) : undefined
+      }
       headerActions={
         loaded && (
-          <Button
-            ref={focusButton}
-            variant="secondary"
-            aria-pressed={focusMode}
-            disabled={switching || (!focusMode && preferencesPending)}
-            onClick={() => {
-              const next = !focusModeRef.current
-              focusModeRef.current = next
-              setFocusMode(next)
-            }}
-          >
-            {focusMode ? copy.exitFocus : copy.enterFocus}
-          </Button>
+          <>
+            <Button
+              ref={focusButton}
+              variant="secondary"
+              aria-pressed={focusMode}
+              disabled={switching}
+              onClick={() => {
+                const next = !focusModeRef.current
+                focusModeRef.current = next
+                setFocusMode(next)
+              }}
+            >
+              {focusMode ? copy.exitFocus : copy.enterFocus}
+            </Button>
+          </>
         )
       }
     >
@@ -222,7 +224,7 @@ export function ChapterEditorDialog({
             id={selectId}
             className="input w-full min-w-0"
             value={loaded.chapter.id}
-            disabled={switching || writingPending || preferencesPending}
+            disabled={switching || writingPending}
             aria-describedby={hintId}
             onChange={(event) => {
               void switchChapter(event.target.value)
@@ -241,12 +243,7 @@ export function ChapterEditorDialog({
           <div className="flex flex-wrap gap-3">
             <Button
               variant="secondary"
-              disabled={
-                switching ||
-                writingPending ||
-                preferencesPending ||
-                activeIndex <= 0
-              }
+              disabled={switching || writingPending || activeIndex <= 0}
               onClick={() => {
                 const previous = ordered[activeIndex - 1]
                 if (previous) void switchChapter(previous.id)
@@ -259,7 +256,6 @@ export function ChapterEditorDialog({
               disabled={
                 switching ||
                 writingPending ||
-                preferencesPending ||
                 activeIndex < 0 ||
                 activeIndex >= ordered.length - 1
               }
@@ -280,7 +276,7 @@ export function ChapterEditorDialog({
           {failedTarget && (
             <Button
               variant="secondary"
-              disabled={switching || writingPending || preferencesPending}
+              disabled={switching || writingPending}
               onClick={() => {
                 void switchChapter(failedTarget)
               }}
@@ -289,15 +285,6 @@ export function ChapterEditorDialog({
             </Button>
           )}
         </nav>
-      )}
-      {loaded && (
-        <div hidden={focusMode}>
-          <EditorPreferencesPanel
-            onFontSize={setFontSize}
-            onPending={reportPreferencesPending}
-            disabled={writingPending || switching}
-          />
-        </div>
       )}
       {failure ? (
         <p role="alert" className="text-error">
@@ -315,9 +302,10 @@ export function ChapterEditorDialog({
           prepareToLeaveRef={prepareToLeaveRef}
           navigationLocked={switching}
           focusOnReady={focusOnReady}
+          preview={!focusMode}
           focusMode={focusMode}
-          fontSize={fontSize}
-          preferencesPendingRef={preferencesPendingRef}
+          formattingTarget={formattingTarget}
+          footerTarget={footerTarget}
         />
       ) : (
         <p role="status">{copy.loading}</p>

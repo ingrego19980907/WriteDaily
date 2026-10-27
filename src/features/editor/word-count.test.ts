@@ -4,7 +4,11 @@ import textCases from '../../../tests/fixtures/word-count.json'
 import documents from '../../../tests/fixtures/word-count-documents.json'
 import categories from '../../../resources/unicode/word-categories-17.0.0.json'
 import { countChapterWords, countTextWords } from './word-count'
-import { chapterExtensions, prepareEditorDocument } from './editor-schema'
+import {
+  chapterExtensions,
+  prepareEditorDocument,
+  serializeEditorDocument,
+} from './editor-schema'
 
 test.each(textCases)(
   'shared native/TypeScript word rule: $name',
@@ -56,7 +60,7 @@ test('real Tiptap formatting and undo cannot alter the word count', () => {
     content: prepareEditorDocument(documents[1].content)!,
   })
   const count = () =>
-    countChapterWords({ schemaVersion: 1, document: editor.getJSON() })
+    countChapterWords(serializeEditorDocument(editor.getJSON()))
   try {
     expect(count()).toBe(1)
     editor.commands.selectAll()

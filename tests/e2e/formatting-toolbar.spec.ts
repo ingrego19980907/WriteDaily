@@ -1,3 +1,4 @@
+import { startWriting } from './editor-mode'
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test, type Page } from '@playwright/test'
 import type { Editor } from '@tiptap/core'
@@ -9,6 +10,7 @@ async function openEditor(page: Page) {
     .getByRole('button', { name: 'Edit chapter text', exact: true })
     .last()
     .click()
+  await startWriting(page)
   const field = page.getByRole('textbox', { name: 'Chapter manuscript' })
   await expect(field).toHaveAttribute('contenteditable', 'true')
   return {
@@ -61,18 +63,16 @@ for (const width of [320, 640, 1100]) {
     await expect(
       toolbar.getByRole('button', { name: 'Bold', exact: true }),
     ).toHaveAttribute('aria-pressed', 'false')
-    for (const level of [1, 2, 3, 4, 5, 6]) {
+    for (const level of [1, 2, 3, 4]) {
       await toolbar
-        .getByRole('button', { name: `Heading ${level}`, exact: true })
+        .getByRole('button', { name: `H${level}`, exact: true })
         .click()
       await expect(field.locator(`h${level}`)).toHaveText('Alpha beta')
       await expect(
-        toolbar.getByRole('button', { name: `Heading ${level}`, exact: true }),
+        toolbar.getByRole('button', { name: `H${level}`, exact: true }),
       ).toHaveAttribute('aria-pressed', 'true')
     }
-    await toolbar
-      .getByRole('button', { name: 'Paragraph', exact: true })
-      .click()
+    await toolbar.getByRole('button', { name: 'H4', exact: true }).click()
     await toolbar
       .getByRole('button', { name: 'Bullet list', exact: true })
       .click()
@@ -115,6 +115,7 @@ for (const width of [320, 640, 1100]) {
       .getByRole('button', { name: 'Edit chapter text', exact: true })
       .last()
       .click()
+    await startWriting(page)
     await expect(field).toHaveAttribute('contenteditable', 'true')
     expect(
       await field.evaluate((element) =>
@@ -159,11 +160,14 @@ test('toolbar keyboard navigation has one Tab stop, skips disabled controls and 
   await expect(field.locator('em')).toHaveText('Keyboard formatting')
   await field.press('Shift+Tab')
   await expect(
-    toolbar.getByRole('button', { name: 'Italic', exact: true }),
+    page
+      .getByRole('dialog')
+      .getByRole('button', { name: 'Close', exact: true }),
   ).toBeFocused()
+  await toolbar.getByRole('button', { name: 'Italic', exact: true }).focus()
   await page.keyboard.press('Home')
   await expect(
-    toolbar.getByRole('button', { name: 'Bold', exact: true }),
+    toolbar.getByRole('button', { name: 'Bullet list', exact: true }),
   ).toBeFocused()
   await page.keyboard.press('End')
   await expect(
@@ -171,7 +175,7 @@ test('toolbar keyboard navigation has one Tab stop, skips disabled controls and 
   ).toBeFocused()
   await page.keyboard.press('ArrowRight')
   await expect(
-    toolbar.getByRole('button', { name: 'Bold', exact: true }),
+    toolbar.getByRole('button', { name: 'Bullet list', exact: true }),
   ).toBeFocused()
   expect(
     await toolbar
