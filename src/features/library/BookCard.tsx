@@ -2,6 +2,7 @@ import { useId } from 'react'
 import { en } from '../../app/i18n/en'
 import { Card } from '../../components/ui/Card'
 import { BookProgress } from './BookProgress'
+import { DailyGoal } from './DailyGoal'
 import { Button } from '../../components/ui/Button'
 import type { Book } from './book'
 import { BookActions } from './BookActions'
@@ -44,6 +45,7 @@ export function BookCard({
               ? copy.noTarget
               : copy.wordTarget(numbers.format(book.targetWordCount))}
           </p>
+          <DailyGoal value={book.dailyWordGoal} />
           <BookProgress
             wordCount={wordCount}
             targetWordCount={book.targetWordCount}

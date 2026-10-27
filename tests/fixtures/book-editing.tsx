@@ -19,6 +19,8 @@ const original: Book = {
 }
 Object.assign(globalThis, { isTauri: true })
 let stateListAttempts = 0
+const dailyScenario = new URLSearchParams(location.search).has('daily-goals')
+let dailyBook: Book = { ...original, dailyWordGoal: null }
 mockIPC((command, payload) => {
   if (command === 'list_chapters') {
     if (new URLSearchParams(location.search).has('cards'))
@@ -37,6 +39,7 @@ mockIPC((command, payload) => {
     return []
   }
   if (command === 'list_books') {
+    if (dailyScenario) return [{ ...dailyBook }]
     const state = new URLSearchParams(location.search).get('state')
     if (state === 'empty') return []
     if (state === 'loading') return new Promise(() => {})
@@ -100,6 +103,7 @@ mockIPC((command, payload) => {
     const id = (payload as { id: string }).id
     return { ...original, id, targetWordCount: id === 'second' ? 2000 : 1000 }
   }
+  if (command === 'get_book' && dailyScenario) return { ...dailyBook }
   if (command === 'get_book')
     return {
       ...original,
@@ -144,6 +148,18 @@ mockIPC((command, payload) => {
       id: string
       expectedUpdatedAt: string
       details: BookDetails
+    }
+    if (dailyScenario) {
+      if (id !== dailyBook.id || expectedUpdatedAt !== dailyBook.updatedAt)
+        throw { code: 'conflict' }
+      dailyBook = {
+        ...dailyBook,
+        ...details,
+        updatedAt: new Date(
+          Date.parse(dailyBook.updatedAt) + 1000,
+        ).toISOString(),
+      }
+      return { ...dailyBook }
     }
     if (id !== original.id || !expectedUpdatedAt)
       throw new Error('Missing book identity/revision')

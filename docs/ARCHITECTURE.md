@@ -42,7 +42,7 @@ Status: Foundation complete through task 0.9, including Windows development-wind
 
 ## Technology direction
 
-Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs 420 domain/component/service/editor tests and 105 Edge scenarios verified in the full browser run. Native persistence is additionally covered by 66 Rust tests. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
+Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs 421 domain/component/service/editor tests and 108 Edge scenarios verified in the full browser run. Native persistence is additionally covered by 67 Rust tests. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
 
 ## Organization
 
@@ -178,3 +178,5 @@ Native tests isolate temporary files and cover data retention, constraints, atom
 Public native books module supplies typed DTOs, validation and BookRepository; it borrows the app-managed Connection and does not expose arbitrary SQL to JavaScript; a separate adapter exposes create/list/get/update and confirmed delete. List/get validate full stored snapshots; create/update/delete use bound parameters and IMMEDIATE transactions. Success is returned after commit only. Snapshot updatedAt is required for update/delete to prevent stale writes across connections, with monotonically advancing UTC millisecond timestamps.
 
 Native validation matches frontend metadata normalization through shared JSON fixtures, and additionally checks UUIDs, full stored timestamps/order and managed cover reference shape. Serde maps camelCase DTOs and rejects unsupported input fields/types. No silent row repair/filtering. Direct repository deletion without a cleanup coordinator still refuses covered books. CoverStore uses the internal transactional deletion method that enqueues old cover paths before commit; filesystem work stays outside the repository. Future IPC wraps this blocking API, handles database lock/errors and owns user confirmation policy. Existing migration SQL is unchanged.
+
+Daily goal configuration (4.2): DailyGoal renders committed Book.dailyWordGoal on cards and editor headers. BookDetailsDialog reuses the existing metadata validation/save path with daily-specific help; blank removes the optional target. No native schema/command change or activity-derived percentage is introduced. See [DAILY_GOALS.md](DAILY_GOALS.md).

@@ -4,6 +4,7 @@ import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { listChapters } from '../../services/chapters'
 import type { Book } from '../library/book'
+import { DailyGoal } from '../library/DailyGoal'
 import { aggregateBookWordCount } from '../library/book-word-count'
 import type { ChapterSummary } from './chapter'
 import { chapterErrorCode, chapterFailure } from './chapter-errors'
@@ -105,6 +106,7 @@ export function ChapterManager({
                 new Intl.NumberFormat('en').format(book.targetWordCount),
               )}
         </p>
+        <DailyGoal value={book.dailyWordGoal} />
         <p aria-label={en.library.bookWordCount} className="text-secondary">
           {bookWordCount === null
             ? en.library.wordCountUnavailable

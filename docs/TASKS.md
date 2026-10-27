@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Milestone 3 (tasks 3.1–3.12) is complete for the current editor and commit-based recovery; Task 4.1 (committed book word-count aggregation) is complete; awaiting approval before 4.2 (daily goals). Library progress now uses persisted chapter totals; legacy unknowns and read failures remain unknown. Covered-book deletion now uses safe queued cleanup.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Milestone 3 (tasks 3.1–3.12) is complete for the current editor and commit-based recovery; Tasks 4.1 (committed book word-count aggregation) and 4.2 (daily goal configuration/display) are complete; awaiting approval before 4.3 (total word goals). Library progress now uses persisted chapter totals; legacy unknowns and read failures remain unknown. Covered-book deletion now uses safe queued cleanup.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -73,7 +73,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | Done | ID  | Description                     | Status                 | Dependencies | Acceptance criteria                                      |
 | ---- | --- | ------------------------------- | ---------------------- | ------------ | -------------------------------------------------------- |
 | [x]  | 4.1 | Aggregate book word counts      | Completed (2026-10-27) | 3.12         | Chapter sums stay correct after edits and deletion       |
-| [ ]  | 4.2 | Implement daily goals           | Not started            | 4.1          | Validated daily targets persist                          |
+| [x]  | 4.2 | Implement daily goals           | Completed (2026-10-27) | 4.1          | Validated daily targets persist                          |
 | [ ]  | 4.3 | Implement total word goals      | Not started            | 4.2          | Optional targets persist and handle completion           |
 | [ ]  | 4.4 | Implement deadlines             | Not started            | 4.3          | Missing, today and overdue dates handled locally         |
 | [ ]  | 4.5 | Calculate required writing pace | Not started            | 4.4          | Scheduled days and nonnegative remaining words handled   |
@@ -133,6 +133,12 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [ ]  | 8.10 | Tag version 1.0.0           | Not started | 8.9          | Release gates pass and explicit authorization obtained before Git mutation |
 
 ## Historical verification evidence
+
+## Verification evidence: 4.2
+
+- Added shared DailyGoal summaries to book cards and editor headers plus form help for positive whole words/day and blank removal. Reuses existing validated dailyWordGoal metadata and native revision-checked persistence; no new schema, migration, command or production native behavior. Pending/failed/cancelled changes do not replace the saved display, and other metadata is preserved. Daily activity/progress remains Milestone 5. See [DAILY_GOALS.md](DAILY_GOALS.md).
+- All 421 Vitest, 108 Edge and 67 Rust tests passed. Added a component workflow for pending/failure/retry/clear, three browser scenarios for validation/retained drafts/card-editor consistency/axe/200% reflow and one native disposable-database test for bounds/conflict/reopen/removal. Existing shared validation and CRUD checks remain passing. Lint, format:check, typecheck/build, Cargo fmt/check, Clippy and diff checks passed. No real-library mutation or new desktop startup/restart claim.
+- Next: 4.3, awaiting approval.
 
 ## Verification evidence: 4.1
 

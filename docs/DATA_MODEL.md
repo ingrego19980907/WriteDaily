@@ -163,3 +163,5 @@ Define scheduled-day completion as reaching that day's applicable daily goal; un
 ## Backup and restore direction
 
 Use a consistent SQLite snapshot plus managed covers and a versioned manifest with integrity checks. Do not copy a live database blindly. Validate schema, paths, file checksums and compatibility before restore; create a safety backup, stage restored data and provide rollback. Test interrupted restore and corrupted input in milestone 7. Export should provide portable text without counting as new writing.
+
+Daily goals (4.2): optional daily_word_goal is now displayed on cards/editor headers. Create/Edit book uses the existing positive-safe-integer contract; blank persists NULL. Goal removal retains other book metadata. No day-key/activity rows or redundant progress are stored by this task. See [DAILY_GOALS.md](DAILY_GOALS.md).

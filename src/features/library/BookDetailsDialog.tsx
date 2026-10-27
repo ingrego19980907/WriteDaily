@@ -197,7 +197,13 @@ export function BookDetailsDialog({
                   : undefined
               }
               required={field === 'title'}
-              hint={field === 'title' ? copy.titleHint : undefined}
+              hint={
+                field === 'title'
+                  ? copy.titleHint
+                  : field === 'dailyWordGoal'
+                    ? copy.dailyGoalHint
+                    : undefined
+              }
               value={values[field]}
               disabled={pending}
               error={

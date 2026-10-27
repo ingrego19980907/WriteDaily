@@ -153,3 +153,5 @@ Current foundation passed 12 Edge browser checks and 40 component tests. Axe WCA
 ProgressBar has a forced-colors override: Canvas track, CanvasText boundary, Highlight fill. Only its decorative fill uses forced-color-adjust:none so the chosen system Highlight remains visible; the rest of the interface follows the user's forced palette. Static progress has no motion to suppress.
 
 Global Tailwind/base CSS must be imported before component modules at an application/test entry point to establish cascade layer order. The browser fixture now follows this rule and guards actual button fills/padding and field borders. Recheck real feature screens and manual assistive-technology behavior as they are added; release accessibility remains task 8.3.
+
+Daily goals (4.2): a shared text-secondary, wrapping DailyGoal paragraph displays the committed target or No daily goal in the card/editor context. The existing labelled form input includes whole-number/blank-removal help and existing inline errors/focus. No target-derived daily completion percentage or achievement color is shown.

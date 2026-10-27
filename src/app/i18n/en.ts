@@ -100,6 +100,11 @@ export const en = {
     titleHint: 'Up to 200 characters.',
     targetWordCount: 'Target word count (optional)',
     dailyWordGoal: 'Daily word goal (optional)',
+    dailyGoalHint:
+      'Set a positive whole number of words per day. Leave blank to remove the goal.',
+    noDailyGoal: 'No daily goal',
+    dailyGoalUnavailable: 'Daily goal unavailable',
+    dailyGoalSummary: (words: string) => `Daily goal: ${words} words`,
     deadline: 'Deadline (optional)',
     saving: 'Creating…',
     saved: 'Book created:',

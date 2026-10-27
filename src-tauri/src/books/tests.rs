@@ -423,3 +423,62 @@ fn timestamp_validation_rejects_offsets_noncanonical_precision_and_leap_seconds(
         );
     }
 }
+
+#[test]
+fn daily_goal_bounds_removal_and_failed_writes_survive_reopen() {
+    let directory = tempfile::tempdir().unwrap();
+    let saved = {
+        let database = database::open(directory.path()).unwrap();
+        let mut connection = database.lock().unwrap();
+        let mut repository = BookRepository::new(&mut connection);
+        let mut metadata = details("Daily writing");
+        metadata.target_word_count = Some(10000);
+        metadata.deadline = Some("2027-01-01".into());
+        metadata.daily_word_goal = Some(1);
+        let created = repository.create(metadata.clone()).unwrap();
+        assert_eq!(created.daily_word_goal, Some(1));
+        metadata.daily_word_goal = Some(9007199254740991);
+        let updated = repository
+            .update(&created.id, &created.updated_at, metadata.clone())
+            .unwrap();
+        for invalid in [0, -1, 9007199254740992] {
+            metadata.daily_word_goal = Some(invalid);
+            assert!(matches!(
+                repository.update(&updated.id, &updated.updated_at, metadata.clone()),
+                Err(BookError::Validation(_))
+            ));
+            assert_eq!(repository.get(&updated.id).unwrap(), updated);
+        }
+        metadata.daily_word_goal = Some(500);
+        assert!(matches!(
+            repository.update(&created.id, &created.updated_at, metadata),
+            Err(BookError::Conflict)
+        ));
+        updated
+    };
+    let cleared = {
+        let database = database::open(directory.path()).unwrap();
+        let mut connection = database.lock().unwrap();
+        let mut repository = BookRepository::new(&mut connection);
+        assert_eq!(repository.get(&saved.id).unwrap(), saved);
+        let metadata = BookDetails {
+            title: saved.title.clone(),
+            target_word_count: saved.target_word_count,
+            daily_word_goal: None,
+            deadline: saved.deadline.clone(),
+        };
+        let cleared = repository
+            .update(&saved.id, &saved.updated_at, metadata)
+            .unwrap();
+        assert_eq!(cleared.daily_word_goal, None);
+        assert_eq!(cleared.target_word_count, saved.target_word_count);
+        assert_eq!(cleared.deadline, saved.deadline);
+        cleared
+    };
+    let database = database::open(directory.path()).unwrap();
+    let mut connection = database.lock().unwrap();
+    assert_eq!(
+        BookRepository::new(&mut connection).get(&saved.id).unwrap(),
+        cleared
+    );
+}

@@ -283,3 +283,56 @@ test('cancelling deletion retains the existing unsaved editing draft', async () 
   expect(screen.getByLabelText('Title')).toHaveValue('Same title draft')
   expect(deleteBook).not.toHaveBeenCalled()
 })
+
+test('daily goal display changes only after commit, keeps failed drafts and clears with a blank value', async () => {
+  const user = userEvent.setup()
+  const original = { ...book, dailyWordGoal: 500 }
+  vi.mocked(listBooks).mockResolvedValue([original])
+  let reject!: (error: unknown) => void
+  vi.mocked(updateBook).mockReturnValueOnce(
+    new Promise((_, fail) => {
+      reject = fail
+    }),
+  )
+  render(<Library />)
+  const card = await screen.findByRole('article')
+  expect(within(card).getByText('Daily goal: 500 words')).toBeVisible()
+  await user.click(within(card).getByRole('button', { name: 'Book actions' }))
+  await user.click(screen.getByRole('button', { name: 'Edit book' }))
+  const input = screen.getByLabelText('Daily word goal (optional)')
+  expect(input).toHaveAccessibleDescription(/Leave blank to remove/)
+  await user.clear(input)
+  await user.type(input, '1500')
+  await user.click(screen.getByRole('button', { name: 'Save changes' }))
+  expect(within(card).getByText('Daily goal: 500 words')).toBeInTheDocument()
+  await act(async () => reject({ code: 'persistence' }))
+  expect(await screen.findByRole('alert')).toHaveTextContent(
+    'Could not save changes',
+  )
+  expect(input).toHaveValue('1500')
+  expect(
+    within(card).queryByText('Daily goal: 1,500 words'),
+  ).not.toBeInTheDocument()
+  vi.mocked(updateBook).mockResolvedValueOnce({
+    ...original,
+    dailyWordGoal: 1500,
+    updatedAt: '2026-10-27T01:00:00.000Z',
+  })
+  await user.click(screen.getByRole('button', { name: 'Save changes' }))
+  expect(await screen.findByText('Daily goal: 1,500 words')).toBeVisible()
+  await user.click(within(card).getByRole('button', { name: 'Book actions' }))
+  await user.click(screen.getByRole('button', { name: 'Edit book' }))
+  await user.clear(screen.getByLabelText('Daily word goal (optional)'))
+  vi.mocked(updateBook).mockResolvedValueOnce({
+    ...original,
+    dailyWordGoal: null,
+    updatedAt: '2026-10-27T02:00:00.000Z',
+  })
+  await user.click(screen.getByRole('button', { name: 'Save changes' }))
+  expect(await screen.findByText('No daily goal')).toBeVisible()
+  expect(updateBook).toHaveBeenLastCalledWith(
+    book.id,
+    '2026-10-27T01:00:00.000Z',
+    expect.objectContaining({ dailyWordGoal: null }),
+  )
+})
