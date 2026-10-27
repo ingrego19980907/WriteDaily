@@ -173,3 +173,5 @@ Use a consistent SQLite snapshot plus managed covers and a versioned manifest wi
 Daily goals (4.2): optional daily_word_goal is now displayed on cards/editor headers. Create/Edit book uses the existing positive-safe-integer contract; blank persists NULL. Goal removal retains other book metadata. No day-key/activity rows or redundant progress are stored by this task. See [DAILY_GOALS.md](DAILY_GOALS.md).
 
 Total word goals (4.3): targetWordCount uses the existing optional positive-safe-integer field and metadata API. Reached is derived from known committed chapter totals, never stored or inferred from completedAt. Achieving/removing/changing a target does not mutate explicit completion or chapter content. See [TOTAL_WORD_GOALS.md](TOTAL_WORD_GOALS.md).
+
+Deadlines (4.4): deadline remains a local Gregorian date, not a UTC instant. Card/header urgency is derived from the current local calendar date and is not persisted. Completed books retain the date informationally. Shared validation covers actual month lengths/leap years and 0001-9999; overdue dates are accepted. See [DEADLINES.md](DEADLINES.md).

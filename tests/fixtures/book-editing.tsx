@@ -19,10 +19,20 @@ const original: Book = {
 }
 Object.assign(globalThis, { isTauri: true })
 let stateListAttempts = 0
+const deadlineScenario = new URLSearchParams(location.search).has('deadlines')
 const totalScenario = new URLSearchParams(location.search).has('total-goals')
 const dailyScenario =
-  new URLSearchParams(location.search).has('daily-goals') || totalScenario
-let dailyBook: Book = { ...original, dailyWordGoal: null }
+  new URLSearchParams(location.search).has('daily-goals') ||
+  totalScenario ||
+  deadlineScenario
+let dailyBook: Book = {
+  ...original,
+  dailyWordGoal: deadlineScenario ? original.dailyWordGoal : null,
+  deadline: deadlineScenario ? null : original.deadline,
+  completedAt: new URLSearchParams(location.search).has('completed')
+    ? original.createdAt
+    : null,
+}
 mockIPC((command, payload) => {
   if (command === 'list_chapters') {
     if (totalScenario)

@@ -1,3 +1,4 @@
+import { BookDeadline } from '../library/BookDeadline'
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { en } from '../../app/i18n/en'
 import { Button } from '../../components/ui/Button'
@@ -108,6 +109,10 @@ export function ChapterManager({
               )}
         </p>
         <DailyGoal value={book.dailyWordGoal} />
+        <BookDeadline
+          value={book.deadline}
+          completed={book.completedAt !== null}
+        />
         <p aria-label={en.library.bookWordCount} className="text-secondary">
           {bookWordCount === null
             ? en.library.wordCountUnavailable

@@ -110,6 +110,18 @@ export const en = {
     dailyGoalUnavailable: 'Daily goal unavailable',
     dailyGoalSummary: (words: string) => `Daily goal: ${words} words`,
     deadline: 'Deadline (optional)',
+    deadlineHint:
+      'Choose a date in your local calendar. Leave blank to remove the deadline. Past dates are allowed.',
+    bookDeadline: 'Book deadline',
+    deadlinePrefix: 'Deadline:',
+    noDeadline: 'No deadline',
+    deadlineUnavailable: 'Deadline unavailable',
+    deadlineToday: 'Due today',
+    deadlineCompleted: 'Book completed',
+    deadlineRemaining: (days: string, count: number) =>
+      `${days} ${count === 1 ? 'day' : 'days'} left`,
+    deadlineOverdue: (days: string, count: number) =>
+      `${days} ${count === 1 ? 'day' : 'days'} overdue`,
     saving: 'Creating…',
     saved: 'Book created:',
     draft: 'Your unfinished details are kept when you close this form.',

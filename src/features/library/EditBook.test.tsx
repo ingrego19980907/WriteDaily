@@ -1,4 +1,4 @@
-import { act, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, expect, test, vi } from 'vitest'
 import { getBook, updateBook } from '../../services/books'
@@ -203,5 +203,54 @@ test('total-target drafts never replace committed details before persistence suc
       dailyWordGoal: original.dailyWordGoal,
       deadline: original.deadline,
     }),
+  )
+})
+
+test('deadline changes preserve the draft on failure and commit/removal preserve other goals', async () => {
+  const user = userEvent.setup()
+  let fail!: (reason: unknown) => void
+  vi.mocked(updateBook).mockReturnValueOnce(
+    new Promise((_, reject) => {
+      fail = reject
+    }),
+  )
+  const onSaved = vi.fn()
+  render(<BookDetailsDialog book={original} onSaved={onSaved} />)
+  await user.click(screen.getByRole('button', { name: 'Edit book' }))
+  const input = screen.getByLabelText('Deadline (optional)')
+  expect(input).toHaveAccessibleDescription(/local calendar/)
+  fireEvent.change(input, { target: { value: '2024-02-29' } })
+  await user.click(screen.getByRole('button', { name: 'Save changes' }))
+  expect(input).toBeDisabled()
+  expect(onSaved).not.toHaveBeenCalled()
+  await act(async () => fail({ code: 'persistence' }))
+  expect(input).toHaveValue('2024-02-29')
+  const saved = {
+    ...original,
+    deadline: '2024-02-29',
+    updatedAt: '2026-10-24T12:00:00.000Z',
+  }
+  vi.mocked(updateBook).mockResolvedValue(saved)
+  await user.click(screen.getByRole('button', { name: 'Save changes' }))
+  expect(onSaved).toHaveBeenCalledWith(saved)
+  expect(updateBook).toHaveBeenLastCalledWith(
+    original.id,
+    original.updatedAt,
+    expect.objectContaining({
+      deadline: '2024-02-29',
+      targetWordCount: original.targetWordCount,
+      dailyWordGoal: original.dailyWordGoal,
+    }),
+  )
+  await user.click(screen.getByRole('button', { name: 'Edit book' }))
+  fireEvent.change(screen.getByLabelText('Deadline (optional)'), {
+    target: { value: '' },
+  })
+  vi.mocked(updateBook).mockResolvedValue({ ...saved, deadline: null })
+  await user.click(screen.getByRole('button', { name: 'Save changes' }))
+  expect(updateBook).toHaveBeenLastCalledWith(
+    original.id,
+    saved.updatedAt,
+    expect.objectContaining({ deadline: null }),
   )
 })

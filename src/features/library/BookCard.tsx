@@ -1,3 +1,4 @@
+import { BookDeadline } from './BookDeadline'
 import { useId } from 'react'
 import { en } from '../../app/i18n/en'
 import { Card } from '../../components/ui/Card'
@@ -46,6 +47,10 @@ export function BookCard({
               : copy.wordTarget(numbers.format(book.targetWordCount))}
           </p>
           <DailyGoal value={book.dailyWordGoal} />
+          <BookDeadline
+            value={book.deadline}
+            completed={book.completedAt !== null}
+          />
           <BookProgress
             wordCount={wordCount}
             targetWordCount={book.targetWordCount}

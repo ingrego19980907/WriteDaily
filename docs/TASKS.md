@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Milestone 3 (tasks 3.1–3.12) is complete for the current editor and commit-based recovery; Tasks 4.1 (committed book word-count aggregation), 4.2 (daily goal configuration/display) and 4.3 (total word goals and derived achievement) are complete; awaiting approval before 4.4 (deadlines). Library progress now uses persisted chapter totals; legacy unknowns and read failures remain unknown. Covered-book deletion now uses safe queued cleanup.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Milestone 3 (tasks 3.1–3.12) is complete for the current editor and commit-based recovery; Tasks 4.1 (committed book word-count aggregation), 4.2 (daily goal configuration/display) 4.3 (total word goals and derived achievement) and 4.4 (local-calendar deadlines) are complete; awaiting approval before 4.5 (required writing pace). Library progress now uses persisted chapter totals; legacy unknowns and read failures remain unknown. Covered-book deletion now uses safe queued cleanup.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -75,7 +75,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [x]  | 4.1 | Aggregate book word counts      | Completed (2026-10-27) | 3.12         | Chapter sums stay correct after edits and deletion       |
 | [x]  | 4.2 | Implement daily goals           | Completed (2026-10-27) | 4.1          | Validated daily targets persist                          |
 | [x]  | 4.3 | Implement total word goals      | Completed (2026-10-27) | 4.2          | Optional targets persist and handle completion           |
-| [ ]  | 4.4 | Implement deadlines             | Not started            | 4.3          | Missing, today and overdue dates handled locally         |
+| [x]  | 4.4 | Implement deadlines             | Completed (2026-10-27) | 4.3          | Missing, today and overdue dates handled locally         |
 | [ ]  | 4.5 | Calculate required writing pace | Not started            | 4.4          | Scheduled days and nonnegative remaining words handled   |
 | [ ]  | 4.6 | Create progress components      | Not started            | 4.5          | Actual goal results render accessibly                    |
 | [ ]  | 4.7 | Add calculation tests           | Not started            | 4.6          | Missing goals, overdue dates and completed books covered |
@@ -133,6 +133,12 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [ ]  | 8.10 | Tag version 1.0.0           | Not started | 8.9          | Release gates pass and explicit authorization obtained before Git mutation |
 
 ## Historical verification evidence
+
+## Verification evidence: 4.4
+
+- Reused the optional persisted deadline field and native metadata guards. Added shared BookDeadline to cards/editor headers, form help and local-calendar states: missing, upcoming, today, overdue and informational completed-book dates. Extracted canonical calendar validation and DST-independent day arithmetic; the local-date hook refreshes at midnight/resume and polls for clock/timezone changes. See [DEADLINES.md](DEADLINES.md).
+- All 597 Vitest, 130 Edge and 74 Rust tests passed, plus lint, format:check, typecheck/build, Cargo fmt/Clippy and diff checks. Tests cover date bounds/leap years, local midnight/resume, completed books, failed retained drafts, preserved goals and native date removal/reopen. Browser cases verify local-date interpretation on both sides of UTC and UI accessibility/layout; final evidence is recorded in the accessibility review. No production native/API/schema/dependency changes or real-library mutation; no new desktop startup claim.
+- Next: 4.5, awaiting approval.
 
 ## Verification evidence: 4.3
 

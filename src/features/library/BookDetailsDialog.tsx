@@ -204,8 +204,12 @@ export function BookDetailsDialog({
                     ? copy.totalGoalHint
                     : field === 'dailyWordGoal'
                       ? copy.dailyGoalHint
-                      : undefined
+                      : field === 'deadline'
+                        ? copy.deadlineHint
+                        : undefined
               }
+              min={field === 'deadline' ? '0001-01-01' : undefined}
+              max={field === 'deadline' ? '9999-12-31' : undefined}
               value={values[field]}
               disabled={pending}
               error={

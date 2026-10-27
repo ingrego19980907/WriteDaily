@@ -1,0 +1,11 @@
+# Deadlines (4.4)
+
+Book.deadline remains the existing optional Gregorian calendar date, YYYY-MM-DD, years 0001-9999. It is not a timestamp and has no UTC offset. Create/Edit book provides local-calendar help; empty removes the date and past dates remain valid. Existing native metadata writes use revision checks and only replace displayed values after commit. No migration, command or production Rust behavior changes.
+
+BookDeadline is shared by library cards and editor book headers. The pure calculateBookDeadline function distinguishes no deadline, unavailable/invalid data, upcoming, due today and overdue. Remaining/overdue days use Gregorian day numbers rather than elapsed milliseconds, so DST days remain calendar days. Exact dates render in a semantic time element; formatting does not shift them to the previous/next local day. States have readable text as well as color/calendar icons.
+
+A deadline remains due today throughout its local calendar date and becomes overdue after local midnight. useLocalCalendarDate refreshes at midnight, on window focus/visibility resume and polls once per minute while active to pick up wall-clock/timezone changes. Suspended/throttled background timers are reconciled on resume. It uses local getFullYear/getMonth/getDate rather than UTC serialization, and cleans up timers/listeners. Dates are derived display state, not periodically written back to SQLite.
+
+Explicitly completed books retain the saved date as information with Book completed, without overdue urgency. Reaching the word target alone does not imply book completion or suppress deadline status. Invalid data never masquerades as no deadline.
+
+Verification covers leap/century/year bounds, DST-adjacent calendar arithmetic, midnight/resume/polling cleanup, committed metadata drafts/failures and native reopen/removal with other goals preserved. Browser coverage checks card/header agreement, missing/future/today/overdue/cleared/completed states, local midnight west of UTC, the local next day east of UTC, axe and compact/enlarged text. All 597 Vitest, 130 Edge and 74 Rust tests passed, plus lint, format:check, strict TypeScript/build, Cargo fmt/Clippy and diff checks. Final results are recorded in [ACCESSIBILITY_REVIEW.md](ACCESSIBILITY_REVIEW.md#44-local-calendar-deadlines). Required writing pace remains 4.5.
