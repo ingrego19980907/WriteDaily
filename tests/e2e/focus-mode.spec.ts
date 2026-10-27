@@ -133,7 +133,7 @@ for (const width of [320, 640, 1100]) {
     await expect(page.getByRole('dialog')).not.toHaveClass(
       /modal-content--fullscreen/,
     )
-    await expect(page.getByRole('toolbar')).toBeVisible()
+    await expect(page.getByRole('toolbar')).toHaveCount(0)
     expect(
       await field.evaluate((element) =>
         (element as HTMLElement & { editor: Editor }).editor.getJSON(),
@@ -141,7 +141,9 @@ for (const width of [320, 640, 1100]) {
     ).toEqual(written)
     await expect(
       page.getByRole('group', { name: 'Word count', exact: true }),
-    ).toContainText('2 saved words')
+    ).toHaveCount(0)
+    await expect(field).toHaveAttribute('contenteditable', 'false')
+    await expect(field).toHaveAttribute('aria-readonly', 'true')
   })
 }
 

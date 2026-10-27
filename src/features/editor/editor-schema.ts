@@ -1,4 +1,10 @@
-import { Extension, Mark, getSchema, type JSONContent } from '@tiptap/core'
+import {
+  Extension,
+  Mark,
+  Node,
+  getSchema,
+  type JSONContent,
+} from '@tiptap/core'
 import {
   DEFAULT_FONT_FAMILY,
   fontFamilyCss,
@@ -23,9 +29,28 @@ function persistedDocument(document: JSONContent): JSONContent {
   return result
 }
 
-/** Backward-compatible persisted v1-v5 subset. No trailing paragraph or unsupported marks. */
+/** Backward-compatible persisted v1-v6 subset. No trailing paragraph or unsupported marks. */
 export function chapterExtensions() {
   return [
+    Node.create({
+      name: 'pageBreak',
+      group: 'block',
+      atom: true,
+      selectable: false,
+      parseHTML() {
+        return [{ tag: 'div[data-page-break]' }]
+      },
+      renderHTML() {
+        return [
+          'div',
+          {
+            'data-page-break': '',
+            class: 'manuscript-page-break',
+            contenteditable: 'false',
+          },
+        ]
+      },
+    }),
     Extension.create({
       name: 'chapterTextAlignment',
       addGlobalAttributes() {
@@ -162,7 +187,9 @@ export function serializeEditorDocument(
   const aligned = validateChapterContent({ schemaVersion: 4, document })
   if (aligned.success) return aligned.data
   const family = validateChapterContent({ schemaVersion: 5, document })
-  return family.success ? family.data : null
+  if (family.success) return family.data
+  const paged = validateChapterContent({ schemaVersion: 6, document })
+  return paged.success ? paged.data : null
 }
 
 /** Refuse an invalid edit explicitly instead of truncating a manuscript. */

@@ -15,6 +15,8 @@ pub struct ChapterContent {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "type", deny_unknown_fields)]
 enum Node {
+    #[serde(rename = "pageBreak")]
+    PageBreak {},
     #[serde(rename = "doc")]
     Doc { content: Vec<Node> },
     #[serde(rename = "paragraph")]
@@ -157,6 +159,7 @@ fn valid_font_family(value: &str) -> bool {
 
 fn has_unsupported_marks(node: &Node, version: i64) -> bool {
     match node {
+        Node::PageBreak {} => version < 6,
         Node::Text { marks, .. } | Node::HardBreak { marks } => {
             marks.iter().any(|mark| match mark {
                 Mark::FontSize { .. } => version < 2,
@@ -181,7 +184,7 @@ impl ChapterContent {
         fn visit(node: &Node, counter: &mut super::word_count::WordCounter) {
             match node {
                 Node::Text { text, .. } => counter.push(text),
-                Node::HardBreak { .. } => counter.boundary(),
+                Node::HardBreak { .. } | Node::PageBreak {} => counter.boundary(),
                 Node::Doc { content }
                 | Node::BulletList { content }
                 | Node::OrderedList { content, .. }
@@ -256,7 +259,7 @@ impl ChapterContent {
     }
 
     fn validate(&self) -> Result<(), ChapterError> {
-        if !matches!(self.schema_version, 1..=5) {
+        if !matches!(self.schema_version, 1..=6) {
             return Err(ChapterError::Validation("unsupported_version"));
         }
         if !matches!(self.document, Node::Doc { .. }) {
@@ -316,6 +319,7 @@ fn validate_node(
         "block" => matches!(
             node,
             Node::Paragraph { .. }
+                | Node::PageBreak {}
                 | Node::Heading { .. }
                 | Node::BulletList { .. }
                 | Node::OrderedList { .. }
@@ -329,6 +333,7 @@ fn validate_node(
         return Err(invalid());
     }
     let (children, child_category) = match node {
+        Node::PageBreak {} => return if depth == 2 { Ok(()) } else { Err(invalid()) },
         Node::Text { text, marks } => {
             if text.is_empty() {
                 return Err(invalid());

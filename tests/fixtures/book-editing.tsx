@@ -19,10 +19,26 @@ const original: Book = {
 }
 Object.assign(globalThis, { isTauri: true })
 let stateListAttempts = 0
-const dailyScenario = new URLSearchParams(location.search).has('daily-goals')
+const totalScenario = new URLSearchParams(location.search).has('total-goals')
+const dailyScenario =
+  new URLSearchParams(location.search).has('daily-goals') || totalScenario
 let dailyBook: Book = { ...original, dailyWordGoal: null }
 mockIPC((command, payload) => {
   if (command === 'list_chapters') {
+    if (totalScenario)
+      return [
+        {
+          id: '00000000-0000-4000-8000-000000000001',
+          bookId: original.id,
+          title: 'Saved chapter',
+          position: 0,
+          revision: 1,
+          wordCount: 1000,
+          createdAt: original.createdAt,
+          updatedAt: original.updatedAt,
+        },
+      ]
+
     if (new URLSearchParams(location.search).has('cards'))
       return [
         {

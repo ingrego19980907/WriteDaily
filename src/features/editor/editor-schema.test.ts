@@ -27,6 +27,7 @@ test.each(cases)(
         prepareEditorDocument(serializeEditorDocument(editor.getJSON())),
       ).toEqual(document)
       if (
+        input.document?.content.length === 1 &&
         input.document?.content[0]?.type === 'paragraph' &&
         'content' in input.document.content[0]
       ) {
@@ -54,6 +55,7 @@ test('schema contains only the supported v1/v2/v3 nodes and marks', () => {
       'listItem',
       'text',
       'hardBreak',
+      'pageBreak',
     ].sort(),
   )
   expect(Object.keys(schema.marks).sort()).toEqual([
@@ -117,6 +119,36 @@ test('a transaction outside the content bounds is rejected visibly and leaves ex
     )
     expect(rejected).toBe(1)
     expect(editor.getJSON()).toEqual(before)
+  } finally {
+    editor.destroy()
+  }
+})
+
+test('manual sheets are an undoable content change while preserving existing writing', () => {
+  const editor = new Editor({
+    extensions: chapterExtensions(),
+    content: {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [{ type: 'text', text: 'Keep this text' }],
+        },
+      ],
+    },
+  })
+  try {
+    const before = editor.getJSON()
+    editor.commands.insertContentAt(editor.state.doc.content.size, [
+      { type: 'pageBreak' },
+      { type: 'paragraph' },
+    ])
+    expect(serializeEditorDocument(editor.getJSON())?.schemaVersion).toBe(6)
+    expect(editor.commands.undo()).toBe(true)
+    expect(editor.getJSON()).toEqual(before)
+    expect(editor.commands.redo()).toBe(true)
+    expect(editor.getJSON().content?.[1].type).toBe('pageBreak')
+    expect(editor.state.doc.textContent).toBe('Keep this text')
   } finally {
     editor.destroy()
   }

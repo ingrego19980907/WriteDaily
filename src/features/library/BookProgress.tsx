@@ -43,13 +43,35 @@ export function BookProgress({
         {description}
       </p>
       {progress.kind === 'determinate' && (
-        <p className="text-secondary">
-          {progress.excess > 0
-            ? copy.aboveTarget(numbers.format(progress.excess))
-            : progress.remaining > 0
-              ? copy.wordsRemaining(numbers.format(progress.remaining))
-              : copy.targetReached}
-        </p>
+        <>
+          {progress.reached && (
+            <p className="flex items-center gap-2 text-success font-semibold">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <path d="m8 12 3 3 5-6" />
+              </svg>
+              {copy.targetReached}
+            </p>
+          )}
+          {(progress.excess > 0 || !progress.reached) && (
+            <p className="text-secondary">
+              {progress.excess > 0
+                ? copy.aboveTarget(numbers.format(progress.excess))
+                : copy.wordsRemaining(numbers.format(progress.remaining))}
+            </p>
+          )}
+        </>
       )}
     </div>
   )

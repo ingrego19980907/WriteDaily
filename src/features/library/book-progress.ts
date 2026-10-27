@@ -8,6 +8,7 @@ export type BookProgressState =
       percentage: number
       remaining: number
       excess: number
+      reached: boolean
     }
 
 /** Counts are supplied by manuscript aggregation, never inferred from metadata/completion. */
@@ -40,5 +41,6 @@ export function calculateBookProgress(
     percentage,
     remaining: Math.max(0, target - wordCount),
     excess: Math.max(0, wordCount - target),
+    reached: wordCount >= target,
   }
 }

@@ -25,6 +25,7 @@ import './manuscript.css'
 import { FormattingToolbar } from './FormattingToolbar'
 import { countChapterWords } from './word-count'
 import { SaveStatus, type SaveState } from './SaveStatus'
+import { chapterPagination, INITIAL_PAPER } from './pagination'
 import { DEFAULT_FONT_SIZE } from './editor-preferences'
 
 const copy = en.writing
@@ -63,6 +64,7 @@ export function ManuscriptEditor({
   fontSize?: number
   preferencesPendingRef?: RefObject<boolean>
 }) {
+  const [paper, setPaper] = useState(INITIAL_PAPER)
   const [ready, setReady] = useState(false)
   const [dirty, setDirty] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -91,6 +93,7 @@ export function ManuscriptEditor({
   const headingRef = useRef<HTMLHeadingElement>(null)
   const [extensions] = useState(() => [
     ...chapterExtensions(),
+    chapterPagination(setPaper),
     contentBoundary(() => setFailure(copy.rejected)),
   ])
   const editor = useEditor({
@@ -385,24 +388,52 @@ export function ManuscriptEditor({
 
   const footer = (
     <div className="manuscript-footer">
-      <Button
-        aria-keyshortcuts="Control+S Meta+S"
-        title={copy.saveShortcut}
-        disabled={
-          !editor ||
-          !ready ||
-          !dirty ||
-          saving ||
-          blocked ||
-          fatal ||
-          navigationLocked
-        }
-        onClick={() => {
-          void save()
-        }}
-      >
-        {saving ? copy.saving : copy.save}
-      </Button>
+      <div className="manuscript-page-actions">
+        <Button
+          aria-keyshortcuts="Control+S Meta+S"
+          title={copy.saveShortcut}
+          disabled={
+            !editor ||
+            !ready ||
+            !dirty ||
+            saving ||
+            blocked ||
+            fatal ||
+            navigationLocked
+          }
+          onClick={() => {
+            void save()
+          }}
+        >
+          {saving ? copy.saving : copy.save}
+        </Button>
+        <Button
+          variant="secondary"
+          disabled={
+            !editor || !ready || saving || blocked || fatal || navigationLocked
+          }
+          title={copy.addPageHint}
+          onClick={() => {
+            if (!editor || !editor.isEditable || savingRef.current) return
+            const marks =
+              editor.state.storedMarks ?? editor.state.selection.$from.marks()
+            editor
+              .chain()
+              .focus('end')
+              .insertContentAt(editor.state.doc.content.size, [
+                { type: 'pageBreak' },
+                { type: 'paragraph' },
+              ])
+              .command(({ tr }) => {
+                tr.setStoredMarks(marks)
+                return true
+              })
+              .run()
+          }}
+        >
+          {copy.addPage}
+        </Button>
+      </div>
       <div className="manuscript-footer__info">
         <SaveStatus state={saveState} compact />
         <p
@@ -495,7 +526,32 @@ export function ManuscriptEditor({
                 />
               </div>
             ))}
-          <EditorContent editor={editor} className="manuscript" />
+          <div
+            className="manuscript manuscript--paged"
+            style={
+              {
+                '--paper-height': `${paper.height}px`,
+                '--paper-padding': `${paper.padding}px`,
+                '--paper-total-height': `${paper.pages * (paper.height + paper.gap) - paper.gap}px`,
+              } as CSSProperties
+            }
+          >
+            <div className="manuscript-sheets" aria-hidden="true">
+              {Array.from({ length: paper.pages }, (_, index) => (
+                <div
+                  className="manuscript-sheet"
+                  key={index}
+                  style={{
+                    top: `${index * (paper.height + paper.gap)}px`,
+                    height: `${paper.height}px`,
+                  }}
+                >
+                  <span>{index + 1}</span>
+                </div>
+              ))}
+            </div>
+            <EditorContent editor={editor} />
+          </div>
         </>
       )}
       {(failure || saveFailure) && (

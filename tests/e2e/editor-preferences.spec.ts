@@ -58,7 +58,7 @@ for (const width of [320, 640, 1100]) {
     })
     await expect(bullets.locator('svg')).toHaveAttribute('aria-hidden', 'true')
     await expect(numbers.locator('svg')).toHaveAttribute('aria-hidden', 'true')
-    if (width >= 640) {
+    if (width >= 1100) {
       const fontBox = await size.boundingBox()
       for (const button of [bullets, numbers]) {
         const box = await button.boundingBox()

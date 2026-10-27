@@ -20,7 +20,11 @@ import type { Book } from '../../src/features/library/book'
 const book: Book = {
   id: '8af2b704-45bc-4e41-8e25-d12f427da441',
   title: 'A quiet story',
-  targetWordCount: 2000,
+  targetWordCount: new URLSearchParams(location.search)
+    .get('scenario')
+    ?.startsWith('goal-')
+    ? 2
+    : 2000,
   dailyWordGoal: null,
   deadline: null,
   coverPath: null,
@@ -67,7 +71,12 @@ const seed = validateChapterContent({
 })
 if (!seed.success) throw new Error('Invalid test editor seed')
 const manuscripts = new Map<string, ChapterContent>([[first.id, seed.data]])
-const scenario = new URLSearchParams(location.search).get('scenario')
+const requestedScenario = new URLSearchParams(location.search).get('scenario')
+const scenario = requestedScenario?.replace(/^goal-/, 'editor-')
+if (requestedScenario?.startsWith('goal-')) {
+  chapters = chapters.map((chapter) => ({ ...chapter, wordCount: 0 }))
+  manuscripts.clear()
+}
 if (scenario?.startsWith('book-count-')) {
   chapters = chapters.map((chapter) => ({ ...chapter, wordCount: 0 }))
   for (const chapter of chapters)

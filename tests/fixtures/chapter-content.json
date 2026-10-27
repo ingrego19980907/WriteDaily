@@ -114,7 +114,7 @@
     "name": "unknown version",
     "valid": false,
     "input": {
-      "schemaVersion": 6,
+      "schemaVersion": 7,
       "document": {
         "type": "doc",
         "content": [
@@ -2121,6 +2121,138 @@
                     "attrs": {
                       "family": "Arial"
                     }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "manual page break",
+    "valid": true,
+    "input": {
+      "schemaVersion": 6,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "First"
+              }
+            ]
+          },
+          {
+            "type": "pageBreak"
+          },
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Second"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "blank manual pages",
+    "valid": true,
+    "input": {
+      "schemaVersion": 6,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph"
+          },
+          {
+            "type": "pageBreak"
+          },
+          {
+            "type": "pageBreak"
+          },
+          {
+            "type": "paragraph"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "legacy break rejected",
+    "valid": false,
+    "input": {
+      "schemaVersion": 5,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "pageBreak"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "break attrs rejected",
+    "valid": false,
+    "input": {
+      "schemaVersion": 6,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "pageBreak",
+            "attrs": {}
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "break content rejected",
+    "valid": false,
+    "input": {
+      "schemaVersion": 6,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "pageBreak",
+            "content": []
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "nested break rejected",
+    "valid": false,
+    "input": {
+      "schemaVersion": 6,
+      "document": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "bulletList",
+            "content": [
+              {
+                "type": "listItem",
+                "content": [
+                  {
+                    "type": "paragraph"
+                  },
+                  {
+                    "type": "pageBreak"
                   }
                 ]
               }

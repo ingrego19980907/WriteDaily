@@ -27,6 +27,7 @@ export type ChapterListItem = {
   readonly content: readonly [ChapterParagraph, ...ChapterBlock[]]
 }
 export type ChapterBlock =
+  | { readonly type: 'pageBreak' }
   | ChapterParagraph
   | {
       readonly type: 'heading'
@@ -53,7 +54,7 @@ export type ChapterDocument = {
   readonly content: readonly [ChapterBlock, ...ChapterBlock[]]
 }
 export type ChapterContent = {
-  readonly schemaVersion: 1 | 2 | 3 | 4 | 5
+  readonly schemaVersion: 1 | 2 | 3 | 4 | 5 | 6
   readonly document: ChapterDocument
 }
 export type ChapterContentError =
@@ -114,7 +115,8 @@ export function validateChapterContent(
     input.schemaVersion !== 2 &&
     input.schemaVersion !== 3 &&
     input.schemaVersion !== 4 &&
-    input.schemaVersion !== 5
+    input.schemaVersion !== 5 &&
+    input.schemaVersion !== 6
   )
     return { success: false, code: 'unsupported_version' }
   if (!keys(input, ['schemaVersion', 'document']))
@@ -188,6 +190,7 @@ export function validateChapterContent(
         'heading',
         'bulletList',
         'orderedList',
+        ...(contentVersion >= 6 ? ['pageBreak'] : []),
       ].includes(type)
       if (
         !(category === 'inline'
@@ -197,6 +200,8 @@ export function validateChapterContent(
             : type === category)
       )
         return false
+      if (type === 'pageBreak')
+        return contentVersion >= 6 && depth === 2 && keys(value, ['type'])
       const allowed =
         type === 'text'
           ? ['type', 'text', 'marks']

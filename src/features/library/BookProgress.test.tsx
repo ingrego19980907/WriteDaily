@@ -18,6 +18,7 @@ test('exceeded targets fill to maximum while preserving the actual word count an
     '1,500 / 1,000 words · 100% of target',
   )
   expect(screen.getByText('500 words above target')).toBeVisible()
+  expect(screen.getByText('Word target reached')).toBeVisible()
 })
 test('missing goal shows a known count without a misleading percentage', () => {
   render(<BookProgress wordCount={500} targetWordCount={null} />)
@@ -36,4 +37,21 @@ test('unknown count never borrows the completion flag or pretends zero; a later 
     '1000',
   )
   expect(screen.getByText('Word target reached')).toBeVisible()
+})
+
+test('a previously reached target can become unmet or unavailable without a stale success label', () => {
+  const { rerender } = render(
+    <BookProgress wordCount={1000} targetWordCount={1000} />,
+  )
+  expect(screen.getByText('Word target reached')).toBeVisible()
+  rerender(<BookProgress wordCount={999} targetWordCount={1000} />)
+  expect(screen.queryByText('Word target reached')).not.toBeInTheDocument()
+  expect(screen.getByText('1 word remaining')).toBeVisible()
+  rerender(<BookProgress wordCount={1000} targetWordCount={1500} />)
+  expect(screen.getByText('500 words remaining')).toBeVisible()
+  rerender(<BookProgress wordCount={null} targetWordCount={1500} />)
+  expect(screen.queryByText('Word target reached')).not.toBeInTheDocument()
+  expect(screen.getByRole('progressbar')).not.toHaveAttribute('aria-valuenow')
+  rerender(<BookProgress wordCount={1000} targetWordCount={null} />)
+  expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
 })

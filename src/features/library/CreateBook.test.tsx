@@ -123,3 +123,37 @@ test('native field validation links localized errors, focuses the field after pe
   expect(screen.getByLabelText('Title')).toHaveValue('Retained draft')
   expect(field).toHaveValue('500')
 })
+
+test('optional total target validates positive whole words before creating the book', async () => {
+  const user = userEvent.setup()
+  vi.mocked(createBook).mockResolvedValue({
+    title: 'Target book',
+    targetWordCount: 1,
+  } as Book)
+  render(<CreateBook />)
+  await user.click(screen.getByRole('button', { name: 'Create book' }))
+  await user.type(screen.getByLabelText('Title'), 'Target book')
+  const target = screen.getByLabelText('Target word count (optional)')
+  expect(target).toHaveAccessibleDescription(/Leave blank to remove/)
+  for (const invalid of ['0', '-1', '1.5', '9007199254740992']) {
+    await user.clear(target)
+    await user.type(target, invalid)
+    await user.click(
+      within(screen.getByRole('dialog')).getByRole('button', {
+        name: 'Create book',
+      }),
+    )
+    expect(target).toHaveAttribute('aria-invalid', 'true')
+    expect(createBook).not.toHaveBeenCalled()
+  }
+  await user.clear(target)
+  await user.type(target, '1')
+  await user.click(
+    within(screen.getByRole('dialog')).getByRole('button', {
+      name: 'Create book',
+    }),
+  )
+  expect(createBook).toHaveBeenCalledWith(
+    expect.objectContaining({ targetWordCount: 1 }),
+  )
+})

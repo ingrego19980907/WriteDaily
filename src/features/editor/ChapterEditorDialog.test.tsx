@@ -203,7 +203,7 @@ test.each(['unsupported', 'missing'])(
     if (kind === 'unsupported')
       vi.mocked(getChapter).mockResolvedValue({
         ...chapter,
-        content: { ...chapter.content, schemaVersion: 6 },
+        content: { ...chapter.content, schemaVersion: 7 },
       } as unknown as Chapter)
     else vi.mocked(getChapter).mockRejectedValue({ code: 'not_found' })
     mount()

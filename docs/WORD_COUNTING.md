@@ -42,3 +42,5 @@ Shared fixtures cover 40 text cases and 10 structured documents in both language
 Verification: 357 Vitest and 59 Rust tests pass; lint, typecheck, production build and Cargo fmt/Clippy pass. The full Edge run passed 68/69; its final test incorrectly attempted a list command on a heading, which the current schema disables. After correcting the test to select Paragraph first, all six word-count Edge tests passed, covering all 69 scenarios across the runs. Axe scans and 200% internal modal reflow pass at 320/640/1100px. Browser persistence uses test-only IPC; native persistence uses disposable databases. No actual desktop launch/restart, real-library mutation, screen-reader session or crash-recovery claim is added.
 
 ED.8: content v2 font-size marks are validated and ignored by the unchanged counting policy. Adjacent differently styled runs still join into the same word; editor updates validate/serialize the appropriate v1/v2 envelope before counting. Native known counts are still verified against content.
+
+ED.18: manual pageBreak blocks are word boundaries adding zero words; automatic A4 pagination is view-only and never changes counts or document text.

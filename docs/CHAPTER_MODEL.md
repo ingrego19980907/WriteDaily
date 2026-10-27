@@ -1,5 +1,6 @@
 # Chapter model, repository and editor (3.1–3.4)
 
+Current extension (ED.18): content v6 adds root-only manual pageBreak blocks; automatic A4 pagination is view-only. v1-v5 remain readable. See [A4_PAGES.md](A4_PAGES.md).
 Current extension (ED.16): content v5 adds allowlisted fontFamily marks; v1-v4 remain readable. See [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md#named-font-families-ed16).
 Current extension (ED.15): content v4 adds optional paragraph/heading textAlign (left/center/right/justify); v1-v3 remain readable. Database schema/migrations are unchanged. See [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md#focus-alignment-and-smaller-controls-ed15).
 Current extension (ED.13): content v3 adds attribute-free underline marks and permits four unique composed marks. v1/v2 remain readable; serialization uses the oldest grammar that preserves the document. See [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md#underline-formatting-ed13).

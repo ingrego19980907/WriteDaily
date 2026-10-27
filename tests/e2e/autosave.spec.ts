@@ -156,7 +156,11 @@ test('save shortcuts flush immediately, avoid duplicate clean writes and work fr
   await page
     .getByRole('button', { name: 'Exit focus mode', exact: true })
     .click()
-  await expect(counts).toContainText('3 saved words')
+  await expect(field).toHaveAttribute('contenteditable', 'false')
+  await expect(field).toHaveText('focus mode shortcut')
+  await expect(
+    page.getByRole('button', { name: 'Save chapter text', exact: true }),
+  ).toHaveCount(0)
   await page
     .getByRole('dialog')
     .getByRole('button', { name: 'Close', exact: true })

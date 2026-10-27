@@ -28,3 +28,7 @@ Browser persistence uses isolated test IPC. Native code/schema/capabilities are 
 Verified: 375 Vitest tests and all 87 Edge tests pass, plus lint, format:check, strict typecheck, production build and diff whitespace checks. Inspected the 640x480 capture with 200% text and forced colors after visually hiding verbose chapter context/help; Exit/Close remain in the header and manuscript/status remain in the scrolling body.
 
 ED.8: focus-mode font controls now edit selection/cursor font marks in the same document as bold/italic. They have no independent global-preference write or settings caption. All formatting saves through manuscript autosave/Ctrl+S; the existing pending/dirty-close guards apply.
+
+## Current entry flow (ED.17)
+
+Chapter text is now a read-only preview. Start writing replaces the old Enter focus mode label and enables the focused writing UI. Leaving focus returns to preview with the same editor/draft/history; preview has no formatting/save footer. Existing autosave, pending locks and dirty-close protection still apply to an unsaved writing session. See [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md#preview-before-writing-ed17) and [ACCESSIBILITY_REVIEW.md](ACCESSIBILITY_REVIEW.md#ed17-preview-before-writing).

@@ -482,3 +482,104 @@ fn daily_goal_bounds_removal_and_failed_writes_survive_reopen() {
         cleared
     );
 }
+
+#[test]
+fn total_goals_preserve_completion_and_writing_and_survive_reopen_and_removal() {
+    let directory = tempfile::tempdir().unwrap();
+    let (saved, chapter_id) = {
+        let database = database::open(directory.path()).unwrap();
+        let mut connection = database.lock().unwrap();
+        let mut metadata = details("Book goal");
+        metadata.target_word_count = Some(1);
+        metadata.daily_word_goal = Some(500);
+        metadata.deadline = Some("2027-01-01".into());
+        let book = BookRepository::new(&mut connection)
+            .create(metadata.clone())
+            .unwrap();
+        let chapter = crate::chapters::ChapterRepository::new(&mut connection)
+            .create(
+                &book.id,
+                crate::chapters::ChapterDetails {
+                    title: "Chapter".into(),
+                },
+            )
+            .unwrap();
+        let content = json!({"schemaVersion":1,"document":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"two words"}]}]}}).to_string();
+        let written = crate::chapters::ChapterRepository::new(&mut connection)
+            .save_content(
+                &book.id,
+                &chapter.summary.id,
+                chapter.summary.revision,
+                &content,
+            )
+            .unwrap();
+        assert_eq!(written.summary.word_count, Some(2));
+        let mut repository = BookRepository::new(&mut connection);
+        assert_eq!(repository.get(&book.id).unwrap().completed_at, None);
+        metadata.target_word_count = Some(9007199254740991);
+        let updated = repository
+            .update(&book.id, &book.updated_at, metadata.clone())
+            .unwrap();
+        for invalid in [0, -1, 9007199254740992] {
+            metadata.target_word_count = Some(invalid);
+            assert!(matches!(
+                repository.update(&updated.id, &updated.updated_at, metadata.clone()),
+                Err(BookError::Validation(_))
+            ));
+            assert_eq!(repository.get(&updated.id).unwrap(), updated);
+        }
+        metadata.target_word_count = Some(10);
+        assert!(matches!(
+            repository.update(&book.id, &book.updated_at, metadata),
+            Err(BookError::Conflict)
+        ));
+        assert_eq!(repository.get(&updated.id).unwrap(), updated);
+        (updated, chapter.summary.id)
+    };
+    let cleared = {
+        let database = database::open(directory.path()).unwrap();
+        let mut connection = database.lock().unwrap();
+        assert_eq!(
+            BookRepository::new(&mut connection).get(&saved.id).unwrap(),
+            saved
+        );
+        assert_eq!(
+            crate::chapters::ChapterRepository::new(&mut connection)
+                .get(&saved.id, &chapter_id)
+                .unwrap()
+                .summary
+                .word_count,
+            Some(2)
+        );
+        BookRepository::new(&mut connection)
+            .update(
+                &saved.id,
+                &saved.updated_at,
+                BookDetails {
+                    title: saved.title.clone(),
+                    target_word_count: None,
+                    daily_word_goal: saved.daily_word_goal,
+                    deadline: saved.deadline.clone(),
+                },
+            )
+            .unwrap()
+    };
+    let database = database::open(directory.path()).unwrap();
+    let mut connection = database.lock().unwrap();
+    assert_eq!(
+        BookRepository::new(&mut connection).get(&saved.id).unwrap(),
+        cleared
+    );
+    assert_eq!(cleared.target_word_count, None);
+    assert_eq!(cleared.completed_at, None);
+    assert_eq!(cleared.daily_word_goal, Some(500));
+    assert_eq!(cleared.deadline, Some("2027-01-01".into()));
+    assert_eq!(
+        crate::chapters::ChapterRepository::new(&mut connection)
+            .get(&saved.id, &chapter_id)
+            .unwrap()
+            .summary
+            .word_count,
+        Some(2)
+    );
+}

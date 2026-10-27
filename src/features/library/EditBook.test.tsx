@@ -166,3 +166,42 @@ test('a removed book reports not found without discarding the draft or offering 
   expect(screen.getByLabelText('Title')).toHaveValue('Original')
   expect(screen.getByRole('button', { name: 'Save changes' })).toBeDisabled()
 })
+
+test('total-target drafts never replace committed details before persistence succeeds', async () => {
+  const user = userEvent.setup()
+  let fail!: (reason: unknown) => void
+  vi.mocked(updateBook).mockReturnValueOnce(
+    new Promise((_, reject) => {
+      fail = reject
+    }),
+  )
+  const onSaved = vi.fn()
+  render(<BookDetailsDialog book={original} onSaved={onSaved} />)
+  await user.click(screen.getByRole('button', { name: 'Edit book' }))
+  const input = screen.getByLabelText('Target word count (optional)')
+  await user.clear(input)
+  await user.type(input, '1000')
+  await user.click(screen.getByRole('button', { name: 'Save changes' }))
+  expect(input).toBeDisabled()
+  expect(onSaved).not.toHaveBeenCalled()
+  await act(async () => fail({ code: 'persistence' }))
+  expect(input).toHaveValue('1000')
+  expect(onSaved).not.toHaveBeenCalled()
+  const saved = {
+    ...original,
+    targetWordCount: 1000,
+    updatedAt: '2026-10-24T12:00:00.000Z',
+  }
+  vi.mocked(updateBook).mockResolvedValue(saved)
+  await user.click(screen.getByRole('button', { name: 'Save changes' }))
+  expect(onSaved).toHaveBeenCalledWith(saved)
+  expect(updateBook).toHaveBeenLastCalledWith(
+    original.id,
+    original.updatedAt,
+    expect.objectContaining({
+      targetWordCount: 1000,
+      dailyWordGoal: original.dailyWordGoal,
+      deadline: original.deadline,
+    }),
+  )
+})

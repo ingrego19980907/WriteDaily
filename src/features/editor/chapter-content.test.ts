@@ -80,7 +80,7 @@ test.each([null, undefined, '', [], 42])(
     })
   },
 )
-test.each([undefined, null, 0, 6, '1'])(
+test.each([undefined, null, 0, 7, '1'])(
   'unsupported content version %s is preserved as an error, not downgraded',
   (schemaVersion) => {
     expect(

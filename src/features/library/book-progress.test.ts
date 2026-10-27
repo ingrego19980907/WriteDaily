@@ -50,6 +50,34 @@ test.each([
       percentage,
       remaining,
       excess,
+      reached: words >= target,
     })
   },
 )
+
+test('target achievement is recalculated after edits, higher targets and removal', () => {
+  expect(calculateBookProgress(1000, 1000)).toMatchObject({
+    reached: true,
+    remaining: 0,
+  })
+  expect(calculateBookProgress(999, 1000)).toMatchObject({
+    reached: false,
+    remaining: 1,
+  })
+  expect(calculateBookProgress(1000, 1500)).toMatchObject({
+    reached: false,
+    remaining: 500,
+  })
+  expect(calculateBookProgress(1000, 500)).toMatchObject({
+    reached: true,
+    excess: 500,
+  })
+  expect(calculateBookProgress(1000, null)).toEqual({
+    kind: 'no_target',
+    words: 1000,
+  })
+  expect(calculateBookProgress(null, 1000)).toEqual({
+    kind: 'unknown',
+    target: 1000,
+  })
+})

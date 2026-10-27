@@ -19,8 +19,10 @@ export const en = {
     progressNoTarget: 'Set a word target to measure progress.',
     progressSummary: (words: string, target: string, percent: string) =>
       `${words} / ${target} words · ${percent}% of target`,
-    wordsRemaining: (words: string) => `${words} words remaining`,
-    aboveTarget: (words: string) => `${words} words above target`,
+    wordsRemaining: (words: string) =>
+      `${words} ${words === '1' ? 'word' : 'words'} remaining`,
+    aboveTarget: (words: string) =>
+      `${words} ${words === '1' ? 'word' : 'words'} above target`,
     targetReached: 'Word target reached',
     noTarget: 'No word target',
     wordTarget: (count: string) => `Target: ${count} words`,
@@ -99,6 +101,8 @@ export const en = {
     title: 'Title',
     titleHint: 'Up to 200 characters.',
     targetWordCount: 'Target word count (optional)',
+    totalGoalHint:
+      'Set a positive whole number of words for the book. Leave blank to remove the target.',
     dailyWordGoal: 'Daily word goal (optional)',
     dailyGoalHint:
       'Set a positive whole number of words per day. Leave blank to remove the goal.',
@@ -225,6 +229,8 @@ export const en = {
     undo: 'Undo',
     redo: 'Redo',
     title: 'Chapter text',
+    addPage: 'Add page',
+    addPageHint: 'Add an A4 page at the end of this chapter.',
     enterFocus: 'Start writing',
     exitFocus: 'Exit focus mode',
     previewHint: 'Preview. Select Start writing to edit this chapter.',

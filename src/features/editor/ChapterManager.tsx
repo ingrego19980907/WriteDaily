@@ -4,6 +4,7 @@ import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { listChapters } from '../../services/chapters'
 import type { Book } from '../library/book'
+import { BookProgress } from '../library/BookProgress'
 import { DailyGoal } from '../library/DailyGoal'
 import { aggregateBookWordCount } from '../library/book-word-count'
 import type { ChapterSummary } from './chapter'
@@ -114,6 +115,12 @@ export function ChapterManager({
                 new Intl.NumberFormat('en').format(bookWordCount),
               )}
         </p>
+        {book.targetWordCount !== null && bookWordCount !== null && (
+          <BookProgress
+            wordCount={bookWordCount}
+            targetWordCount={book.targetWordCount}
+          />
+        )}
         <Button variant="secondary" onClick={onBack}>
           {en.library.backToLibrary}
         </Button>

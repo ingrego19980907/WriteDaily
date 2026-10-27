@@ -85,7 +85,7 @@
 
   .manuscript-focus {
     width: 100%;
-    max-width: 48rem;
+    max-width: 210mm;
     margin-inline: auto;
   }
 
@@ -104,6 +104,59 @@
     line-height: 1.8;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
+  }
+  .manuscript-page-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+  .manuscript--paged {
+    position: relative;
+    isolation: isolate;
+    width: 100%;
+    max-width: 210mm;
+    margin-inline: auto;
+  }
+  .manuscript-sheets {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    user-select: none;
+    z-index: -1;
+  }
+  .manuscript-sheet {
+    position: absolute;
+    width: 100%;
+    border: 1px solid var(--color-border);
+    border-radius: 0.25rem;
+    background: var(--color-surface);
+    box-shadow: var(--shadow-card);
+  }
+  .manuscript-sheet > span {
+    position: absolute;
+    bottom: calc(var(--paper-padding) / 3);
+    inset-inline: 0;
+    text-align: center;
+    color: var(--color-secondary);
+    font: 0.75rem var(--font-sans);
+  }
+  .manuscript--paged .tiptap {
+    position: relative;
+    min-height: var(--paper-total-height);
+    padding: var(--paper-padding);
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+  .manuscript--paged .tiptap > .manuscript-page-break {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .manuscript--paged [data-page-measure] {
+    min-height: 0;
   }
   .manuscript .tiptap:focus-visible {
     outline: 2px solid var(--color-accent-strong);

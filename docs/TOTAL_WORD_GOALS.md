@@ -1,0 +1,11 @@
+# Total word goals (4.3)
+
+Book.targetWordCount is the existing optional positive safe integer (1..9,007,199,254,740,991), persisted through the native revision-checked create/update API. Create/Edit book provides help and linked validation; blank removes the target. Pending, cancelled or failed changes do not replace committed metadata. No migration, new command, redundant goal/count column or new dependency is needed.
+
+calculateBookProgress derives a reached flag only from known committed word totals: words >= target. Determinate progress is capped at 100%, below-target rounding never displays 100%, and remaining/excess values stay nonnegative. Library cards and the book header reuse BookProgress. Reached goals have a green outline check and text, including when the target is exceeded; excess words remain visible. Unknown totals cannot claim achievement. Editor headers retain their existing unknown-count message until an actual total is known.
+
+The result is recalculated when saved chapter counts or target metadata change. Increasing the target, saving a shorter manuscript or deleting chapters may remove the reached state. Clearing the target removes its percentage/achievement display. Unsaved text, pending saves and failed writes cannot advance the book goal. Native chapter aggregation and library refresh behavior remain those implemented in 4.1.
+
+Word-target achievement is distinct from explicit book completion: completedAt is never inferred, set or cleared by this calculation. Reaching a word count does not mean the manuscript is finished. Daily activity, deadlines/pace, explicit book-completion controls and achievements retain their own roadmap scope.
+
+Verification includes optional target validation, exact/exceeded/raised/removed goals, maximum safe integers, unknown totals, pending/failed metadata writes, and a disposable native DB test covering goal bounds/conflicts, chapter preservation, unchanged completion, reopen and removal. Browser scenarios exercise card/header agreement, commit-only achievement and deletion rollback of the derived result. All 569 Vitest, 124 Edge and 73 Rust tests passed, plus lint, format:check, strict TypeScript/build, Cargo fmt/Clippy and diff checks. Final results are recorded in [ACCESSIBILITY_REVIEW.md](ACCESSIBILITY_REVIEW.md#43-total-word-goals).

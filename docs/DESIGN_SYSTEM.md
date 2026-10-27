@@ -213,3 +213,7 @@ Content v5 adds fontFamily marks with one allowlisted family attribute and up to
 Chapter text now opens as a selectable read-only preview, with chapter navigation and a Start writing action (English copy for the requested writing-entry label). The preview has no formatting controls, manual save button or editing footer. Its textbox declares aria-readonly and remains keyboard-focusable for reading/copying; typing, paste/drop and formatting/undo shortcuts cannot modify it. Start writing enables the existing focused editor, toolbar and save footer.
 
 Exiting focused writing returns to preview without replacing the editor, writing, selection or history. Unsaved drafts remain intact, existing autosave can finish, failed saves remain visible and dismissal guards still require explicit discard. Users can re-enter writing to retry saving. Pending-save completion consults the current preview state before enabling editing, preventing a late commit from unlocking preview. No persistence format or service changes.
+
+## A4 writing sheets (ED.18)
+
+Chapter writing/preview uses A4-proportion paper sheets, scaled margins, warm surface/border/shadow tokens and decorative page numbers. Automatic line flow preserves document text and formatting. The writing footer adds Add page at the chapter end; preview stays read-only. See [A4_PAGES.md](A4_PAGES.md) for persistence, layout semantics and limits.

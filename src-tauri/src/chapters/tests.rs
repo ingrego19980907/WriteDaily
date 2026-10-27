@@ -457,7 +457,7 @@ fn corrupt_or_unsupported_stored_content_and_order_are_not_repaired() {
         .query_row("SELECT content_json FROM chapters", [], |row| row.get(0))
         .unwrap();
     for statement in [
-        "UPDATE chapters SET content_schema_version = 6",
+        "UPDATE chapters SET content_schema_version = 7",
         "UPDATE chapters SET content_json = '{\"type\":\"doc\",\"content\":[]}'",
         "UPDATE chapters SET position = 1",
         "UPDATE chapters SET title = 'e' || char(769)",
@@ -499,10 +499,10 @@ fn invalid_content_never_changes_revision_or_saved_bytes() {
     for raw in [
         "{}",
         "null",
-        "{\"schemaVersion\":6,\"document\":{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\"}]}}",
+        "{\"schemaVersion\":7,\"document\":{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\"}]}}",
         "{\"schemaVersion\":1,\"document\":{\"type\":\"doc\",\"content\":[]}}",
         "{\"schemaVersion\":1,\"document\":{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":null}]}}",
-        "{\"schemaVersion\":1,\"schemaVersion\":6,\"document\":{}}",
+        "{\"schemaVersion\":1,\"schemaVersion\":7,\"document\":{}}",
     ] {
         assert!(matches!(
             repository.save_content(&parent.id, &chapter.summary.id, 1, raw),
@@ -714,6 +714,50 @@ fn font_family_text_commits_with_content_and_counts_and_survive_reopen() {
             .create(&parent.id, details("Sized writing"))
             .unwrap();
         let content = json!({"schemaVersion":5,"document":{"type":"doc","content":[{"type":"paragraph","attrs":{"textAlign":"justify"},"content":[{"type":"text","text":"Alpha ","marks":[{"type":"fontSize","attrs":{"size":24}},{"type":"bold"},{"type":"italic"},{"type":"underline"},{"type":"fontFamily","attrs":{"family":"Arial"}}]},{"type":"text","text":"beta"}]}]}});
+        let saved = repository
+            .save_content(&parent.id, &chapter.summary.id, 1, &content.to_string())
+            .unwrap();
+        assert_eq!(saved.summary.word_count, Some(2));
+        assert_eq!(serde_json::to_value(&saved.content).unwrap(), content);
+        let mut invalid = content.clone();
+        invalid["document"]["content"][0]["content"][0]["marks"][0]["attrs"]["size"] = json!(33);
+        assert!(
+            repository
+                .save_content(
+                    &parent.id,
+                    &saved.summary.id,
+                    saved.summary.revision,
+                    &invalid.to_string()
+                )
+                .is_err()
+        );
+        assert_eq!(
+            repository.get(&parent.id, &saved.summary.id).unwrap(),
+            saved
+        );
+        (parent, saved, content)
+    };
+    let database = database::open(directory.path()).unwrap();
+    let mut connection = database.lock().unwrap();
+    let restored = ChapterRepository::new(&mut connection)
+        .get(&parent.id, &saved.summary.id)
+        .unwrap();
+    assert_eq!(restored, saved);
+    assert_eq!(serde_json::to_value(restored.content).unwrap(), content);
+}
+
+#[test]
+fn manual_page_breaks_commit_with_content_and_counts_and_survive_reopen() {
+    let directory = tempfile::tempdir().unwrap();
+    let (parent, saved, content) = {
+        let database = database::open(directory.path()).unwrap();
+        let mut connection = database.lock().unwrap();
+        let parent = book(&mut connection);
+        let mut repository = ChapterRepository::new(&mut connection);
+        let chapter = repository
+            .create(&parent.id, details("Sized writing"))
+            .unwrap();
+        let content = json!({"schemaVersion":6,"document":{"type":"doc","content":[{"type":"paragraph","attrs":{"textAlign":"justify"},"content":[{"type":"text","text":"Alpha ","marks":[{"type":"fontSize","attrs":{"size":24}},{"type":"bold"},{"type":"italic"},{"type":"underline"},{"type":"fontFamily","attrs":{"family":"Arial"}}]},{"type":"text","text":"beta"}]},{"type":"pageBreak"},{"type":"paragraph"}]}});
         let saved = repository
             .save_content(&parent.id, &chapter.summary.id, 1, &content.to_string())
             .unwrap();

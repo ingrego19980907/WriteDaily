@@ -88,7 +88,8 @@ export function countChapterWords(input: unknown): number | null {
     node: ChapterDocument | ChapterBlock | ChapterInline | ChapterListItem,
   ) {
     if (node.type === 'text') counter.push(node.text)
-    else if (node.type === 'hardBreak') counter.boundary()
+    else if (node.type === 'hardBreak' || node.type === 'pageBreak')
+      counter.boundary()
     else {
       for (const child of node.content ?? []) visit(child)
       if (node.type === 'paragraph' || node.type === 'heading')

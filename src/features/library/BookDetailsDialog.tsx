@@ -200,9 +200,11 @@ export function BookDetailsDialog({
               hint={
                 field === 'title'
                   ? copy.titleHint
-                  : field === 'dailyWordGoal'
-                    ? copy.dailyGoalHint
-                    : undefined
+                  : field === 'targetWordCount'
+                    ? copy.totalGoalHint
+                    : field === 'dailyWordGoal'
+                      ? copy.dailyGoalHint
+                      : undefined
               }
               value={values[field]}
               disabled={pending}
