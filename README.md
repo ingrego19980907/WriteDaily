@@ -260,3 +260,5 @@ Task 4.3 verification: 569 Vitest, 124 Edge and 73 Rust tests passed, including 
 Deadlines (4.4) appear on cards and editor book headers using local-calendar missing/upcoming/today/overdue states, refreshing across midnight/resume. Completed books keep dates informationally. See [deadlines](docs/DEADLINES.md). Next: 4.5 (required writing pace).
 
 Task 4.4 verification: 597 Vitest, 130 Edge and 74 Rust tests passed, including local-midnight/timezone interpretation, retained deadline drafts, native reopen/removal and completed-book presentation.
+
+Required writing pace (4.5): the pure calculation handles inclusive scheduled days, rounded-up words/day, missing configuration, unknown totals, overdue dates and reached/completed books. See [writing pace](docs/WRITING_PACE.md). Presentation follows in 4.6; preferred-day configuration follows in 5.7.

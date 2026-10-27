@@ -175,3 +175,5 @@ Daily goals (4.2): optional daily_word_goal is now displayed on cards/editor hea
 Total word goals (4.3): targetWordCount uses the existing optional positive-safe-integer field and metadata API. Reached is derived from known committed chapter totals, never stored or inferred from completedAt. Achieving/removing/changing a target does not mutate explicit completion or chapter content. See [TOTAL_WORD_GOALS.md](TOTAL_WORD_GOALS.md).
 
 Deadlines (4.4): deadline remains a local Gregorian date, not a UTC instant. Card/header urgency is derived from the current local calendar date and is not persisted. Completed books retain the date informationally. Shared validation covers actual month lengths/leap years and 0001-9999; overdue dates are accepted. See [DEADLINES.md](DEADLINES.md).
+
+Required writing pace (4.5) is derived from committed book totals, the optional total target/deadline and an inclusive local-calendar schedule. Remaining words and rounded-up words per available writing day are not stored. The calculation defaults to every day; preferred-day persistence/history remains 5.7. See [WRITING_PACE.md](WRITING_PACE.md).

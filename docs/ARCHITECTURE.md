@@ -190,3 +190,5 @@ ED.8 supersedes global font controls: FontSizeControls operates on Tiptap select
 Total goals (4.3): calculateBookProgress derives reached from committed totals and the saved target; cards and editor book headers reuse BookProgress. Goal edits retain the existing metadata commit/conflict guards. Achievement is recalculated and never mutates completedAt. See [TOTAL_WORD_GOALS.md](TOTAL_WORD_GOALS.md).
 
 Deadlines (4.4): utils/calendar-date holds canonical validation and calendar-day arithmetic; book-deadline derives pure states. useLocalCalendarDate owns midnight/resume/polling lifecycle, while BookDeadline renders committed metadata in cards/headers. No state transition writes to persistence. See [DEADLINES.md](DEADLINES.md).
+
+Task 4.5 adds the pure library-domain `calculateWritingPace`, reusing validated book progress and Gregorian date arithmetic. Callers provide the local date and committed count; no clock, persistence or UI dependencies enter the calculation. Optional weekdays are a calculation input, not a new persisted schedule. See [WRITING_PACE.md](WRITING_PACE.md).
