@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Milestone 3 (tasks 3.1–3.12) is complete for the current editor and commit-based recovery; awaiting approval before 4.1 (book word-count aggregation). Library progress is explicitly unknown until book aggregation (4.1); no percentage is fabricated. Covered-book deletion now uses safe queued cleanup.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Milestone 3 (tasks 3.1–3.12) is complete for the current editor and commit-based recovery; Task 4.1 (committed book word-count aggregation) is complete; awaiting approval before 4.2 (daily goals). Library progress now uses persisted chapter totals; legacy unknowns and read failures remain unknown. Covered-book deletion now uses safe queued cleanup.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -70,15 +70,15 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 
 ## Milestone 4: Goals & Deadlines
 
-| Done | ID  | Description                     | Status      | Dependencies | Acceptance criteria                                      |
-| ---- | --- | ------------------------------- | ----------- | ------------ | -------------------------------------------------------- |
-| [ ]  | 4.1 | Aggregate book word counts      | Not started | 3.12         | Chapter sums stay correct after edits and deletion       |
-| [ ]  | 4.2 | Implement daily goals           | Not started | 4.1          | Validated daily targets persist                          |
-| [ ]  | 4.3 | Implement total word goals      | Not started | 4.2          | Optional targets persist and handle completion           |
-| [ ]  | 4.4 | Implement deadlines             | Not started | 4.3          | Missing, today and overdue dates handled locally         |
-| [ ]  | 4.5 | Calculate required writing pace | Not started | 4.4          | Scheduled days and nonnegative remaining words handled   |
-| [ ]  | 4.6 | Create progress components      | Not started | 4.5          | Actual goal results render accessibly                    |
-| [ ]  | 4.7 | Add calculation tests           | Not started | 4.6          | Missing goals, overdue dates and completed books covered |
+| Done | ID  | Description                     | Status                 | Dependencies | Acceptance criteria                                      |
+| ---- | --- | ------------------------------- | ---------------------- | ------------ | -------------------------------------------------------- |
+| [x]  | 4.1 | Aggregate book word counts      | Completed (2026-10-27) | 3.12         | Chapter sums stay correct after edits and deletion       |
+| [ ]  | 4.2 | Implement daily goals           | Not started            | 4.1          | Validated daily targets persist                          |
+| [ ]  | 4.3 | Implement total word goals      | Not started            | 4.2          | Optional targets persist and handle completion           |
+| [ ]  | 4.4 | Implement deadlines             | Not started            | 4.3          | Missing, today and overdue dates handled locally         |
+| [ ]  | 4.5 | Calculate required writing pace | Not started            | 4.4          | Scheduled days and nonnegative remaining words handled   |
+| [ ]  | 4.6 | Create progress components      | Not started            | 4.5          | Actual goal results render accessibly                    |
+| [ ]  | 4.7 | Add calculation tests           | Not started            | 4.6          | Missing goals, overdue dates and completed books covered |
 
 ## Milestone 5: Activity & Streaks
 
@@ -133,6 +133,13 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [ ]  | 8.10 | Tag version 1.0.0           | Not started | 8.9          | Release gates pass and explicit authorization obtained before Git mutation |
 
 ## Historical verification evidence
+
+## Verification evidence: 4.1
+
+- Added pure book-word-count aggregation and CountedBookCard using the existing validated native chapter-list service. No redundant book field, migration, new command, backfill or mock production persistence. Empty books are zero; legacy unknowns, invalid/mixed/duplicate snapshots, failed reads and unsafe sums remain unknown.
+- ChapterManager derives the saved total from committed snapshots; content saves, create/rename/delete reconcile the total. Library entry refreshes counts with identity/version guards without unmounting dialogs. Pending/failed writes do not advance totals. Existing card progress now receives actual saved counts. See [BOOK_WORD_COUNTS.md](BOOK_WORD_COUNTS.md) for refresh/error behavior and read-cost limits.
+- All 420 Vitest tests, 105 Edge tests (five new integration scenarios) and 66 existing Rust tests passed. Native tests use disposable databases; native source/migrations are unchanged. Lint, format:check, strict typecheck, production build and diff checks passed. Corrected the initial focused browser test's rename-save locator before the successful full run. No new desktop launch/restart claim.
+- Next: 4.2, awaiting approval.
 
 ## Verification evidence: 3.12
 

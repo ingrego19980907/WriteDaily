@@ -20,7 +20,22 @@ const original: Book = {
 Object.assign(globalThis, { isTauri: true })
 let stateListAttempts = 0
 mockIPC((command, payload) => {
-  if (command === 'list_chapters') return []
+  if (command === 'list_chapters') {
+    if (new URLSearchParams(location.search).has('cards'))
+      return [
+        {
+          id: 'legacy',
+          bookId: (payload as { bookId: string }).bookId,
+          title: 'Legacy chapter',
+          position: 0,
+          revision: 1,
+          wordCount: null,
+          createdAt: original.createdAt,
+          updatedAt: original.updatedAt,
+        },
+      ]
+    return []
+  }
   if (command === 'list_books') {
     const state = new URLSearchParams(location.search).get('state')
     if (state === 'empty') return []

@@ -13,6 +13,8 @@ export const en = {
     manageCover: 'Manage cover',
     writingProgress: 'Writing progress',
     wordCountUnavailable: 'Word count unavailable',
+    bookWordCount: 'Book word count',
+    savedBookWords: (words: string) => `Saved book words: ${words}`,
     wordsWritten: (words: string) => `${words} words written`,
     progressNoTarget: 'Set a word target to measure progress.',
     progressSummary: (words: string, target: string, percent: string) =>

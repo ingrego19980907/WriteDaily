@@ -1,5 +1,9 @@
 # Decision log
 
+## 4.1 - Derive book totals from existing committed snapshots (2026-10-27)
+
+Reuse the existing native validated chapter-list command and aggregate with a pure feature-domain function. Do not duplicate book totals in SQLite or introduce a second content counter. Refresh library totals per visit with identity/version guards; derive editor totals only from committed chapter state. Preserve unknowns and reject invalid/unsafe sums. This trades one validated chapter-list read per visible book for a simple coherent contract; future summary-query optimization must retain stored-content validation and unknown semantics. See [BOOK_WORD_COUNTS.md](BOOK_WORD_COUNTS.md).
+
 ## 2026-10-26 - Desktop editor recovery verification (3.12)
 
 Verify the actual embedded Tauri UI/native SQLite path with isolated app directories and six process launches. Keep the existing book/cover runner and reuse its build/window/close machinery; verify the private DB marker/version before writes. Restrict forced termination to the owned copied child. Use a private SQL trigger and writer-lock probe to establish an active interrupted transaction without adding production hooks or mutating real data. Restore the ordinary debug build afterward.
@@ -34,7 +38,7 @@ Pause automation after errors and require explicit retry for transient failures;
 
 Use a documented custom Unicode 17.0.0 L/N/M policy and one pinned generated category table for TypeScript and Rust, avoiding runtime Unicode-version differences and new dependencies. Keep apostrophes/hyphens inside words, numeric period/comma separators, combining marks and block boundaries deterministic. Count contiguous scripts without spaces as runs; do not claim linguistic dictionary segmentation. Retain the source hash, offline generator and Unicode license. See [WORD_COUNTING.md](WORD_COUNTING.md).
 
-Compute native counts with content in the existing revision-checked transaction; never accept client counts. Display current edits separately from committed counts, updating the latter only after native success. Preserve legacy NULL until explicit save instead of adding read-side mutations or an automatic backfill. Reject inconsistent known counts without repair; a future policy change must plan existing-count compatibility. Book aggregation remains 4.1 and autosave remains 3.8.
+Compute native counts with content in the existing revision-checked transaction; never accept client counts. Display current edits separately from committed counts, updating the latter only after native success. Preserve legacy NULL until explicit save instead of adding read-side mutations or an automatic backfill. Reject inconsistent known counts without repair; a future policy change must plan existing-count compatibility. Book aggregation is implemented in 4.1 and autosave in 3.8.
 
 ## 2026-10-26 - Chapter navigation (3.6)
 

@@ -4,6 +4,7 @@ import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { listChapters } from '../../services/chapters'
 import type { Book } from '../library/book'
+import { aggregateBookWordCount } from '../library/book-word-count'
 import type { ChapterSummary } from './chapter'
 import { chapterErrorCode, chapterFailure } from './chapter-errors'
 import { ChapterTitleDialog } from './ChapterTitleDialog'
@@ -69,6 +70,10 @@ export function ChapterManager({
     }
   }, [load])
 
+  const bookWordCount =
+    loaded && !loading && !failure
+      ? aggregateBookWordCount(book.id, chapters)
+      : null
   const disabled = loading || pending || !loaded || Boolean(failure)
   function operationPending(next: boolean) {
     setPending(next)
@@ -98,6 +103,13 @@ export function ChapterManager({
             ? en.library.noTarget
             : en.library.wordTarget(
                 new Intl.NumberFormat('en').format(book.targetWordCount),
+              )}
+        </p>
+        <p aria-label={en.library.bookWordCount} className="text-secondary">
+          {bookWordCount === null
+            ? en.library.wordCountUnavailable
+            : en.library.savedBookWords(
+                new Intl.NumberFormat('en').format(bookWordCount),
               )}
         </p>
         <Button variant="secondary" onClick={onBack}>

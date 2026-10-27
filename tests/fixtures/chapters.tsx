@@ -68,6 +68,11 @@ const seed = validateChapterContent({
 if (!seed.success) throw new Error('Invalid test editor seed')
 const manuscripts = new Map<string, ChapterContent>([[first.id, seed.data]])
 const scenario = new URLSearchParams(location.search).get('scenario')
+if (scenario?.startsWith('book-count-')) {
+  chapters = chapters.map((chapter) => ({ ...chapter, wordCount: 0 }))
+  for (const chapter of chapters)
+    manuscripts.set(chapter.id, createEmptyChapterContent())
+}
 Object.assign(globalThis, { isTauri: true })
 mockWindows('main')
 Object.assign(globalThis, {
@@ -129,7 +134,7 @@ mockIPC(
     if (command === 'get_book') return book
     if (command === 'list_chapters') {
       listAttempts += 1
-      if (scenario === 'errors' && listAttempts === 1)
+      if (scenario === 'errors' && listAttempts === 2)
         throw { code: 'persistence' }
       return structuredClone(chapters)
     }
@@ -200,7 +205,10 @@ mockIPC(
     if (command === 'save_chapter_content') {
       saveAttempts += 1
       if (scenario === 'editor-conflict') throw { code: 'conflict' }
-      if (scenario === 'editor-failure' && saveAttempts === 1)
+      if (
+        (scenario === 'editor-failure' || scenario === 'book-count-failure') &&
+        saveAttempts === 1
+      )
         throw { code: 'persistence' }
       if (args.expectedRevision !== chapters[index].revision)
         throw { code: 'conflict' }
@@ -215,7 +223,7 @@ mockIPC(
         manuscripts.set(args.id, result.data)
         return { ...chapters[index], content: result.data }
       }
-      if (scenario === 'editor-pending')
+      if (scenario === 'editor-pending' || scenario === 'book-count-pending')
         return new Promise((resolve) => {
           finishSave = () => resolve(commit())
         })

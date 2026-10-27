@@ -5,7 +5,7 @@ import { Card } from '../../components/ui/Card'
 import { bookErrorCode, listBooks } from '../../services/books'
 import type { Book } from './book'
 import { CreateBook } from './CreateBook'
-import { BookCard } from './BookCard'
+import { CountedBookCard } from './CountedBookCard'
 
 const copy = en.library
 
@@ -15,7 +15,11 @@ export function Library({
   openFailure,
   onBookSaved,
   onBookDeleted,
+  active = true,
+  countsVersion = 0,
 }: {
+  active?: boolean
+  countsVersion?: number
   onOpenBook?: (book: Book) => void
   openingId?: string | null
   openFailure?: string
@@ -153,7 +157,9 @@ export function Library({
       <ul className="library-grid" aria-label={copy.books} aria-busy={loading}>
         {books.map((book) => (
           <li key={book.id} className="space-y-2">
-            <BookCard
+            <CountedBookCard
+              active={active}
+              countsVersion={countsVersion}
               book={book}
               onSaved={saved}
               onDeleted={removed}

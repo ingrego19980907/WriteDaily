@@ -18,11 +18,13 @@ export default function App() {
   const [openingId, setOpeningId] = useState<string | null>(null)
   const [openFailure, setOpenFailure] = useState('')
   const openRequest = useRef(0)
+  const [countsVersion, setCountsVersion] = useState(0)
 
   function selectSection(sectionId: SectionId) {
     openRequest.current += 1
     setOpeningId(null)
     setOpenFailure('')
+    if (sectionId === 'library') setCountsVersion((version) => version + 1)
     setActiveSection(sectionId)
   }
 
@@ -81,6 +83,8 @@ export default function App() {
         <p className="font-writing text-writing">{section.subtitle}</p>
         <div hidden={activeSection !== 'library'}>
           <Library
+            active={activeSection === 'library'}
+            countsVersion={countsVersion}
             onOpenBook={(book) => {
               void openBook(book)
             }}
