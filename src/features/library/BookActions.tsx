@@ -4,6 +4,7 @@ import { Button } from '../../components/ui/Button'
 import type { ModalProps } from '../../components/ui/Modal'
 import { BookDetailsDialog } from './BookDetailsDialog'
 import { DeleteBook } from './DeleteBook'
+import { BookCoverDialog } from './BookCoverDialog'
 import type { Book } from './book'
 
 const copy = en.library
@@ -87,7 +88,11 @@ export function BookActions({
           aria-label={copy.actions}
           className="book-card__menu-panel"
           onClick={(event) => {
-            if (panel.current?.contains(event.target as Node)) setOpen(false)
+            if (
+              event.target instanceof Element &&
+              panel.current?.contains(event.target)
+            )
+              setOpen(false)
           }}
           onKeyDown={(event) => {
             if (
@@ -97,13 +102,11 @@ export function BookActions({
             )
               return
             const buttons = [
-              ...panel.current.querySelectorAll<HTMLButtonElement>(
-                'button:not(:disabled)',
+              ...panel.current.querySelectorAll<HTMLElement>(
+                ':scope > button:not(:disabled)',
               ),
             ]
-            const index = buttons.indexOf(
-              document.activeElement as HTMLButtonElement,
-            )
+            const index = buttons.indexOf(document.activeElement as HTMLElement)
             const next =
               event.key === 'Home'
                 ? 0
@@ -123,6 +126,11 @@ export function BookActions({
               setNotice(`${copy.updated} ${updated.title}`)
               onSaved(updated)
             }}
+            onCloseAutoFocus={restoreFocus}
+          />
+          <BookCoverDialog
+            book={book}
+            onSaved={onSaved}
             onCloseAutoFocus={restoreFocus}
           />
           <DeleteBook

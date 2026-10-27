@@ -56,10 +56,18 @@ for (const width of [320, 640, 1100]) {
       ),
     ).toBe(true)
     const first = page.getByRole('article').first()
+    await first
+      .getByRole('button', { name: 'Book actions', exact: true })
+      .click()
     const manage = first.getByText('Manage cover', { exact: true })
     await manage.focus()
     await page.keyboard.press('Enter')
-    await expect(first.getByLabel('Cover image', { exact: true })).toBeVisible()
+    await expect(
+      page
+        .getByRole('dialog', { name: 'Manage cover' })
+        .getByLabel('Cover image', { exact: true }),
+    ).toBeVisible()
+    await page.keyboard.press('Escape')
     await first
       .getByRole('button', { name: 'Book actions', exact: true })
       .click()

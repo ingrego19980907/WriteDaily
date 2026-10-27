@@ -1,13 +1,14 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { beforeEach, expect, test, vi } from 'vitest'
 import userEvent from '@testing-library/user-event'
-import { readCover } from '../../services/books'
+import { readCover, setCover } from '../../services/books'
 import { BookCard } from './BookCard'
 import type { Book } from './book'
 
 vi.mock('../../services/books', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../../services/books')>()),
   readCover: vi.fn(),
+  setCover: vi.fn(),
 }))
 const book: Book = {
   id: 'one',
@@ -23,6 +24,7 @@ const book: Book = {
 const callbacks = { onSaved: vi.fn(), onDeleted: vi.fn() }
 beforeEach(() => {
   vi.mocked(readCover).mockReset()
+  vi.mocked(setCover).mockReset()
 })
 
 test('names the article by its full title, shows target and unknown progress without inventing a count or percentage', async () => {
@@ -137,6 +139,8 @@ test('card actions support keyboard traversal, Escape and outside dismissal with
   await user.tab()
   expect(screen.getByRole('button', { name: 'Edit book' })).toHaveFocus()
   await user.keyboard('{ArrowDown}')
+  expect(screen.getByText('Manage cover')).toHaveFocus()
+  await user.keyboard('{ArrowDown}')
   expect(screen.getByRole('button', { name: 'Delete book' })).toHaveFocus()
   await user.keyboard('{ArrowDown}')
   expect(screen.getByRole('button', { name: 'Edit book' })).toHaveFocus()
@@ -164,4 +168,62 @@ test('selecting edit hides actions and closing the dialog returns to the visible
   expect(
     screen.queryByRole('button', { name: 'Edit book' }),
   ).not.toBeInTheDocument()
+})
+
+test('cover action opens a separate dialog and restores focus to dots on close', async () => {
+  const user = userEvent.setup()
+  render(<BookCard book={book} {...callbacks} />)
+  const trigger = screen.getByRole('button', { name: 'Book actions' })
+  expect(screen.queryByText('Manage cover')).not.toBeVisible()
+  await user.click(trigger)
+  await user.click(screen.getByText('Manage cover'))
+  const input = screen.getByLabelText('Cover image', {
+    exact: true,
+  }) as HTMLInputElement
+  const file = new File(['image'], 'cover.png', { type: 'image/png' })
+  await user.upload(input, file)
+  expect(screen.getByRole('dialog', { name: 'Manage cover' })).toBeVisible()
+  expect(trigger).toHaveAttribute('aria-expanded', 'false')
+  expect(screen.getByRole('button', { name: 'Save cover' })).toBeEnabled()
+  await user.keyboard('{Escape}')
+  expect(trigger).toHaveFocus()
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  await user.click(trigger)
+  await user.click(screen.getByRole('button', { name: 'Manage cover' }))
+  expect(screen.getByLabelText('Cover image', { exact: true })).toBeVisible()
+})
+
+test('cover dialog blocks dismissal during persistence and retains the selected file after failure', async () => {
+  const user = userEvent.setup()
+  let reject!: (error: Error) => void
+  vi.mocked(setCover).mockReturnValue(
+    new Promise((_, fail) => {
+      reject = fail
+    }),
+  )
+  render(<BookCard book={book} {...callbacks} />)
+  const dots = screen.getByRole('button', { name: 'Book actions' })
+  await user.click(dots)
+  await user.click(screen.getByRole('button', { name: 'Manage cover' }))
+  const file = new File(['image'], 'cover.png', { type: 'image/png' })
+  Object.defineProperty(file, 'arrayBuffer', {
+    value: async () => new Uint8Array([1, 2, 3]).buffer,
+  })
+  const input = screen.getByLabelText('Cover image', {
+    exact: true,
+  }) as HTMLInputElement
+  await user.upload(input, file)
+  await user.click(screen.getByRole('button', { name: 'Save cover' }))
+  expect(setCover).toHaveBeenCalledWith(book.id, book.updatedAt, [1, 2, 3])
+  await user.keyboard('{Escape}')
+  await user.click(screen.getByRole('button', { name: 'Close' }))
+  expect(screen.getByRole('dialog', { name: 'Manage cover' })).toBeVisible()
+  expect(input).toBeDisabled()
+  await act(async () => reject(new Error('write failed')))
+  expect(screen.getByRole('alert')).toBeVisible()
+  expect(input.files?.[0]).toBe(file)
+  expect(screen.getByRole('button', { name: 'Save cover' })).toBeEnabled()
+  await user.keyboard('{Escape}')
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  expect(dots).toHaveFocus()
 })

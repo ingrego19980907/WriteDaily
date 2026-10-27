@@ -9,6 +9,7 @@
   --color-secondary: #706b62;
   --color-accent-strong: #6f583f;
   --color-accent-strong-hover: #5c4732;
+  --color-success: #4c6746;
   --color-error: #9b443a;
   --color-overlay: color-mix(in srgb, var(--color-foreground) 40%, transparent);
   --shadow-modal: 0 1rem 3rem

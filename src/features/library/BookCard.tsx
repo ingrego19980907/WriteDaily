@@ -4,7 +4,6 @@ import { Card } from '../../components/ui/Card'
 import { BookProgress } from './BookProgress'
 import { Button } from '../../components/ui/Button'
 import type { Book } from './book'
-import { BookCover } from './BookCover'
 import { BookActions } from './BookActions'
 import { CoverImage } from './CoverImage'
 import './book-card.css'
@@ -58,10 +57,6 @@ export function BookCard({
           </div>
         </div>
       </div>
-      <details className="book-card__cover-settings">
-        <summary>{copy.manageCover}</summary>
-        <BookCover book={book} onSaved={onSaved} showPreview={false} />
-      </details>
     </Card>
   )
 }

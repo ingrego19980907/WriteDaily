@@ -24,6 +24,7 @@ export const en = {
     wordTarget: (count: string) => `Target: ${count} words`,
     completed: 'Completed',
     cover: 'Cover image',
+    coverChoose: 'Click to choose a cover image',
     coverHint:
       'PNG, JPEG or WebP, up to 5 MiB and 4096 × 4096 pixels. Saved as a PNG up to 1200 × 1600 pixels.',
     coverSave: 'Save cover',
@@ -39,6 +40,9 @@ export const en = {
     coverReadFailure: 'The saved cover could not be loaded.',
     coverLoading: 'Loading cover…',
     coverAlt: 'Book cover',
+    coverDraftAlt: 'Unsaved cover preview',
+    coverPreviewFailure:
+      'This image could not be previewed. Choose a valid PNG, JPEG or WebP.',
     coverConflict:
       'This book has changed. Load the latest book details before trying again.',
     coverReload: 'Load latest book details',

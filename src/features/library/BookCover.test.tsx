@@ -51,7 +51,7 @@ beforeEach(() => {
   vi.mocked(readCover).mockResolvedValue([1, 2, 3])
 })
 
-test('uploads selected bytes for the current revision, previews only the persisted cover and removes by null', async () => {
+test('uploads selected bytes for the current revision, previews the draft before committing the cover and removes by null', async () => {
   const user = userEvent.setup()
   vi.mocked(setCover)
     .mockResolvedValueOnce({ book: covered, cleanupPending: false })
@@ -62,7 +62,10 @@ test('uploads selected bytes for the current revision, previews only the persist
   render(<Harness />)
   expect(screen.getByRole('button', { name: 'Save cover' })).toBeDisabled()
   await user.upload(screen.getByLabelText('Cover image'), file())
-  expect(screen.queryByRole('img')).not.toBeInTheDocument()
+  expect(
+    await screen.findByRole('img', { name: 'Unsaved cover preview' }),
+  ).toHaveAttribute('src', 'data:image/png;base64,cG5n')
+  expect(setCover).not.toHaveBeenCalled()
   await user.click(screen.getByRole('button', { name: 'Save cover' }))
   expect(setCover).toHaveBeenCalledWith(book.id, book.updatedAt, [1, 2, 3])
   expect(
@@ -155,4 +158,23 @@ test('missing or corrupt stored image reports an error while retaining metadata 
     'could not be loaded',
   )
   expect(screen.getByRole('button', { name: 'Remove cover' })).toBeEnabled()
+})
+
+test('custom picker keeps a labelled native file input and shows the selected filename until commit', async () => {
+  const user = userEvent.setup()
+  vi.mocked(setCover).mockResolvedValue({
+    book: covered,
+    cleanupPending: false,
+  })
+  render(<Harness />)
+  const input = screen.getByLabelText('Cover image')
+  expect(input).toHaveAccessibleDescription(/PNG, JPEG or WebP/)
+  expect(screen.getByText('Click to choose a cover image')).toBeVisible()
+  await user.tab()
+  expect(input).toHaveFocus()
+  await user.upload(input, file())
+  expect(screen.getByText('my-cover.png')).toBeVisible()
+  await user.click(screen.getByRole('button', { name: 'Save cover' }))
+  expect(await screen.findByText('Cover saved.')).toBeVisible()
+  expect(screen.queryByText('my-cover.png')).not.toBeInTheDocument()
 })

@@ -25,10 +25,14 @@ for (const width of [320, 640, 1100]) {
       name: 'Book actions',
       exact: true,
     })
-    await expect(actions.getByRole('button')).toHaveCount(2)
+    await expect(actions.getByRole('button')).toHaveCount(3)
     await page.keyboard.press('Tab')
     await expect(
       actions.getByRole('button', { name: 'Edit book', exact: true }),
+    ).toBeFocused()
+    await page.keyboard.press('ArrowDown')
+    await expect(
+      actions.getByRole('button', { name: 'Manage cover', exact: true }),
     ).toBeFocused()
     await page.keyboard.press('ArrowDown')
     await expect(

@@ -262,27 +262,26 @@ async function create(page: Page, title: string, goals = false) {
 }
 async function cover(page: Page, title: string, source: string) {
   const selected = card(page, title)
-  const details = selected.locator('details')
-  if (
-    !(await details.evaluate((element) => (element as HTMLDetailsElement).open))
-  )
-    await selected.getByText('Manage cover', { exact: true }).click()
-  await selected
-    .getByLabel('Cover image', { exact: true })
-    .setInputFiles(source)
-  await selected
-    .getByRole('button', { name: 'Save cover', exact: true })
-    .click()
-  await expect(
-    selected.getByText('Cover saved.', { exact: true }),
-  ).toBeVisible()
-  const image = selected.getByRole('img', { name: 'Book cover' })
+  if (!(await page.getByRole('dialog', { name: 'Manage cover' }).count())) {
+    await selected
+      .getByRole('button', { name: 'Book actions', exact: true })
+      .click()
+    await selected
+      .getByRole('button', { name: 'Manage cover', exact: true })
+      .click()
+  }
+  const dialog = page.getByRole('dialog', { name: 'Manage cover' })
+  await dialog.getByLabel('Cover image', { exact: true }).setInputFiles(source)
+  await dialog.getByRole('button', { name: 'Save cover', exact: true }).click()
+  await expect(dialog.getByText('Cover saved.', { exact: true })).toBeVisible()
+  const image = dialog.getByRole('img', { name: 'Book cover' })
   await expect(image).toBeVisible()
   await expect
     .poll(() =>
       image.evaluate((element) => (element as HTMLImageElement).naturalWidth),
     )
     .toBeGreaterThan(0)
+  await page.keyboard.press('Escape')
 }
 async function removeBook(page: Page, title: string) {
   await card(page, title)
@@ -363,19 +362,24 @@ try {
       .click()
     await expect(page.getByRole('dialog')).toHaveCount(0)
     await card(page, editedTitle)
-      .getByText('Manage cover', { exact: true })
+      .getByRole('button', { name: 'Book actions', exact: true })
       .click()
     await card(page, editedTitle)
+      .getByText('Manage cover', { exact: true })
+      .click()
+    await page
+      .getByRole('dialog')
       .getByLabel('Cover image')
       .setInputFiles({
         name: 'invalid.png',
         mimeType: 'image/png',
         buffer: Buffer.from('not an image'),
       })
-    await card(page, editedTitle)
+    await page
+      .getByRole('dialog')
       .getByRole('button', { name: 'Save cover', exact: true })
       .click()
-    await expect(card(page, editedTitle).getByRole('alert')).toContainText(
+    await expect(page.getByRole('dialog').getByRole('alert')).toContainText(
       'valid PNG',
     )
     assert.equal(
@@ -467,13 +471,17 @@ try {
       card(page, editedTitle).getByRole('img', { name: 'Book cover' }),
     ).toBeVisible()
     await card(page, editedTitle)
-      .getByText('Manage cover', { exact: true })
+      .getByRole('button', { name: 'Book actions', exact: true })
       .click()
     await card(page, editedTitle)
+      .getByText('Manage cover', { exact: true })
+      .click()
+    await page
+      .getByRole('dialog')
       .getByRole('button', { name: 'Remove cover', exact: true })
       .click()
     await expect(
-      card(page, editedTitle).getByText('Cover removed.', { exact: true }),
+      page.getByRole('dialog').getByText('Cover removed.', { exact: true }),
     ).toBeVisible()
     const third = await snapshot(page, 'third')
     assert.equal(third[0].coverPath, null)

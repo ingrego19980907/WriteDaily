@@ -89,6 +89,76 @@
   .book-cover-image--placeholder {
     aspect-ratio: auto;
   }
+  .book-cover-controls > .book-cover-image {
+    margin-inline: auto;
+  }
+  .cover-status {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.375rem;
+    color: var(--color-secondary);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+  .cover-status__icon {
+    flex-shrink: 0;
+    margin-top: 0.0625rem;
+    color: var(--color-success);
+  }
+  .cover-picker {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+    min-width: 0;
+    min-height: 12rem;
+    padding: 1.5rem;
+    border: 1px dashed var(--color-secondary);
+    border-radius: 0.75rem;
+    background: var(--color-background);
+    text-align: center;
+    overflow-wrap: anywhere;
+    cursor: pointer;
+  }
+  .cover-picker:has(input:enabled):hover {
+    border-color: var(--color-accent-strong);
+  }
+  .cover-picker:has(input:focus-visible) {
+    outline: 2px solid var(--color-accent-strong);
+    outline-offset: 3px;
+  }
+  .cover-picker:has(input:disabled) {
+    opacity: 0.6;
+    cursor: default;
+  }
+  .cover-picker__icon {
+    flex-shrink: 0;
+    color: var(--color-accent-strong);
+  }
+  .cover-picker__title {
+    font-weight: 600;
+  }
+  .cover-picker__hint {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--color-secondary);
+  }
+  .cover-picker__filename {
+    max-width: 100%;
+    font-size: 0.875rem;
+  }
+  .cover-picker__input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: inherit;
+  }
   .book-card__content {
     min-width: 0;
     flex: 1;
@@ -118,25 +188,6 @@
     overflow: hidden;
     clip-path: inset(50%);
   }
-  .book-card__cover-settings {
-    margin-top: 1rem;
-    border-top: 1px solid var(--color-border);
-    padding-top: 0.5rem;
-  }
-  .book-card__cover-settings summary {
-    cursor: pointer;
-    padding: 0.75rem 0;
-    font-weight: 600;
-    overflow-wrap: anywhere;
-  }
-  .book-card__cover-settings summary:focus-visible {
-    outline: 2px solid var(--color-foreground);
-    outline-offset: 3px;
-    border-radius: 0.25rem;
-  }
-  .book-card__cover-settings[open] summary {
-    margin-bottom: 0.5rem;
-  }
   @media (max-width: 35rem) {
     .book-card__overview {
       flex-direction: column;
@@ -147,6 +198,14 @@
     }
   }
   @media (forced-colors: active) {
+    .cover-picker:has(input:focus-visible) {
+      outline-color: Highlight;
+    }
+    .cover-status__icon,
+    .cover-picker__icon {
+      color: CanvasText;
+    }
+    .cover-picker,
     .book-cover-image {
       border-color: CanvasText;
     }

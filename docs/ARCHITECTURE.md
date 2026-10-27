@@ -42,7 +42,7 @@ Status: Foundation complete through task 0.9, including Windows development-wind
 
 ## Technology direction
 
-Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs 403 domain/component/service/editor tests and 100 Edge scenarios verified across full and focused runs. Native persistence is additionally covered by 66 Rust tests. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
+Tauri 2 desktop host; React + strict TypeScript + Vite frontend; Tailwind for styling; SQLite for structured data; Tiptap for rich text. Add Lucide, Motion and Playwright only when their approved tasks require them. Vitest currently runs 408 domain/component/service/editor tests and 100 Edge scenarios verified in the full browser run. Native persistence is additionally covered by 66 Rust tests. Resolve compatible stable versions during each setup task and commit dependency lockfiles once generated.
 
 ## Organization
 
