@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { en } from '../../app/i18n/en'
 import { Button } from '../../components/ui/Button'
-import { Modal } from '../../components/ui/Modal'
+import { Modal, type ModalProps } from '../../components/ui/Modal'
 import { bookErrorCode, deleteBook, getBook } from '../../services/books'
 import type { Book } from './book'
 
@@ -10,9 +10,11 @@ const copy = en.library
 export function DeleteBook({
   book,
   onDeleted,
+  onCloseAutoFocus,
 }: {
   book: Book
   onDeleted: (book: Book, cleanupPending?: boolean) => void
+  onCloseAutoFocus?: ModalProps['onCloseAutoFocus']
 }) {
   const [open, setOpen] = useState(false)
   const [snapshot, setSnapshot] = useState(book)
@@ -95,6 +97,7 @@ export function DeleteBook({
 
   return (
     <Modal
+      onCloseAutoFocus={onCloseAutoFocus}
       open={open}
       onOpenChange={changeOpen}
       trigger={<Button variant="secondary">{copy.delete}</Button>}

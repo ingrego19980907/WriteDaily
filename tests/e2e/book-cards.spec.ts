@@ -60,13 +60,16 @@ for (const width of [320, 640, 1100]) {
     await manage.focus()
     await page.keyboard.press('Enter')
     await expect(first.getByLabel('Cover image', { exact: true })).toBeVisible()
+    await first
+      .getByRole('button', { name: 'Book actions', exact: true })
+      .click()
     await first.getByRole('button', { name: 'Edit book', exact: true }).click()
     await expect(page.getByLabel('Title', { exact: true })).toHaveValue(
       'ДовгаНазва'.repeat(22),
     )
     await page.keyboard.press('Escape')
     await expect(
-      first.getByRole('button', { name: 'Edit book', exact: true }),
+      first.getByRole('button', { name: 'Book actions', exact: true }),
     ).toBeFocused()
   })
 }

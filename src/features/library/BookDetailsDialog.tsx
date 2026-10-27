@@ -2,7 +2,7 @@ import { useRef, useState, type FormEvent } from 'react'
 import { en } from '../../app/i18n/en'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
-import { Modal } from '../../components/ui/Modal'
+import { Modal, type ModalProps } from '../../components/ui/Modal'
 import {
   bookErrorCode,
   bookValidationIssues,
@@ -38,9 +38,11 @@ function fields(book?: Book) {
 export function BookDetailsDialog({
   book,
   onSaved,
+  onCloseAutoFocus,
 }: {
   book?: Book
   onSaved?: (book: Book) => void
+  onCloseAutoFocus?: ModalProps['onCloseAutoFocus']
 }) {
   const [open, setOpen] = useState(false)
   const [values, setValues] = useState(() => fields(book))
@@ -155,6 +157,7 @@ export function BookDetailsDialog({
   return (
     <>
       <Modal
+        onCloseAutoFocus={onCloseAutoFocus}
         open={open}
         onOpenChange={(next) => {
           if (!inFlight.current) setOpen(next)

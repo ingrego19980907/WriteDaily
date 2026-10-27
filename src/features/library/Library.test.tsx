@@ -45,8 +45,11 @@ test('loads existing books and edits the selected identity even with duplicate t
   })
   render(<Library />)
   const list = await screen.findByRole('list', { name: 'Books' })
-  await screen.findAllByRole('button', { name: 'Edit book' })
+  await screen.findAllByRole('button', { name: 'Book actions' })
   const rows = within(list).getAllByRole('listitem')
+  await user.click(
+    within(rows[1]).getByRole('button', { name: 'Book actions' }),
+  )
   await user.click(within(rows[1]).getByRole('button', { name: 'Edit book' }))
   await user.clear(screen.getByLabelText('Title'))
   await user.type(screen.getByLabelText('Title'), 'Changed')
@@ -196,8 +199,9 @@ test('deletes only the confirmed identity, retains other books and restores focu
   vi.mocked(listBooks).mockResolvedValue([book, { ...book, id: 'two' }])
   vi.mocked(deleteBook).mockResolvedValue({ cleanupPending: true })
   render(<Library />)
-  const actions = await screen.findAllByRole('button', { name: 'Delete book' })
+  const actions = await screen.findAllByRole('button', { name: 'Book actions' })
   await user.click(actions[1])
+  await user.click(screen.getByRole('button', { name: 'Delete book' }))
   await user.click(screen.getByRole('checkbox'))
   await user.click(
     within(screen.getByRole('dialog')).getByRole('button', {
@@ -237,7 +241,8 @@ test('failed deletion keeps the row and a late listing cannot resurrect a commit
       name: 'Create book',
     }),
   )
-  await user.click(await screen.findByRole('button', { name: 'Delete book' }))
+  await user.click(await screen.findByRole('button', { name: 'Book actions' }))
+  await user.click(screen.getByRole('button', { name: 'Delete book' }))
   await user.click(screen.getByRole('checkbox'))
   await user.click(
     within(screen.getByRole('dialog')).getByRole('button', {
@@ -265,12 +270,15 @@ test('cancelling deletion retains the existing unsaved editing draft', async () 
   const user = userEvent.setup()
   vi.mocked(listBooks).mockResolvedValue([book])
   render(<Library />)
-  await user.click(await screen.findByRole('button', { name: 'Edit book' }))
+  await user.click(await screen.findByRole('button', { name: 'Book actions' }))
+  await user.click(screen.getByRole('button', { name: 'Edit book' }))
   await user.type(screen.getByLabelText('Title'), ' draft')
   await user.keyboard('{Escape}')
+  await user.click(screen.getByRole('button', { name: 'Book actions' }))
   await user.click(screen.getByRole('button', { name: 'Delete book' }))
   await user.click(screen.getByRole('checkbox'))
   await user.click(screen.getByRole('button', { name: 'Cancel' }))
+  await user.click(screen.getByRole('button', { name: 'Book actions' }))
   await user.click(screen.getByRole('button', { name: 'Edit book' }))
   expect(screen.getByLabelText('Title')).toHaveValue('Same title draft')
   expect(deleteBook).not.toHaveBeenCalled()

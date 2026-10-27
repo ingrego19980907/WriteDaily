@@ -14,7 +14,11 @@ BookProgress owns progress labels/descriptions around shared ProgressBar. A know
 
 ## Library grid (2.9)
 
-The library uses a native list with CSS Grid auto-fit columns, minmax(min(100%, 18rem), 1fr) and 1.5rem gaps. Only library content expands to max 72rem; standard reading sections remain max 48rem. Cards stack their cover/content within each column and preserve full wrapped titles and native actions. Verified column counts are 1 at 320/640px, 2 at 1100px and 3 at 1440px; text enlargement reduces columns naturally without horizontal overflow. Open book is an explicit native button, with disabled pending feedback, not a nested clickable card. Successful loading focuses the editor heading; return navigation focuses the library heading. No arrows/grid widget roles or hover-only controls.
+Card actions (LIB.2): a 2.75rem three-dot button in the top-right opens an anchored action group containing Edit book/Delete book. This is a disclosure of native buttons, not an ARIA menu widget. Enter/Space toggles, Tab reaches actions, Arrow/Home/End moves inside, and Escape/outside interaction closes it. Selection opens existing guarded dialogs and hides the disclosure; cancellation/edit completion restores focus to the visible toggle. Action/dialog components stay mounted to preserve drafts. Open book remains the primary visible card action. Existing commit-only edit announcements remain available to screen readers outside the hidden group.
+
+Single-card width follow-up (LIB.1): cards stop growing at 22rem (352px with the default root size). Empty columns are retained so one book does not expand across the library; columns stay aligned to the start. On narrower screens the minimum contracts to available width. Height remains content-driven to preserve wrapped titles, actions and expanded cover settings.
+
+The library uses a native list with CSS Grid auto-fill columns, minmax(min(100%, 18rem), 22rem) and 1.5rem gaps. Only library content expands to max 72rem; standard reading sections remain max 48rem. Cards stack their cover/content within each column and preserve full wrapped titles and native actions. Verified column counts are 1 at 320/640px, 2 at 1100px and 3 at 1440px; text enlargement reduces columns naturally without horizontal overflow. Open book is an explicit native button, with disabled pending feedback, not a nested clickable card. Successful loading focuses the editor heading; return navigation focuses the library heading. No arrows/grid widget roles or hover-only controls.
 
 ## Book cards (2.8)
 

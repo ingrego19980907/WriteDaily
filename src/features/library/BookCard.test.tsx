@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { beforeEach, expect, test, vi } from 'vitest'
+import userEvent from '@testing-library/user-event'
 import { readCover } from '../../services/books'
 import { BookCard } from './BookCard'
 import type { Book } from './book'
@@ -24,7 +25,7 @@ beforeEach(() => {
   vi.mocked(readCover).mockReset()
 })
 
-test('names the article by its full title, shows target and unknown progress without inventing a count or percentage', () => {
+test('names the article by its full title, shows target and unknown progress without inventing a count or percentage', async () => {
   render(<BookCard book={book} {...callbacks} />)
   const card = screen.getByRole('article', { name: book.title })
   expect(within(card).getByRole('heading', { level: 3 })).toHaveTextContent(
@@ -39,6 +40,12 @@ test('names the article by its full title, shows target and unknown progress wit
   expect(progress).toHaveAttribute('aria-valuetext', 'Word count unavailable')
   expect(progress).toHaveAccessibleDescription('Word count unavailable')
   expect(readCover).not.toHaveBeenCalled()
+  expect(
+    within(card).queryByRole('button', { name: 'Edit book' }),
+  ).not.toBeInTheDocument()
+  await userEvent
+    .setup()
+    .click(within(card).getByRole('button', { name: 'Book actions' }))
   expect(within(card).getByRole('button', { name: 'Edit book' })).toBeVisible()
   expect(
     within(card).getByRole('button', { name: 'Delete book' }),
@@ -113,4 +120,48 @@ test('old asynchronous cover responses cannot replace the current book cover', a
     'src',
     'data:image/png;base64,BAUG',
   )
+})
+
+test('card actions support keyboard traversal, Escape and outside dismissal without stealing focus', async () => {
+  const user = userEvent.setup()
+  render(
+    <>
+      <button>Outside</button>
+      <BookCard book={book} {...callbacks} />
+    </>,
+  )
+  const trigger = screen.getByRole('button', { name: 'Book actions' })
+  trigger.focus()
+  await user.keyboard('{Enter}')
+  expect(trigger).toHaveAttribute('aria-expanded', 'true')
+  await user.tab()
+  expect(screen.getByRole('button', { name: 'Edit book' })).toHaveFocus()
+  await user.keyboard('{ArrowDown}')
+  expect(screen.getByRole('button', { name: 'Delete book' })).toHaveFocus()
+  await user.keyboard('{ArrowDown}')
+  expect(screen.getByRole('button', { name: 'Edit book' })).toHaveFocus()
+  await user.keyboard('{End}')
+  expect(screen.getByRole('button', { name: 'Delete book' })).toHaveFocus()
+  await user.keyboard('{Escape}')
+  expect(trigger).toHaveFocus()
+  expect(trigger).toHaveAttribute('aria-expanded', 'false')
+  await user.click(trigger)
+  await user.click(screen.getByRole('button', { name: 'Outside' }))
+  expect(trigger).toHaveAttribute('aria-expanded', 'false')
+  expect(screen.getByRole('button', { name: 'Outside' })).toHaveFocus()
+})
+
+test('selecting edit hides actions and closing the dialog returns to the visible dots button', async () => {
+  const user = userEvent.setup()
+  render(<BookCard book={book} {...callbacks} />)
+  const trigger = screen.getByRole('button', { name: 'Book actions' })
+  await user.click(trigger)
+  await user.click(screen.getByRole('button', { name: 'Edit book' }))
+  expect(screen.getByRole('dialog', { name: 'Edit book' })).toBeVisible()
+  expect(trigger).toHaveAttribute('aria-expanded', 'false')
+  await user.keyboard('{Escape}')
+  expect(trigger).toHaveFocus()
+  expect(
+    screen.queryByRole('button', { name: 'Edit book' }),
+  ).not.toBeInTheDocument()
 })

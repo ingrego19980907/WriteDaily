@@ -130,7 +130,8 @@ test('confirmed deletion clears the previously selected editor context', async (
   await user.click(
     await screen.findByRole('button', { name: 'Back to library' }),
   )
-  await user.click(screen.getAllByRole('button', { name: 'Delete book' })[0])
+  await user.click(screen.getAllByRole('button', { name: 'Book actions' })[0])
+  await user.click(screen.getByRole('button', { name: 'Delete book' }))
   await user.click(screen.getByRole('checkbox'))
   await user.click(
     within(screen.getByRole('dialog')).getByRole('button', {
@@ -157,7 +158,8 @@ test('a late open response cannot select a book deleted during loading', async (
   await user.click(
     (await screen.findAllByRole('button', { name: 'Open book' }))[0],
   )
-  await user.click(screen.getAllByRole('button', { name: 'Delete book' })[0])
+  await user.click(screen.getAllByRole('button', { name: 'Book actions' })[0])
+  await user.click(screen.getByRole('button', { name: 'Delete book' }))
   await user.click(screen.getByRole('checkbox'))
   await user.click(
     within(screen.getByRole('dialog')).getByRole('button', {

@@ -1,6 +1,26 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
 
+for (const width of [640, 1100, 1440]) {
+  test(`a single book keeps the same capped width as a populated library at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 850 })
+    await page.goto('/tests/fixtures/book-editing.html')
+    const cards = page
+      .getByRole('list', { name: 'Books', exact: true })
+      .getByRole('article')
+    await expect(cards).toHaveCount(1)
+    const single = await cards.first().boundingBox()
+    expect(single).not.toBeNull()
+    expect(single!.width).toBeLessThanOrEqual(352)
+    await page.goto('/tests/fixtures/book-editing.html?grid')
+    await expect(cards).toHaveCount(3)
+    const populated = await cards.first().boundingBox()
+    expect(populated!.width).toBeCloseTo(single!.width, 0)
+  })
+}
+
 for (const [width, columns] of [
   [320, 1],
   [640, 1],

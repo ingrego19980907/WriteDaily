@@ -286,6 +286,9 @@ async function cover(page: Page, title: string, source: string) {
 }
 async function removeBook(page: Page, title: string) {
   await card(page, title)
+    .getByRole('button', { name: 'Book actions', exact: true })
+    .click()
+  await card(page, title)
     .getByRole('button', { name: 'Delete book', exact: true })
     .click()
   await page.getByRole('checkbox').check()
@@ -345,6 +348,9 @@ try {
     const selectedCard = page
       .getByRole('article')
       .filter({ has: page.getByText('Target: 60,000 words', { exact: true }) })
+    await selectedCard
+      .getByRole('button', { name: 'Book actions', exact: true })
+      .click()
     await selectedCard
       .getByRole('button', { name: 'Edit book', exact: true })
       .click()
@@ -417,6 +423,9 @@ try {
     ).toContainText('Target: 84,000 words')
     await page.getByRole('button', { name: 'Back to library' }).click()
     await card(page, editedTitle)
+      .getByRole('button', { name: 'Book actions', exact: true })
+      .click()
+    await card(page, editedTitle)
       .getByRole('button', { name: 'Edit book', exact: true })
       .click()
     await page.getByLabel('Daily word goal (optional)').fill('1000')
@@ -438,6 +447,9 @@ try {
         path.basename(firstCoverPath),
       ),
     )
+    await card(page, title)
+      .getByRole('button', { name: 'Book actions', exact: true })
+      .click()
     await card(page, title)
       .getByRole('button', { name: 'Delete book', exact: true })
       .click()

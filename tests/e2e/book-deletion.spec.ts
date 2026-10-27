@@ -7,10 +7,12 @@ for (const width of [320, 640, 1100]) {
   }) => {
     await page.setViewportSize({ width, height: 480 })
     await page.goto('/tests/fixtures/book-editing.html')
+    const menu = page.getByRole('button', { name: 'Book actions', exact: true })
     const trigger = page.getByRole('button', {
       name: 'Delete book',
       exact: true,
     })
+    await menu.click()
     await trigger.click()
     const dialog = page.getByRole('dialog', {
       name: 'Delete book',
@@ -25,11 +27,13 @@ for (const width of [320, 640, 1100]) {
     await expect(remove).toBeDisabled()
     await page.keyboard.press('Enter')
     await expect(dialog).toHaveCount(0)
-    await expect(trigger).toBeFocused()
+    await expect(menu).toBeFocused()
+    await menu.click()
     await trigger.click()
     await page.getByRole('checkbox').check()
     await page.keyboard.press('Escape')
-    await expect(trigger).toBeFocused()
+    await expect(menu).toBeFocused()
+    await menu.click()
     await trigger.click()
     await expect(page.getByRole('checkbox')).not.toBeChecked()
     const results = await new AxeBuilder({ page })

@@ -7,7 +7,9 @@ for (const width of [320, 640, 1100]) {
   }) => {
     await page.setViewportSize({ width, height: 480 })
     await page.goto('/tests/fixtures/book-editing.html')
+    const menu = page.getByRole('button', { name: 'Book actions', exact: true })
     const trigger = page.getByRole('button', { name: 'Edit book', exact: true })
+    await menu.click()
     await trigger.click()
     const title = page.getByLabel('Title', { exact: true })
     await expect(title).toHaveValue('A quiet story')
@@ -21,11 +23,12 @@ for (const width of [320, 640, 1100]) {
       'Could not save changes',
     )
     await page.keyboard.press('Escape')
-    await expect(trigger).toBeFocused()
+    await expect(menu).toBeFocused()
     await page
       .getByRole('button', { name: 'Achievements', exact: true })
       .click()
     await page.getByRole('button', { name: 'My Library', exact: true }).click()
+    await menu.click()
     await trigger.click()
     await expect(title).toHaveValue('Failed draft')
     await title.fill('Conflict draft')
@@ -54,6 +57,7 @@ for (const width of [320, 640, 1100]) {
     await expect(
       page.getByRole('heading', { name: 'Оновлена історія' }),
     ).toBeVisible()
+    await menu.click()
     await trigger.click()
     await expect(title).toHaveValue('Оновлена історія')
     await expect(page.getByLabel('Daily word goal (optional)')).toHaveValue('')

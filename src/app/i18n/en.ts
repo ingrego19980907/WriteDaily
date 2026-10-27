@@ -1,5 +1,6 @@
 export const en = {
   library: {
+    actions: 'Book actions',
     create: 'Create book',
     open: 'Open book',
     opening: 'Opening…',

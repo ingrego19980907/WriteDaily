@@ -5,9 +5,8 @@ import { BookProgress } from './BookProgress'
 import { Button } from '../../components/ui/Button'
 import type { Book } from './book'
 import { BookCover } from './BookCover'
-import { BookDetailsDialog } from './BookDetailsDialog'
+import { BookActions } from './BookActions'
 import { CoverImage } from './CoverImage'
-import { DeleteBook } from './DeleteBook'
 import './book-card.css'
 
 const copy = en.library
@@ -31,6 +30,7 @@ export function BookCard({
   const id = useId()
   return (
     <Card className="book-card" role="article" aria-labelledby={`${id}-title`}>
+      <BookActions book={book} onSaved={onSaved} onDeleted={onDeleted} />
       <div className="book-card__overview">
         <CoverImage book={book} />
         <div className="book-card__content">
@@ -55,8 +55,6 @@ export function BookCard({
                 {opening ? copy.opening : copy.open}
               </Button>
             )}
-            <BookDetailsDialog book={book} onSaved={onSaved} />
-            <DeleteBook book={book} onDeleted={onDeleted} />
           </div>
         </div>
       </div>
