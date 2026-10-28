@@ -259,3 +259,7 @@ Count completed scheduled goal days, with personal/global completion defined as 
 ## Longest recorded streak semantics (5.6)
 
 The historical maximum uses the same goal-day qualification as the current streak, scans all recorded history and keeps the earliest tie. Unknown past dates split confirmed runs; they cannot be silently bridged or treated as known misses. Exactness explicitly covers the recorded interval, whose first date is shown, rather than claiming an all-time record before tracking began. A new read-only IPC and independently validated UI result keep longest-history failures separate from current-suffix failures. No persisted record counter or schema change. See [STREAKS.md](STREAKS.md).
+
+## Preferred writing days (5.7)
+
+Use one shared Sunday-bit-indexed weekly schedule, edited in Goals & Deadlines, with next-local-day changes. Explicit first save starts history today with prior all-day defaults and current book targets. Do not backfill old gaps. Store target changes and book retirement from tomorrow so missed empty dates remain interpretable after metadata edits/deletion. Sealed day plans always win. Native history is authoritative for delayed activity writes; zero selected days pause scheduled goals without blocking writing. See [WRITING_SCHEDULE.md](WRITING_SCHEDULE.md).

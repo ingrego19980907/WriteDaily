@@ -142,7 +142,10 @@ test('confirmed deletion clears the previously selected editor context', async (
   expect(
     screen.queryByRole('region', { name: first.title }),
   ).not.toBeInTheDocument()
-  expect(screen.getByRole('heading', { name: 'Coming soon' })).toBeVisible()
+  expect(
+    screen.getByRole('heading', { name: 'Choose a book to edit' }),
+  ).toBeVisible()
+  expect(screen.queryByText('Coming soon')).not.toBeInTheDocument()
 })
 
 test('a late open response cannot select a book deleted during loading', async () => {

@@ -32,6 +32,7 @@ Object.assign(globalThis, {
   completeLongestRead: () => finishLongest?.(),
 })
 mockIPC((command, payload) => {
+  if (command === 'get_writing_schedule') return { revision: 0, history: [] }
   if (command === 'get_longest_streak') {
     longestReads++
     if (streakMode === 'loading' || longestMode === 'loading')

@@ -67,6 +67,7 @@ impl<'connection> BookRepository<'connection> {
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?6)",
             params![id, details.title, details.target_word_count, details.daily_word_goal, details.deadline, now],
         )?;
+        crate::schedule::record_goal(&transaction, &id, details.daily_word_goal, true, false)?;
         let book = load(&transaction, &id)?;
         transaction.commit()?;
         Ok(book)
@@ -105,6 +106,9 @@ impl<'connection> BookRepository<'connection> {
         )?;
         if changed != 1 {
             return Err(BookError::Conflict);
+        }
+        if current.daily_word_goal != details.daily_word_goal {
+            crate::schedule::record_goal(&transaction, id, details.daily_word_goal, false, false)?;
         }
         let book = load(&transaction, id)?;
         transaction.commit()?;
@@ -148,6 +152,7 @@ impl<'connection> BookRepository<'connection> {
                 [path],
             )?;
         }
+        crate::schedule::record_goal(&transaction, id, book.daily_word_goal, false, true)?;
         let changed = transaction.execute(
             "DELETE FROM books WHERE id = ?1 AND updated_at = ?2",
             params![id, expected_updated_at],

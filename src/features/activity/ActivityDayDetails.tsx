@@ -30,6 +30,11 @@ export function ActivityDayDetails({
         {copy.dayDetails(formatCalendarDate(day.date))}
       </h2>
       {day.saveCount === 0 && <p className="text-secondary">{copy.emptyDay}</p>}
+      {typeof day.writingDay === 'boolean' && (
+        <p className="text-secondary">
+          {day.writingDay ? copy.scheduledDay : copy.restDay}
+        </p>
+      )}
       <dl className="activity-metrics">
         {[
           [copy.credited, day.creditedWords],

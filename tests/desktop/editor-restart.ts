@@ -111,7 +111,7 @@ export async function verifyEditorRestart(h: Harness) {
       db.prepare('PRAGMA application_id').get()?.application_id,
       1464090969,
     )
-    assert.equal(db.prepare('PRAGMA user_version').get()?.user_version, 4)
+    assert.equal(db.prepare('PRAGMA user_version').get()?.user_version, 6)
     return db
   }
   function rows() {

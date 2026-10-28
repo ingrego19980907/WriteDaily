@@ -267,7 +267,6 @@ fn malformed_context_chain_limits_and_unknown_fields_never_write() {
         ("/segments/0/context/localDate", json!("2026-10-27")),
         ("/segments/0/context/utcOffsetMinutes", json!(841)),
         ("/segments/0/context/dailyWordGoal", json!(0)),
-        ("/segments/0/context/scheduled", json!(false)),
         ("/segments/0/firstEditedAt", json!("2026-10-28T10:00:00Z")),
         ("/segments/0/context/timeZone", json!("bad zone")),
     ];

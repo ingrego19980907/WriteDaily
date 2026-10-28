@@ -5,7 +5,7 @@ use super::{
 };
 use crate::books::{BookError, validation::valid_id};
 use chrono::Duration;
-use rusqlite::{Connection, params};
+use rusqlite::Connection;
 use serde::Serialize;
 
 #[derive(Debug, Serialize, PartialEq, Eq)]
@@ -38,7 +38,7 @@ pub fn get_longest_streak(
             _ => ActivityError::InvalidStoredData,
         })?;
     }
-    let first: Option<String> = tx.query_row("SELECT min(local_date) FROM writing_activity WHERE local_date<=?1 AND (?2 IS NULL OR book_id=?2)", params![today,book_id], |row| row.get(0))?;
+    let first = crate::schedule::first_history(&tx, today, book_id)?;
     let mut result = LongestStreak {
         today: today.into(),
         book_id: book_id.map(str::to_owned),

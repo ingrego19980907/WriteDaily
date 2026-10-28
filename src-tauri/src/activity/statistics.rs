@@ -30,6 +30,7 @@ pub struct DailyStatistics {
     pub save_count: i64,
     pub active: bool,
     pub book_goals: Vec<BookDailyGoal>,
+    pub writing_day: Option<bool>,
 }
 #[derive(Debug, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -48,7 +49,7 @@ struct Day {
     save_count: i64,
     goals: BTreeMap<String, BookDailyGoal>,
 }
-pub(super) fn date(value: &str) -> Option<NaiveDate> {
+pub(crate) fn date(value: &str) -> Option<NaiveDate> {
     let parsed = NaiveDate::parse_from_str(value, "%Y-%m-%d").ok()?;
     ((1..=9999).contains(&parsed.year()) && parsed.format("%Y-%m-%d").to_string() == value)
         .then_some(parsed)
@@ -228,7 +229,21 @@ pub(super) fn read_daily_statistics(
         let date = (start + Duration::days(offset))
             .format("%Y-%m-%d")
             .to_string();
-        let day = days.remove(&date).unwrap_or_default();
+        let mut day = days.remove(&date).unwrap_or_default();
+        let writing_day = crate::schedule::scheduled(connection, &date)?;
+        if let Some(scheduled) = writing_day {
+            for (source, live, target) in crate::schedule::goals(connection, &date, book_id)? {
+                day.goals.entry(source.clone()).or_insert(BookDailyGoal {
+                    source_book_id: source,
+                    book_id: live,
+                    daily_word_goal: target,
+                    scheduled,
+                    credited_words: 0,
+                    state: "unconfigured",
+                    remaining_words: None,
+                });
+            }
+        }
         let mut goals: Vec<_> = day.goals.into_values().collect();
         for goal in &mut goals {
             if !goal.scheduled {
@@ -250,6 +265,7 @@ pub(super) fn read_daily_statistics(
             save_count: day.save_count,
             active: day.credited > 0,
             book_goals: goals,
+            writing_day,
         });
     }
     Ok(DailyStatisticsRange {

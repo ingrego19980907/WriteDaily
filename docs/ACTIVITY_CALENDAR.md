@@ -33,3 +33,5 @@ All 672 Vitest tests passed (48 files), including ten new helper/component cases
 New coverage includes actual selected-day values, sealed goals, retained removed sources, book filtering, empty periods, read/loading/malformed/deleted-scope states, stale-response protection, focus refresh, month/year bounds, keyboard selection, axe, 320/640/1100px, 200% reflow, scroll visibility and forced colors. Month helpers cover leap/non-leap centuries and checked totals. Test entry points load global CSS before components; browser data is isolated test IPC, not production mock persistence.
 
 The native query implementation and disposable-database tests were verified in 5.3. No new native GUI/startup/restart or manual screen-reader session is claimed in 5.4; Rust checks were not repeated for this frontend-only task. Next: 5.5, current streak.
+
+Task 5.7 adds explicit known writing/rest labels and effective goal results on empty dates. Zero activity remains zero saves/credit, even when a past scheduled target is now known to be pending. Pretracking history remains unknown. See [WRITING_SCHEDULE.md](WRITING_SCHEDULE.md).

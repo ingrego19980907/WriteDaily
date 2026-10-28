@@ -110,6 +110,7 @@ Object.assign(globalThis, {
 })
 mockIPC(
   (command, payload) => {
+    if (command === 'get_writing_schedule') return { revision: 0, history: [] }
     if (command === 'get_editor_preferences') {
       preferenceReads += 1
       if (scenario === 'preferences-read-failure' && preferenceReads === 1)

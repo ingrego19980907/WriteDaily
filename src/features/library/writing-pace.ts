@@ -1,3 +1,8 @@
+import {
+  countWritingDays,
+  isWritingSchedule,
+  type ScheduleEntry,
+} from '../settings/writing-schedule'
 import { calendarDayNumber, isCalendarDate } from '../../utils/calendar-date'
 import { calculateBookProgress } from './book-progress'
 
@@ -26,6 +31,7 @@ export function calculateWritingPace({
   deadline,
   today,
   completed = false,
+  scheduleHistory,
   writingWeekdays = [0, 1, 2, 3, 4, 5, 6],
 }: {
   wordCount: unknown
@@ -33,6 +39,7 @@ export function calculateWritingPace({
   deadline: unknown
   today: unknown
   completed?: boolean
+  scheduleHistory?: readonly ScheduleEntry[]
   writingWeekdays?: readonly WritingWeekday[]
 }): WritingPaceState {
   if (completed) return { kind: 'completed' }
@@ -64,6 +71,16 @@ export function calculateWritingPace({
   // Gregorian 0001-01-01 was Monday: ordinal modulo 7 matches JS weekdays.
   for (let offset = 0; offset < calendarDays % 7; offset++) {
     if (weekdays.has(((start + offset) % 7) as WritingWeekday)) writingDays++
+  }
+  if (scheduleHistory) {
+    if (
+      !isWritingSchedule({
+        revision: scheduleHistory.length ? 1 : 0,
+        history: scheduleHistory,
+      })
+    )
+      return { kind: 'unknown' }
+    writingDays = countWritingDays(today, deadline, scheduleHistory)
   }
   if (writingDays === 0)
     return { kind: 'no_writing_days', remainingWords, writingDays: 0 }

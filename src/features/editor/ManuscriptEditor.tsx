@@ -1,3 +1,4 @@
+import { useWritingSchedule } from '../settings/writing-schedule-context'
 import {
   useCallback,
   useEffect,
@@ -71,6 +72,11 @@ export function ManuscriptEditor({
   fontSize?: number
   preferencesPendingRef?: RefObject<boolean>
 }) {
+  const schedule = useWritingSchedule()
+  const scheduleRef = useRef(schedule?.data?.history ?? [])
+  useEffect(() => {
+    scheduleRef.current = schedule?.data?.history ?? []
+  }, [schedule?.data])
   const [paper, setPaper] = useState(INITIAL_PAPER)
   const [ready, setReady] = useState(false)
   const [dirty, setDirty] = useState(false)
@@ -165,7 +171,7 @@ export function ManuscriptEditor({
         const now = new Date()
         activity.record(
           count,
-          captureActivityContext(goalRef.current, now),
+          captureActivityContext(goalRef.current, now, scheduleRef.current),
           now,
         )
         if (activity.size >= ACTIVITY_FLUSH_SEGMENTS) {

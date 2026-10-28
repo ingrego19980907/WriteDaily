@@ -16,7 +16,7 @@ For one book, a day counts when its scheduled positive target is reached. For th
 | Missing or unconfigured historical goal/schedule                 | Stop confirming history; do not invent a missed day or a rest day             |
 | Only observed days off in global scope                           | Unknown, since one book's rest does not establish every other book's schedule |
 
-Rest days do not increase the number of completed days. Current recording defaults all days to scheduled; future effective schedule history/preferred-day configuration remains 5.7. Tests simulate sealed rest history in disposable data without adding a setting UI.
+Rest days do not increase the number of completed days. Task 5.7 adds a shared effective schedule. Confirmed global rest is neutral even without events; before tracking starts, observed rest in a single book still cannot prove global rest. Sealed plans remain authoritative.
 
 ## Today and uncertain boundaries
 
@@ -61,3 +61,7 @@ My Library and Activity Calendar show a separate labelled longest-record card. I
 Native coverage includes historical records after later misses, earliest ties, today completion, missing/null/import-only history, scoped rest/global ambiguity, leap-day continuity, retained multi-book history, invalid/corrupt input, and a 400-day record preserved across reopen. Frontend coverage includes DTO invariants, native scope/date matching, lower bounds, error/retry, inactive views and stale replies. Browser coverage extends compact/200%/axe and midnight checks, and adds independent longest-load/failure/retry and stale-scope cases. No real library or new desktop GUI session is used. Effective schedule changes remain 5.7.
 
 Final 5.6 checks: all 717 Vitest tests (52 files), 103 Rust tests and 154 Edge cases passed, along with lint, format:check, strict TypeScript/build, Cargo fmt/Clippy and diff checks. Next: 5.7, awaiting approval.
+
+## Preferred writing days (5.7)
+
+Goals & Deadlines saves the shared weekly schedule from the next local date. Effective target/schedule history supplies known pending goals and rest on empty dates without creating activity. Global writingDay=false proves rest when no sealed reached/pending goal overrides it. Both streak scans include the start of tracked history as well as saved activity. Pretracking uncertainty and today grace remain unchanged. See [WRITING_SCHEDULE.md](WRITING_SCHEDULE.md).

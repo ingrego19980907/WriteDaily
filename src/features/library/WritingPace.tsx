@@ -1,3 +1,4 @@
+import { useWritingSchedule } from '../settings/writing-schedule-context'
 import { en } from '../../app/i18n/en'
 import { useLocalCalendarDate } from '../../hooks/useLocalCalendarDate'
 import { calculateWritingPace, type WritingWeekday } from './writing-pace'
@@ -19,14 +20,22 @@ export function WritingPace({
   writingWeekdays?: readonly WritingWeekday[]
 }) {
   const today = useLocalCalendarDate()
-  const state = calculateWritingPace({
+  const schedule = useWritingSchedule()
+  let state = calculateWritingPace({
     wordCount,
     targetWordCount,
     deadline,
     today,
     completed,
     writingWeekdays,
+    scheduleHistory: schedule?.data?.history,
   })
+  if (
+    schedule &&
+    (!schedule.data || schedule.failed) &&
+    ['ready', 'no_writing_days'].includes(state.kind)
+  )
+    state = { kind: 'unknown' }
   const copy = en.library
   const messages = {
     completed: copy.paceCompleted,

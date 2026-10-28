@@ -1,6 +1,6 @@
 # Required writing pace (4.5)
 
-`calculateWritingPace` in `src/features/library/writing-pace.ts` is a pure domain calculation. Callers supply committed book word counts, the optional total target/deadline, explicit completion and today's local calendar date. It performs no persistence, clock reads or UI work. Presentation is implemented in task 4.6; preferred-day configuration and history remain task 5.7.
+`calculateWritingPace` in `src/features/library/writing-pace.ts` is a pure domain calculation. Callers supply committed book word counts, the optional total target/deadline, explicit completion and today's local calendar date. It performs no persistence, clock reads or UI work. Presentation is implemented in task 4.6; preferred-day configuration and effective history are implemented in task 5.7.
 
 For an unfinished book below its target:
 
@@ -8,7 +8,7 @@ For an unfinished book below its target:
 - Count scheduled calendar dates from today through the deadline, including both endpoints. Today remains available even late in the day; no fractional days or activity deductions are inferred.
 - Required words per writing day = remaining words divided by available writing days, rounded up. Integer arithmetic preserves accuracy at the safe-integer limit.
 
-The optional weekday list uses Sunday = 0 through Saturday = 6. Omission means every day, matching the application's current lack of a persisted preferred schedule. Duplicates count once; an empty list means no scheduled days. Whole weeks plus at most six remaining dates keep calculation bounded even across years 0001–9999. Gregorian day numbers avoid DST and timezone-offset arithmetic. This API accepts a prospective schedule for calculation only; it does not create schedule persistence or reinterpret historical activity.
+The optional weekday list uses Sunday = 0 through Saturday = 6. Omission means every day, used when history has not been enabled. Duplicates count once; an empty list means no scheduled days. Whole weeks plus at most six remaining dates keep calculation bounded even across years 0001–9999. Gregorian day numbers avoid DST and timezone-offset arithmetic. This API accepts a prospective schedule for calculation only; it does not create schedule persistence or reinterpret historical activity.
 
 Results distinguish `ready`, `no_target`, `no_deadline`, `unknown`, `overdue`, `no_writing_days`, `target_reached` and `completed`. Unknown totals or malformed required inputs never produce a numeric pace. A past deadline has no achievable on-time pace; it does not become a one-day catch-up target or divide by zero. A deadline today counts as one day only if today is scheduled. No available scheduled dates also yields no numeric pace.
 
@@ -22,10 +22,14 @@ Checks: all 607 Vitest tests passed (40 files), including 10 pace tests. Every o
 
 Shared `WritingPace` renders on library cards and editor book headers. Its labelled group contains a visible title, localized whole-number words per writing day and available scheduled days, with an inclusive-date explanation. Other calculation states render readable guidance without a misleading numeric rate. Singular word/day forms are supported. No live alert or color-only meaning is used.
 
-Both consumers supply committed manuscript totals and persisted metadata; pending/failed edits do not reduce the required pace. Unknown or failed totals stay unavailable. The shared local-date hook refreshes at midnight, focus/resume and on active clock/timezone polling. All days are currently scheduled; there is no preferred-day picker until 5.7. DailyGoal continues to show configuration rather than a daily achievement, since activity recording is Milestone 5.
+Both consumers supply committed manuscript totals and persisted metadata; pending/failed edits do not reduce the required pace. Unknown or failed totals stay unavailable. The shared local-date hook refreshes at midnight, focus/resume and on active clock/timezone polling. Task 5.7 supplies persisted effective schedule intervals from Goals & Deadlines; today and future dates use their applicable versions. DailyGoal shows configuration, while activity day details show the applicable historical target.
 
 Verification: 609 Vitest tests passed, including component state transitions and midnight updates. The full Edge run passed 131 cases and exposed test-clock timeouts in three new cases. After limiting the clock jump to a 20-second midnight boundary and resuming timers before axe, all four pace browser cases passed on rerun; all 134 distinct cases have passing evidence. New coverage includes card/header agreement, retained cancelled metadata, committed goal/date changes, missing/overdue/reached/completed/unknown states, 320/640/1100px, 200% text and axe. Lint, formatting, strict TypeScript, production build and diff checks passed. No production changes followed the full run; native persistence is unchanged.
 
 ## Calculation review (4.7)
 
 Cross-calculation tests now cover aggregation through pace, missing goals, overdue dates, explicit completion, recalculation and integer-rate invariants. The schedule oracle covers all starting weekdays plus early/late years and leap/non-leap centuries. See [GOAL_CALCULATION_TESTS.md](GOAL_CALCULATION_TESTS.md). Production behavior is unchanged.
+
+## Preferred days (5.7)
+
+Production supplies scheduleHistory from the shared validated native provider. Interval counting uses the original schedule for today and saved changes from tomorrow; an empty future schedule can still leave today available. Failed schedule reads suppress numeric pace instead of assuming every day. The explicit writingWeekdays input remains useful for isolated pure projections. See [WRITING_SCHEDULE.md](WRITING_SCHEDULE.md).

@@ -63,7 +63,6 @@ impl Submission {
                 || context
                     .daily_word_goal
                     .is_some_and(|goal| !(1..=MAX_SAFE_INTEGER).contains(&goal))
-                || !context.scheduled
                 || context.time_zone.as_ref().is_some_and(|zone| {
                     zone.is_empty()
                         || zone.len() > 128
@@ -157,12 +156,20 @@ impl Submission {
         connection.execute("INSERT INTO activity_operations(operation_id,policy_version,origin,source_book_id,source_chapter_id,expected_revision,committed_revision,payload_digest,committed_at) VALUES (?1,1,?2,?3,?4,?5,?6,?7,?8)", params![self.operation_id,self.origin,book,chapter,expected_revision,expected_revision+1,digest,committed_at])?;
         for (index, segment) in self.segments.iter().enumerate() {
             let context = &segment.context;
+            let scheduled = crate::schedule::scheduled(connection, &context.local_date)
+                .map_err(|_| ChapterError::InvalidStoredData)?
+                .unwrap_or(true);
+            let planned_goal = crate::schedule::goals(connection, &context.local_date, Some(book))
+                .map_err(|_| ChapterError::InvalidStoredData)?
+                .into_iter()
+                .next()
+                .map_or(context.daily_word_goal, |(_, _, goal)| goal);
             let added = (segment.after_words - segment.before_words).max(0);
             let deleted = (segment.before_words - segment.after_words).max(0);
             let credited = if self.origin == "editor" { added } else { 0 };
-            connection.execute("INSERT INTO writing_activity(operation_id,segment_index,book_id,chapter_id,local_date,time_zone,utc_offset_minutes,first_edited_at,last_edited_at,before_words,after_words,added_words,deleted_words,credited_words,daily_word_goal,scheduled) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16)",params![self.operation_id,index as i64,book,chapter,context.local_date,context.time_zone,context.utc_offset_minutes,segment.first_edited_at,segment.last_edited_at,segment.before_words,segment.after_words,added,deleted,credited,context.daily_word_goal,context.scheduled])?;
+            connection.execute("INSERT INTO writing_activity(operation_id,segment_index,book_id,chapter_id,local_date,time_zone,utc_offset_minutes,first_edited_at,last_edited_at,before_words,after_words,added_words,deleted_words,credited_words,daily_word_goal,scheduled) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16)",params![self.operation_id,index as i64,book,chapter,context.local_date,context.time_zone,context.utc_offset_minutes,segment.first_edited_at,segment.last_edited_at,segment.before_words,segment.after_words,added,deleted,credited,context.daily_word_goal,scheduled])?;
             if self.origin == "editor" {
-                connection.execute("INSERT INTO activity_day_plans(source_book_id,local_date,book_id,daily_word_goal,scheduled,policy_version) VALUES (?1,?2,?1,?3,?4,1) ON CONFLICT(source_book_id,local_date) DO NOTHING", params![book,context.local_date,context.daily_word_goal,context.scheduled])?;
+                connection.execute("INSERT INTO activity_day_plans(source_book_id,local_date,book_id,daily_word_goal,scheduled,policy_version) VALUES (?1,?2,?1,?3,?4,1) ON CONFLICT(source_book_id,local_date) DO NOTHING", params![book,context.local_date,planned_goal,scheduled])?;
             }
         }
         Ok(())

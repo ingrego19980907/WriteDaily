@@ -1,3 +1,5 @@
+import { WritingScheduleProvider } from '../features/settings/WritingScheduleProvider'
+import { WritingScheduleSettings } from '../features/settings/WritingScheduleSettings'
 import { useEffect, useRef, useState } from 'react'
 import { en } from './i18n/en'
 import { AppShell } from './AppShell'
@@ -6,11 +8,20 @@ import type { SectionId } from './navigation'
 import { Card } from '../components/ui/Card'
 import { Library } from '../features/library/Library'
 import { ChapterManager } from '../features/editor/ChapterManager'
+import { EditorBookPicker } from '../features/editor/EditorBookPicker'
 import { ActivityCalendar } from '../features/activity/ActivityCalendar'
 import type { Book } from '../features/library/book'
 import { bookErrorCode, getBook } from '../services/books'
 
 export default function App() {
+  return (
+    <WritingScheduleProvider>
+      <AppContent />
+    </WritingScheduleProvider>
+  )
+}
+
+function AppContent() {
   const [activeSection, setActiveSection] = useState<SectionId>('library')
   const headingRef = useRef<HTMLHeadingElement>(null)
   const previousSection = useRef(activeSection)
@@ -38,6 +49,8 @@ export default function App() {
       if (request !== openRequest.current) return
       setSelectedBook(current)
       setActiveSection('editor')
+      if (activeSection === 'editor')
+        requestAnimationFrame(() => headingRef.current?.focus())
     } catch (error) {
       if (request === openRequest.current)
         setOpenFailure(
@@ -109,9 +122,25 @@ export default function App() {
           </div>
         )}
         {activeSection === 'activity' && <ActivityCalendar />}
+        {activeSection === 'goals' && <WritingScheduleSettings />}
+        {activeSection === 'editor' && !selectedBook && (
+          <EditorBookPicker
+            onOpenBook={(book) => {
+              void openBook(book)
+            }}
+            openingId={openingId}
+            openFailure={openFailure}
+            onCancelOpen={() => {
+              openRequest.current++
+              setOpeningId(null)
+              setOpenFailure('')
+            }}
+          />
+        )}
         {activeSection !== 'library' &&
           activeSection !== 'activity' &&
-          (activeSection !== 'editor' || !selectedBook) && (
+          activeSection !== 'goals' &&
+          activeSection !== 'editor' && (
             <Card className="space-y-2">
               <h2 className="font-semibold">{en.shell.comingSoon}</h2>
               <p className="text-ui text-secondary">{section.description}</p>

@@ -1,5 +1,51 @@
 export const en = {
+  editorEntry: {
+    title: 'Choose a book to edit',
+    hint: 'Select a book from your library to continue writing.',
+    start: 'Start editing',
+    choose: 'Choose a book',
+    book: 'Book',
+    placeholder: 'Select a book',
+    open: 'Open selected book',
+    reload: 'Reload books',
+    empty: 'No books have been created yet.',
+    failure: 'Could not load your books. Try again.',
+    desktop: 'Open the desktop app to choose a saved book.',
+    option: (title: string, number: number) => `${number}. ${title}`,
+  },
+  schedule: {
+    title: 'Preferred writing days',
+    explanation:
+      'Choose your weekly writing days for all books. Changes apply from the next local day. Earlier goals and schedules stay unchanged.',
+    choose: 'Writing days',
+    weekdays: [
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+    ],
+    loading: 'Loading writing schedule...',
+    unavailable: 'Writing schedule could not be loaded. Reload to try again.',
+    save: 'Save writing days',
+    saving: 'Saving writing days...',
+    reload: 'Reload writing days',
+    emptyHint:
+      'Unselected days are rest days. Rest days do not add to or break a streak.',
+    paused:
+      'No writing days selected. Writing remains available; scheduled goals are paused.',
+    effective: (date: string) => `Latest schedule applies from ${date}.`,
+    saved: (date: string) => `Writing days saved. Applies from ${date}.`,
+    conflict:
+      'The schedule changed elsewhere. Your selection is retained. Reload before saving again.',
+    failure:
+      'Writing days could not be saved. Your selection is retained. Check the local date and retry.',
+  },
   activity: {
+    scheduledDay: 'Scheduled writing day.',
+    restDay: 'Rest day.',
     longestStreak: 'Longest recorded writing streak',
     longestLoading: 'Loading longest streak...',
     longestUnavailable: 'Longest streak could not be loaded. Try refreshing.',
@@ -200,7 +246,7 @@ export const en = {
       'Set a positive whole number of words for the book. Leave blank to remove the target.',
     dailyWordGoal: 'Daily word goal (optional)',
     dailyGoalHint:
-      'Set a positive whole number of words per day. Leave blank to remove the goal.',
+      'Set a positive whole number of words per day. Leave blank to remove the goal. Once writing-day history is enabled, target changes apply from the next local day.',
     noDailyGoal: 'No daily goal',
     dailyGoalUnavailable: 'Daily goal unavailable',
     dailyGoalSummary: (words: string) => `Daily goal: ${words} words`,

@@ -25,6 +25,38 @@ fn registered_migrations_are_valid() {
 }
 
 #[test]
+fn version_five_adds_empty_schedule_history_and_preserves_sealed_plans() {
+    let directory = tempfile::tempdir().unwrap();
+    let mut c = Connection::open(directory.path().join("write-daily.sqlite3")).unwrap();
+    let previous = Migrations::new(MIGRATION_STEPS[..5].to_vec());
+    initialize(&mut c, &previous).unwrap();
+    seed_book(&c);
+    c.execute(
+        "INSERT INTO activity_day_plans VALUES (?1,'2026-10-27',?1,500,1,1)",
+        [BOOK_ID],
+    )
+    .unwrap();
+    drop(c);
+    let db = open(directory.path()).unwrap();
+    let c = db.lock().unwrap();
+    assert_eq!(version(&c), 6);
+    assert!(crate::schedule::read(&c).unwrap().history.is_empty());
+    assert_eq!(
+        c.query_row("SELECT daily_word_goal FROM activity_day_plans", [], |r| {
+            r.get::<_, i64>(0)
+        })
+        .unwrap(),
+        500
+    );
+    assert_eq!(
+        c.query_row("SELECT count(*) FROM activity_goal_history", [], |r| r
+            .get::<_, i64>(0))
+            .unwrap(),
+        0
+    );
+}
+
+#[test]
 fn version_four_upgrade_preserves_writing_without_backfilling_activity() {
     use crate::chapters::{ChapterDetails, ChapterRepository};
     let directory = tempfile::tempdir().unwrap();
@@ -55,7 +87,7 @@ fn version_four_upgrade_preserves_writing_without_backfilling_activity() {
     drop(connection);
     let db = open(directory.path()).unwrap();
     let mut connection = db.lock().unwrap();
-    assert_eq!(version(&connection), 5);
+    assert_eq!(version(&connection), 6);
     assert_eq!(
         ChapterRepository::new(&mut connection)
             .get(BOOK_ID, &chapter.summary.id)
@@ -96,7 +128,7 @@ fn version_two_upgrades_chapters_preserving_books_and_cleanup_intents() {
     drop(connection);
     let database = open(directory.path()).unwrap();
     let connection = database.lock().unwrap();
-    assert_eq!(version(&connection), 5);
+    assert_eq!(version(&connection), 6);
     assert_eq!(
         connection
             .query_row("SELECT count(*) FROM books", [], |row| row.get::<_, i64>(0))
@@ -134,7 +166,7 @@ fn version_one_upgrades_to_cover_queue_without_touching_books() {
     drop(connection);
     let database = open(directory.path()).unwrap();
     let connection = database.lock().unwrap();
-    assert_eq!(version(&connection), 5);
+    assert_eq!(version(&connection), 6);
     assert_eq!(
         connection
             .query_row("SELECT count(*) FROM books", [], |row| row.get::<_, i64>(0))
@@ -158,7 +190,7 @@ fn fresh_database_is_configured_and_reopening_preserves_data() {
     {
         let database = open(directory.path()).unwrap();
         let connection = database.lock().unwrap();
-        assert_eq!(version(&connection), 5);
+        assert_eq!(version(&connection), 6);
         assert_eq!(
             connection
                 .pragma_query_value(None, "application_id", |r| r.get::<_, i32>(0))
@@ -193,7 +225,7 @@ fn fresh_database_is_configured_and_reopening_preserves_data() {
     }
     let database = open(directory.path()).unwrap();
     let connection = database.lock().unwrap();
-    assert_eq!(version(&connection), 5);
+    assert_eq!(version(&connection), 6);
     assert_eq!(
         connection
             .query_row("SELECT title FROM books WHERE id = ?1", [BOOK_ID], |r| {
@@ -313,13 +345,14 @@ fn failed_upgrade_rolls_back_new_objects_and_keeps_existing_data() {
         M::up(CHAPTER_SCHEMA),
         M::up(PREFERENCE_SCHEMA),
         M::up(ACTIVITY_SCHEMA),
+        M::up(SCHEDULE_SCHEMA),
         M::up("CREATE TABLE rollback_probe (id INTEGER); THIS IS NOT SQL;"),
     ]);
     assert!(matches!(
         initialize(&mut connection, &broken),
         Err(DatabaseError::Migration(_))
     ));
-    assert_eq!(version(&connection), 5);
+    assert_eq!(version(&connection), 6);
     assert_eq!(
         connection
             .query_row("SELECT count(*) FROM books", [], |r| r.get::<_, i64>(0))
@@ -381,10 +414,11 @@ fn upgrading_an_existing_schema_preserves_data_and_old_app_refuses_downgrade() {
             M::up(CHAPTER_SCHEMA),
             M::up(PREFERENCE_SCHEMA),
             M::up(ACTIVITY_SCHEMA),
+            M::up(SCHEDULE_SCHEMA),
             M::up("CREATE TABLE upgrade_probe (id INTEGER PRIMARY KEY) STRICT;"),
         ]);
         initialize(&mut connection, &newer).unwrap();
-        assert_eq!(version(&connection), 6);
+        assert_eq!(version(&connection), 7);
         assert_eq!(
             connection
                 .query_row("SELECT count(*) FROM books", [], |r| r.get::<_, i64>(0))
@@ -397,7 +431,7 @@ fn upgrading_an_existing_schema_preserves_data_and_old_app_refuses_downgrade() {
         Err(DatabaseError::FutureSchema)
     ));
     let connection = Connection::open(directory.path().join("write-daily.sqlite3")).unwrap();
-    assert_eq!(version(&connection), 6);
+    assert_eq!(version(&connection), 7);
     assert_eq!(
         connection
             .query_row("SELECT count(*) FROM books", [], |r| r.get::<_, i64>(0))
@@ -462,7 +496,7 @@ fn version_three_adds_default_preferences_without_changing_books_or_chapters() {
     drop(connection);
     let db = open(directory.path()).unwrap();
     let mut connection = db.lock().unwrap();
-    assert_eq!(version(&connection), 5);
+    assert_eq!(version(&connection), 6);
     assert_eq!(
         ChapterRepository::new(&mut connection)
             .get(BOOK_ID, &chapter.summary.id)
@@ -479,5 +513,5 @@ fn version_three_adds_default_preferences_without_changing_books_or_chapters() {
         initialize(&mut connection, &old),
         Err(DatabaseError::FutureSchema)
     ));
-    assert_eq!(version(&connection), 5);
+    assert_eq!(version(&connection), 6);
 }

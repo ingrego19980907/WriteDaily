@@ -39,7 +39,7 @@ Each `bookGoals` item contains `sourceBookId`, nullable live `bookId`, `dailyWor
 | pending      | A scheduled positive target is not reached; remainingWords is target minus credited words |
 | reached      | A scheduled positive target is reached/exceeded; remainingWords is zero                   |
 
-`pending` means not reached, including historical dates; it does not imply an unsaved write. Global results keep each book goal separate rather than summing different book targets into an invented global goal. A day with no editor events has zero totals/saveCount, active false and an empty bookGoals array. Its historical goal/schedule is unavailable rather than guessed from today's settings. Effective schedule history for empty dates remains 5.7. Current-streak/grace rules are defined and implemented in [STREAKS.md](STREAKS.md) (5.5); longest recorded streak is implemented there in 5.6; achievement evaluation remains a later subtask.
+`pending` means not reached, including historical dates; it does not imply an unsaved write. Global results keep each book goal separate rather than summing different book targets into an invented global goal. A day with no editor events has zero totals/saveCount, active false and an empty bookGoals array. Its historical goal/schedule is unavailable rather than guessed from today's settings. Task 5.7 now supplies effective goal/schedule history for known empty dates, while pretracking gaps remain unknown. Current-streak/grace rules are defined and implemented in [STREAKS.md](STREAKS.md) (5.5); longest recorded streak is implemented there in 5.6; achievement evaluation remains a later subtask.
 
 ## Validation and failures
 
@@ -54,3 +54,7 @@ The frontend rejects malformed/incomplete days, mismatched request/scope, duplic
 All 662 Vitest tests passed (46 files), including 20 new domain/service cases. All 92 Rust tests passed, including nine native statistics cases using disposable databases and real activity saves. Coverage includes leap/year bounds, inclusive gaps, source deletion, multi-book scope, sealed goal changes, zero/import/restore handling, multiple segments per operation, local dates on both sides of UTC, reopened data, malformed rows, missing plans, safe-integer overflow and exclusion of another connection's uncommitted changes.
 
 Lint, formatting, strict TypeScript, production build, Cargo fmt/Clippy and diff checks passed. Browser layout tests were not rerun because this task changes no UI/layout; no new native GUI/startup/restart observation or real-library mutation is claimed. Schema remains v5. Next: 5.4, activity calendar.
+
+## Effective history (5.7)
+
+Known empty dates can have bookGoals with zero saveCount/credit; writingDay identifies the known shared schedule. Sealed editor plans take precedence over effective history. Generated results never create activity, and imports/restores still add no credit. See [WRITING_SCHEDULE.md](WRITING_SCHEDULE.md).

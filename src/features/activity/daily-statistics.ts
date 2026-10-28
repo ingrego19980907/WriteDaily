@@ -25,6 +25,7 @@ export type DailyStatistics = {
   /** Distinct editor operations touching this date, including zero-credit saves. */
   readonly saveCount: number
   readonly active: boolean
+  readonly writingDay?: boolean | null
   readonly bookGoals: readonly BookDailyGoal[]
 }
 export type DailyStatisticsRange = StatisticsRequest & {
@@ -99,6 +100,9 @@ export function isDailyStatisticsRange(
       !record(day) ||
       !isCalendarDate(day.date) ||
       calendarDayNumber(day.date) !== start + index ||
+      (day.writingDay !== undefined &&
+        day.writingDay !== null &&
+        typeof day.writingDay !== 'boolean') ||
       !count(day.addedWords) ||
       !count(day.deletedWords) ||
       !count(day.creditedWords) ||
@@ -124,7 +128,7 @@ export function isDailyStatisticsRange(
     if (
       total !== day.creditedWords ||
       (day.saveCount === 0 &&
-        (day.bookGoals.length !== 0 ||
+        ((day.bookGoals.length > 0 && typeof day.writingDay !== 'boolean') ||
           day.addedWords !== 0 ||
           day.deletedWords !== 0)) ||
       (day.saveCount > 0 && day.bookGoals.length === 0)

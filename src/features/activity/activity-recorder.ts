@@ -1,3 +1,4 @@
+import { scheduledOn, type ScheduleEntry } from '../settings/writing-schedule'
 import { localCalendarDate } from '../../utils/calendar-date'
 import {
   ACTIVITY_POLICY_VERSION,
@@ -12,6 +13,7 @@ export const ACTIVITY_MAX_SEGMENTS = 128
 export function captureActivityContext(
   dailyWordGoal: number | null,
   now = new Date(),
+  history: readonly ScheduleEntry[] = [],
 ): ActivityContext {
   const localDate = localCalendarDate(now)
   if (!localDate) throw new Error('Invalid local activity date')
@@ -26,7 +28,7 @@ export function captureActivityContext(
     timeZone,
     utcOffsetMinutes: -now.getTimezoneOffset(),
     dailyWordGoal,
-    scheduled: true,
+    scheduled: scheduledOn(localDate, history),
   }
 }
 

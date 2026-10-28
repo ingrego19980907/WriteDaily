@@ -34,6 +34,7 @@ let dailyBook: Book = {
     : null,
 }
 mockIPC((command, payload) => {
+  if (command === 'get_writing_schedule') return { revision: 0, history: [] }
   if (command === 'list_chapters') {
     if (totalScenario)
       return [

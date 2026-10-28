@@ -8,6 +8,8 @@ mod covers;
 mod database;
 mod editor_preferences;
 mod preference_commands;
+mod schedule;
+mod schedule_commands;
 
 use tauri::Manager;
 
@@ -15,6 +17,8 @@ use tauri::Manager;
 pub fn run() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
+            schedule_commands::get_writing_schedule,
+            schedule_commands::save_writing_schedule,
             commands::create_book,
             activity_commands::get_daily_statistics,
             activity_commands::get_current_streak,

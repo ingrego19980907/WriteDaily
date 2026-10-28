@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Milestone 3 (tasks 3.1–3.12) is complete for the current editor and commit-based recovery; Tasks 4.1 (committed book word-count aggregation), 4.2 (daily goal configuration/display) 4.3 (total word goals and derived achievement) 4.4 (local-calendar deadlines) 4.5 (required writing pace calculation) 4.6 (progress presentation) and 4.7 (calculation coverage review) are complete; Milestone 4 acceptance is verified; tasks 5.1 (activity record design), 5.2 (atomic activity recording) 5.3 (daily statistics) 5.4 (activity calendar) 5.5 (current streak) and 5.6 (longest recorded streak) are complete; awaiting approval before 5.7 (preferred writing days). Library progress now uses persisted chapter totals; legacy unknowns and read failures remain unknown. Covered-book deletion now uses safe queued cleanup.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Milestone 3 (tasks 3.1–3.12) is complete for the current editor and commit-based recovery; Tasks 4.1 (committed book word-count aggregation), 4.2 (daily goal configuration/display) 4.3 (total word goals and derived achievement) 4.4 (local-calendar deadlines) 4.5 (required writing pace calculation) 4.6 (progress presentation) and 4.7 (calculation coverage review) are complete; Milestone 4 acceptance is verified; tasks 5.1 (activity record design), 5.2 (atomic activity recording) 5.3 (daily statistics) 5.4 (activity calendar) 5.5 (current streak) 5.6 (longest recorded streak) and 5.7 (preferred writing days) are complete; awaiting approval before 5.8 (date/timezone edge-case review). Library progress now uses persisted chapter totals; legacy unknowns and read failures remain unknown. Covered-book deletion now uses safe queued cleanup.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -90,7 +90,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [x]  | 5.4 | Create activity calendar          | Completed (2026-10-28) | 5.3          | Intensity and inspectable day details reflect actual records        |
 | [x]  | 5.5 | Calculate current streak          | Completed (2026-10-28) | 5.4          | Scheduled-day grace rules pass tests                                |
 | [x]  | 5.6 | Calculate longest streak          | Completed (2026-10-28) | 5.5          | Historical longest streak passes schedule edge cases                |
-| [ ]  | 5.7 | Support preferred writing days    | Not started            | 5.6          | Schedule changes preserve historical interpretation                 |
+| [x]  | 5.7 | Support preferred writing days    | Completed (2026-10-28) | 5.6          | Schedule changes preserve historical interpretation                 |
 | [ ]  | 5.8 | Test date and timezone edge cases | Not started            | 5.7          | Midnight, DST and timezone changes covered                          |
 
 ## Milestone 6: Achievements
@@ -133,6 +133,14 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [ ]  | 8.10 | Tag version 1.0.0           | Not started | 8.9          | Release gates pass and explicit authorization obtained before Git mutation |
 
 ## Historical verification evidence
+
+## Verification evidence: 5.7
+
+- Added shared weekday selection in Goals & Deadlines with next-local-day changes, explicit every-day defaults, an empty pause, native revision checking and retained failure/conflict drafts. The provider shares validated effective history with capture and pace and rejects late reads after an acknowledged save.
+- Append-only migration 006 introduces schema v6 schedule revision/history and per-book goal history. Book creation, changed targets and deletion retirement maintain goal history atomically with metadata. Existing sealed plans win; earlier unknown gaps are not backfilled. Known empty dates now distinguish pending goals from rest without creating activity. Both streaks use this same history.
+- All 737 Vitest tests (55 files) and 110 Rust tests passed, plus five final settings tests after the last presentation adjustment. Lint, format:check, strict TypeScript/build, Cargo fmt/Clippy and diff checks passed. Coverage includes v5 upgrade, rollback/conflicts, new/retired books, stable old goals, empty misses/rest, ordinary credit on rest days, both streaks, reopen, IPC, dated pace and stale replies.
+- Full Edge run: 157 passed and one book-creation page failed to bootstrap with a Vite React-preamble error. A fresh isolated rerun of all three book-creation viewport cases passed, including the failed 640px case. Thus all 158 distinct browser scenarios have passing evidence; the full run itself was not entirely green. All four new schedule cases passed in that full run, including keyboard, 320/1100px, 200%/axe, cross-view pace, empty rest dates, pending/failure/retry, pause after midnight and explicit conflict reload. No source fix was required for the bootstrap retry.
+- Native databases and browser IPC are disposable/test-only. No real library or new native GUI/manual screen-reader observation. Desktop harness schema assertions now expect v6. See [WRITING_SCHEDULE.md](WRITING_SCHEDULE.md). Next: 5.8, awaiting approval.
 
 ## Verification evidence: 5.6
 
@@ -452,6 +460,8 @@ Each entry describes the repository and environment at that task. Later tasks su
 - npm reported zero vulnerabilities. No GUI, browser layout, desktop startup, coverage or persistence verification implied by this test.
 
 ## Maintenance tasks
+
+- [x] ED.20 - Replace the empty Writing Editor placeholder with book selection. Completed (2026-10-28). Start editing opens a labelled modal backed by listBooks; an empty library reports No books have been created yet. Loading/read errors are separate and retryable. Duplicate titles have numbered options selected by ID. App reloads the selected book via getBook before opening ChapterManager; closing the chooser or changing section cancels pending activation and ignores late replies. Existing selected sessions retain their lifecycle. All 740 Vitest tests (56 files), all 163 Edge cases, lint, format:check, strict TypeScript/build and diff checks passed. Five new browser cases cover keyboard selection, duplicate IDs/latest book data, 320/1100px, 200% text/axe, focus restoration, empty/error/retry, open failures and pending cancellation. Native persistence/schema/dependencies are unchanged; Cargo tests were not repeated. No real library or new native GUI observation. Next numbered task remains 5.8, awaiting approval.
 
 - [x] ED.19 - Chapter drag ordering and compact reload action. Completed (2026-10-28). Added dotted handles with drop-target feedback and accessible up/down alternatives in Writing Editor. Reuses native full-vector revision-checked reorder; committed-only rows, serialized writes, retained errors/conflicts and reload recovery. Reload chapters is an icon next to Create chapter. Windows HTML5 drag support is enabled through the documented Tauri window setting. All 625 Vitest and 74 Rust tests passed, plus lint, formatting, strict TypeScript/build, Cargo fmt/Clippy and diff checks. Full Edge run passed 134/139; after layout wrapping and drag-fixture scrolling fixes, all 28 affected cases passed on rerun, covering all 139 distinct cases. See [CHAPTER_ORDER.md](CHAPTER_ORDER.md). No new native repository/schema/dependency or real-library changes; next numbered task remains 5.1.
 

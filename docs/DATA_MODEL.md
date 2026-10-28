@@ -1,6 +1,8 @@
 # Data model
 
-Current schema (5.2): v5 adds activity_operations, writing_activity and activity_day_plans through append-only migration 005. Content/revision/count and activity commit atomically; existing chapters are preserved without credit backfill. See [ACTIVITY_MODEL.md](ACTIVITY_MODEL.md).
+Current schema (5.7): v6 adds writing_schedule_state, effective writing_schedule_history and per-book activity_goal_history via append-only migration 006. Existing writing and sealed plans are retained without backfill. See [WRITING_SCHEDULE.md](WRITING_SCHEDULE.md).
+
+Previous schema (5.2): v5 adds activity_operations, writing_activity and activity_day_plans through append-only migration 005. Content/revision/count and activity commit atomically; existing chapters are preserved without credit backfill. See [ACTIVITY_MODEL.md](ACTIVITY_MODEL.md).
 
 Current extension (ED.18): content v6 adds root-only manual pageBreak blocks; automatic A4 pagination is view-only. v1-v5 remain readable. See [A4_PAGES.md](A4_PAGES.md).
 Current extension (ED.16): content v5 adds allowlisted fontFamily marks; v1-v4 remain readable. See [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md#named-font-families-ed16).
@@ -178,7 +180,7 @@ Total word goals (4.3): targetWordCount uses the existing optional positive-safe
 
 Deadlines (4.4): deadline remains a local Gregorian date, not a UTC instant. Card/header urgency is derived from the current local calendar date and is not persisted. Completed books retain the date informationally. Shared validation covers actual month lengths/leap years and 0001-9999; overdue dates are accepted. See [DEADLINES.md](DEADLINES.md).
 
-Required writing pace (4.5) is derived from committed book totals, the optional total target/deadline and an inclusive local-calendar schedule. Remaining words and rounded-up words per available writing day are not stored. The calculation defaults to every day; preferred-day persistence/history remains 5.7. See [WRITING_PACE.md](WRITING_PACE.md).
+Required writing pace (4.5) is derived from committed book totals, the optional total target/deadline and an inclusive local-calendar schedule. Remaining words and rounded-up words per available writing day are not stored. The calculation defaults to every day; preferred-day persistence/history is implemented in 5.7. See [WRITING_PACE.md](WRITING_PACE.md).
 
 Task 5.1 implements readonly activity context/segment/submission/event contracts and pure net-delta policy under src/features/activity. Planned activity_operations receipts, writing_activity events and sealed activity_day_plans are specified in [ACTIVITY_MODEL.md](ACTIVITY_MODEL.md), including idempotent atomic saves, edit-time midnight splits, import/restore exclusion and retention via detached source references. Task 5.2 now implements these tables and edit-time capture in schema v5; statistics remain 5.3.
 

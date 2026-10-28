@@ -9,12 +9,14 @@ const COVER_SCHEMA: &str = include_str!("../../migrations/002_cover_cleanup.sql"
 const CHAPTER_SCHEMA: &str = include_str!("../../migrations/003_chapters.sql");
 const PREFERENCE_SCHEMA: &str = include_str!("../../migrations/004_editor_preferences.sql");
 const ACTIVITY_SCHEMA: &str = include_str!("../../migrations/005_writing_activity.sql");
+const SCHEDULE_SCHEMA: &str = include_str!("../../migrations/006_writing_schedule.sql");
 const MIGRATION_STEPS: &[M<'static>] = &[
     M::up(INITIAL_SCHEMA),
     M::up(COVER_SCHEMA),
     M::up(CHAPTER_SCHEMA),
     M::up(PREFERENCE_SCHEMA),
     M::up(ACTIVITY_SCHEMA),
+    M::up(SCHEDULE_SCHEMA),
 ];
 const MIGRATIONS: Migrations<'static> = Migrations::from_slice(MIGRATION_STEPS);
 
@@ -56,6 +58,10 @@ pub fn open(data_directory: &Path) -> Result<Database, DatabaseError> {
     connection.prepare(
         "SELECT source_book_id, local_date, daily_word_goal FROM activity_day_plans LIMIT 0",
     )?;
+    connection.prepare("SELECT revision FROM writing_schedule_state LIMIT 0")?;
+    connection
+        .prepare("SELECT effective_from, weekdays_mask FROM writing_schedule_history LIMIT 0")?;
+    connection.prepare("SELECT source_book_id, effective_from, daily_word_goal, retired FROM activity_goal_history LIMIT 0")?;
     Ok(Mutex::new(connection))
 }
 

@@ -4,7 +4,7 @@ use super::{
 };
 use crate::books::{BookError, validation::valid_id};
 use chrono::{Duration, NaiveDate};
-use rusqlite::{Connection, params};
+use rusqlite::Connection;
 use serde::Serialize;
 
 #[derive(Debug, Serialize, PartialEq, Eq)]
@@ -28,6 +28,9 @@ pub(super) fn state(day: &DailyStatistics, scoped: bool) -> &'static str {
     }
     if day.book_goals.iter().any(|goal| goal.state == "pending") {
         return "pending";
+    }
+    if day.writing_day == Some(false) {
+        return "unscheduled";
     }
     // Observed rest in one book cannot prove a rest day across every other book.
     if scoped && !day.book_goals.is_empty() && day.book_goals.iter().all(|goal| !goal.scheduled) {
@@ -54,7 +57,7 @@ pub fn get_current_streak(
             _ => ActivityError::InvalidStoredData,
         })?;
     }
-    let first: Option<String> = tx.query_row("SELECT min(local_date) FROM writing_activity WHERE local_date<=?1 AND (?2 IS NULL OR book_id=?2)", params![today,book_id], |row| row.get(0))?;
+    let first = crate::schedule::first_history(&tx, today, book_id)?;
     let mut result = CurrentStreak {
         today: today.into(),
         book_id: book_id.map(str::to_owned),
