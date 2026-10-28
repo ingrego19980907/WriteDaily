@@ -217,3 +217,7 @@ Exiting focused writing returns to preview without replacing the editor, writing
 ## A4 writing sheets (ED.18)
 
 Chapter writing/preview uses A4-proportion paper sheets, scaled margins, warm surface/border/shadow tokens and decorative page numbers. Automatic line flow preserves document text and formatting. The writing footer adds Add page at the chapter end; preview stays read-only. See [A4_PAGES.md](A4_PAGES.md) for persistence, layout semantics and limits.
+
+## Chapter order controls (ED.19)
+
+Dotted drag handles, currentColor rounded up/down SVG buttons and a drop-target outline use existing tokens. Native buttons have accessible direction/title names, visible focus and boundary/pending disabling; a text hint explains both interaction methods. Controls wrap at compact widths and 200% enlargement. The reload icon retains its accessible name and tooltip beside Create chapter. See [CHAPTER_ORDER.md](CHAPTER_ORDER.md).

@@ -202,3 +202,9 @@ WritingPace is a labelled group with a visible title and readable rate/day count
 All 609 Vitest tests passed. Full Edge run: 131 passed, with three new cases hitting test-clock timeouts. The test now simulates only the 20-second midnight boundary and resumes timers before axe; all four pace cases passed on rerun, providing passing evidence for all 134 distinct browser cases. Existing editor/A4/autosave regressions passed. New checks cover card/header consistency, cancelled metadata, saved goals/dates, local midnight, unavailable totals, completed books, axe at 320/640/1100px and 200% text reflow. No axe rules were disabled.
 
 Lint, format:check, strict TypeScript/build and diff checks passed. No native persistence changes, desktop startup/restart observation or manual screen-reader review was added. Next numbered task is 4.7.
+
+## ED.19 chapter order and reload icon
+
+Drag ordering has native up/down button alternatives for keyboard and touch, descriptive labels, visible focus and boundary/pending disabling. A committed move focuses its heading and announces completion; pending/failed writes preserve the list. Reload remains a labelled icon button beside Create chapter. Controls now wrap to avoid overflow at 320px with 200% text.
+
+625 Vitest and 74 Rust tests passed. Full Edge run passed 134/139 cases; two drag tests failed because scrolling moved the source before drag start and three existing 320px enlargement checks exposed nonwrapping controls. After fixing wrapping and arranging visible source/target in the duplicate-title drag fixture, all 28 affected cases passed on rerun. All 139 distinct browser cases have passing evidence, including real mouse drag, keyboard movement, reload, pending/conflict recovery, axe and 200% layout. Lint, format:check, strict TypeScript/build, Cargo fmt/Clippy and diff checks passed. No manual screen-reader or new native GUI session is claimed. See [CHAPTER_ORDER.md](CHAPTER_ORDER.md).

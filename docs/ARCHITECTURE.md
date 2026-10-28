@@ -194,3 +194,7 @@ Deadlines (4.4): utils/calendar-date holds canonical validation and calendar-day
 Task 4.5 adds the pure library-domain `calculateWritingPace`, reusing validated book progress and Gregorian date arithmetic. Callers provide the local date and committed count; no clock, persistence or UI dependencies enter the calculation. Optional weekdays are a calculation input, not a new persisted schedule. See [WRITING_PACE.md](WRITING_PACE.md).
 
 Task 4.6 adds shared `WritingPace` presentation to BookCard and ChapterManager. It combines the pure calculation with `useLocalCalendarDate`, receives existing committed totals/metadata and uses centralized English copy. Existing BookProgress, DailyGoal and BookDeadline keep their distinct meanings; daily activity remains Milestone 5.
+
+ED.19: ChapterManager connects the existing native reorder service to drag/drop and up/down UI actions. Full prior revision vectors prevent stale overwrites; a synchronous pending guard prevents overlapping moves, and only committed responses replace displayed order. The window disables the native file-drop handler to permit HTML5 drag on Windows. See [CHAPTER_ORDER.md](CHAPTER_ORDER.md).
+
+Task 5.1 adds the activity domain contract and pure delta policy in src/features/activity/activity.ts. The editor will capture edit-time contexts and stable save operation IDs; native persistence will validate/count and atomically save content, receipts, segments and day plans in 5.2. Neither capture nor an activity persistence service is implemented yet. See [ACTIVITY_MODEL.md](ACTIVITY_MODEL.md).

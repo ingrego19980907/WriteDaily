@@ -158,11 +158,11 @@ Errors are explicit: Validation, NotFound, Conflict, InvalidStoredData, CoverCle
 
 Fifteen repository/contract tests plus the ten SQLite bootstrap tests pass. They use disposable databases and verify CRUD/reopen, guarded deletion, SQL-injection-like title literals, failed-write rollback, two-connection conflicts, stable ordering/monotonic timestamps, preserved system fields, invalid stored data and camelCase serialization. Shared metadata examples also run under Vitest. Failure injection tests cover SQLite statement failures, not every physical disk/power-loss scenario.
 
-## Proposed activity rules
+## Activity contract (5.1)
 
 Count positive net word changes per committed edit batch as credited writing, including paste; record deletions separately without subtracting previously credited activity. Same-length substitutions and formatting earn zero. Repeated deletion/retyping can earn credit; these are encouraging habit metrics, not fraud-proof measures. Imports/restores earn no activity. Document this policy to users and test it before release.
 
-Capture local day and timezone at edit time, splitting activity across midnight rather than assigning all edits to the eventual save time. Stable operation IDs prevent retries from duplicating credit. Current manuscript length is separate from historical activity. Retain historical aggregates when a chapter/book is removed, following the book deletion contract above; implement and test the final activity schema/cleanup mechanics in 2.6 and 5.1.
+Capture local day and timezone at edit time, splitting activity across midnight rather than assigning all edits to the eventual save time. Stable operation IDs prevent retries from duplicating credit. Current manuscript length is separate from historical activity. Retain historical aggregates when a chapter/book is removed, following the book deletion contract above; implement and test the activity schema/cleanup mechanics in 5.2; the 5.1 contract is defined in [ACTIVITY_MODEL.md](ACTIVITY_MODEL.md).
 
 Define scheduled-day completion as reaching that day's applicable daily goal; unscheduled days do not break scheduled streaks. Finalize current-streak grace rules and test boundaries in milestone 5. Achievements unlock once and remain unlocked.
 
@@ -177,3 +177,5 @@ Total word goals (4.3): targetWordCount uses the existing optional positive-safe
 Deadlines (4.4): deadline remains a local Gregorian date, not a UTC instant. Card/header urgency is derived from the current local calendar date and is not persisted. Completed books retain the date informationally. Shared validation covers actual month lengths/leap years and 0001-9999; overdue dates are accepted. See [DEADLINES.md](DEADLINES.md).
 
 Required writing pace (4.5) is derived from committed book totals, the optional total target/deadline and an inclusive local-calendar schedule. Remaining words and rounded-up words per available writing day are not stored. The calculation defaults to every day; preferred-day persistence/history remains 5.7. See [WRITING_PACE.md](WRITING_PACE.md).
+
+Task 5.1 implements readonly activity context/segment/submission/event contracts and pure net-delta policy under src/features/activity. Planned activity_operations receipts, writing_activity events and sealed activity_day_plans are specified in [ACTIVITY_MODEL.md](ACTIVITY_MODEL.md), including idempotent atomic saves, edit-time midnight splits, import/restore exclusion and retention via detached source references. These tables and capture are not yet implemented; schema remains v4 until 5.2.

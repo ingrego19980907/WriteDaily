@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Milestone 3 (tasks 3.1–3.12) is complete for the current editor and commit-based recovery; Tasks 4.1 (committed book word-count aggregation), 4.2 (daily goal configuration/display) 4.3 (total word goals and derived achievement) 4.4 (local-calendar deadlines) 4.5 (required writing pace calculation) 4.6 (progress presentation) and 4.7 (calculation coverage review) are complete; Milestone 4 acceptance is verified; awaiting approval before 5.1 (activity record design). Library progress now uses persisted chapter totals; legacy unknowns and read failures remain unknown. Covered-book deletion now uses safe queued cleanup.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Milestone 3 (tasks 3.1–3.12) is complete for the current editor and commit-based recovery; Tasks 4.1 (committed book word-count aggregation), 4.2 (daily goal configuration/display) 4.3 (total word goals and derived achievement) 4.4 (local-calendar deadlines) 4.5 (required writing pace calculation) 4.6 (progress presentation) and 4.7 (calculation coverage review) are complete; Milestone 4 acceptance is verified; task 5.1 (activity record design) is complete; awaiting approval before 5.2 (atomic activity recording). Library progress now uses persisted chapter totals; legacy unknowns and read failures remain unknown. Covered-book deletion now uses safe queued cleanup.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -82,16 +82,16 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 
 ## Milestone 5: Activity & Streaks
 
-| Done | ID  | Description                       | Status      | Dependencies | Acceptance criteria                                                 |
-| ---- | --- | --------------------------------- | ----------- | ------------ | ------------------------------------------------------------------- |
-| [ ]  | 5.1 | Design activity records           | Not started | 4.7          | Paste, deletion, imports, local days and retention policy finalized |
-| [ ]  | 5.2 | Record writing sessions/activity  | Not started | 5.1          | Content and idempotent activity commit atomically                   |
-| [ ]  | 5.3 | Calculate daily statistics        | Not started | 5.2          | Daily totals and historical goal snapshots aggregate correctly      |
-| [ ]  | 5.4 | Create activity calendar          | Not started | 5.3          | Intensity and inspectable day details reflect actual records        |
-| [ ]  | 5.5 | Calculate current streak          | Not started | 5.4          | Scheduled-day grace rules pass tests                                |
-| [ ]  | 5.6 | Calculate longest streak          | Not started | 5.5          | Historical longest streak passes schedule edge cases                |
-| [ ]  | 5.7 | Support preferred writing days    | Not started | 5.6          | Schedule changes preserve historical interpretation                 |
-| [ ]  | 5.8 | Test date and timezone edge cases | Not started | 5.7          | Midnight, DST and timezone changes covered                          |
+| Done | ID  | Description                       | Status                 | Dependencies | Acceptance criteria                                                 |
+| ---- | --- | --------------------------------- | ---------------------- | ------------ | ------------------------------------------------------------------- |
+| [x]  | 5.1 | Design activity records           | Completed (2026-10-28) | 4.7          | Paste, deletion, imports, local days and retention policy finalized |
+| [ ]  | 5.2 | Record writing sessions/activity  | Not started            | 5.1          | Content and idempotent activity commit atomically                   |
+| [ ]  | 5.3 | Calculate daily statistics        | Not started            | 5.2          | Daily totals and historical goal snapshots aggregate correctly      |
+| [ ]  | 5.4 | Create activity calendar          | Not started            | 5.3          | Intensity and inspectable day details reflect actual records        |
+| [ ]  | 5.5 | Calculate current streak          | Not started            | 5.4          | Scheduled-day grace rules pass tests                                |
+| [ ]  | 5.6 | Calculate longest streak          | Not started            | 5.5          | Historical longest streak passes schedule edge cases                |
+| [ ]  | 5.7 | Support preferred writing days    | Not started            | 5.6          | Schedule changes preserve historical interpretation                 |
+| [ ]  | 5.8 | Test date and timezone edge cases | Not started            | 5.7          | Midnight, DST and timezone changes covered                          |
 
 ## Milestone 6: Achievements
 
@@ -133,6 +133,12 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [ ]  | 8.10 | Tag version 1.0.0           | Not started | 8.9          | Release gates pass and explicit authorization obtained before Git mutation |
 
 ## Historical verification evidence
+
+## Verification evidence: 5.1
+
+- Added readonly activity context/segment/submission/event contracts and versioned pure net-delta policy under src/features/activity. Finalized paste/import/restore/deletion treatment, edit-time midnight/timezone splits, stable operation receipts and atomic save requirements, sealed per-day goal/schedule plans and retained history after source deletion. See [ACTIVITY_MODEL.md](ACTIVITY_MODEL.md).
+- All 636 Vitest tests passed (43 files), including 11 new activity-policy cases, plus lint, format:check, strict TypeScript/build and diff checks. Tests verify delta policy only; capture, receipt deduplication, native retention and atomic persistence remain 5.2 and are not claimed implemented. No UI/native/schema/dependency changes; no new browser/Cargo run or real-library operations.
+- Next: 5.2, awaiting approval.
 
 ## Verification evidence: 4.7
 
@@ -413,6 +419,8 @@ Each entry describes the repository and environment at that task. Later tasks su
 - npm reported zero vulnerabilities. No GUI, browser layout, desktop startup, coverage or persistence verification implied by this test.
 
 ## Maintenance tasks
+
+- [x] ED.19 - Chapter drag ordering and compact reload action. Completed (2026-10-28). Added dotted handles with drop-target feedback and accessible up/down alternatives in Writing Editor. Reuses native full-vector revision-checked reorder; committed-only rows, serialized writes, retained errors/conflicts and reload recovery. Reload chapters is an icon next to Create chapter. Windows HTML5 drag support is enabled through the documented Tauri window setting. All 625 Vitest and 74 Rust tests passed, plus lint, formatting, strict TypeScript/build, Cargo fmt/Clippy and diff checks. Full Edge run passed 134/139; after layout wrapping and drag-fixture scrolling fixes, all 28 affected cases passed on rerun, covering all 139 distinct cases. See [CHAPTER_ORDER.md](CHAPTER_ORDER.md). No new native repository/schema/dependency or real-library changes; next numbered task remains 5.1.
 
 - [x] ED.18 - Add A4 writing sheets with automatic flow and manual Add page. Status: Completed (2026-10-27). Added a view-only line pagination plugin and scaled A4 sheets/margins/page numbers in writing and preview. Add page appends a persisted pageBreak plus a paragraph at the chapter end, preserving typing marks and existing save guards. Content v6 validates root-only breaks in Rust/TS while keeping v1-v5 compatibility; no SQL migration or dependency. Browser coverage verifies paper proportions, text bounds, unchanged JSON, cursor placement and manual page save/reopen. All 565 Vitest, 119 Edge and 72 Rust tests passed, plus lint, format:check, typecheck/build, Cargo fmt/Clippy and diff checks. After the text-enlargement observation update, all 565 Vitest and three dedicated page browser cases passed again (including 200% repagination). See [A4_PAGES.md](A4_PAGES.md). Final verification is recorded in the accessibility review. Roadmap remains awaiting 4.3 approval.
 

@@ -19,7 +19,7 @@ export function ChapterOrderControls({
   onDragEnd: () => void
 }) {
   return (
-    <div className="flex shrink-0 items-center gap-1">
+    <div className="flex max-w-full flex-wrap items-center gap-1">
       <span
         draggable={!disabled}
         onDragStart={onDragStart}

@@ -75,6 +75,8 @@ if (!seed.success) throw new Error('Invalid test editor seed')
 const manuscripts = new Map<string, ChapterContent>([[first.id, seed.data]])
 const requestedScenario = new URLSearchParams(location.search).get('scenario')
 const scenario = requestedScenario?.replace(/^goal-/, 'editor-')
+if (requestedScenario?.startsWith('reorder'))
+  chapters = chapters.map((chapter) => ({ ...chapter, title: 'Chapter' }))
 if (requestedScenario?.startsWith('goal-')) {
   chapters = chapters.map((chapter) => ({ ...chapter, wordCount: 0 }))
   manuscripts.clear()
