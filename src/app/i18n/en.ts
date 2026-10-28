@@ -1,5 +1,13 @@
 export const en = {
   activity: {
+    longestStreak: 'Longest recorded writing streak',
+    longestLoading: 'Loading longest streak...',
+    longestUnavailable: 'Longest streak could not be loaded. Try refreshing.',
+    longestLimited:
+      'Goal or schedule history has gaps. This is the longest confirmed run; the actual record may be longer.',
+    longestDates: (start: string, end: string) => `${start} – ${end}`,
+    longestHistory: (start: string) =>
+      `Based on recorded history since ${start}. Earlier activity is not inferred.`,
     currentStreak: 'Current writing streak',
     refreshStreak: 'Refresh streak',
     streakLoading: 'Loading streak...',

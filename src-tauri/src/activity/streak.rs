@@ -21,7 +21,7 @@ pub struct CurrentStreak {
     pub boundary: &'static str,
 }
 
-fn state(day: &DailyStatistics, scoped: bool) -> &'static str {
+pub(super) fn state(day: &DailyStatistics, scoped: bool) -> &'static str {
     // Global completion means at least one scheduled book goal, not all book goals.
     if day.book_goals.iter().any(|goal| goal.state == "reached") {
         return "reached";

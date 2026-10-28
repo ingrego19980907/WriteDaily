@@ -1,8 +1,49 @@
 import { beforeEach, expect, test, vi } from 'vitest'
 import { invoke, isTauri } from '@tauri-apps/api/core'
-import { getDailyStatistics, getCurrentStreak } from './activity'
+import {
+  getDailyStatistics,
+  getCurrentStreak,
+  getLongestStreak,
+} from './activity'
 
 vi.mock('@tauri-apps/api/core', () => ({ invoke: vi.fn(), isTauri: vi.fn() }))
+
+test('longest streak validates native scope, range and availability without fallback', async () => {
+  const request = { today: '2026-10-28', bookId: null }
+  const data = {
+    ...request,
+    days: 2,
+    exact: false,
+    historyStartDate: '2026-10-01',
+    startDate: '2026-10-25',
+    endDate: '2026-10-26',
+  }
+  vi.mocked(invoke).mockResolvedValue(data)
+  expect(await getLongestStreak(request)).toEqual(data)
+  expect(invoke).toHaveBeenCalledWith('get_longest_streak', request)
+  for (const result of [
+    null,
+    { ...data, days: -1 },
+    { ...data, today: '2026-10-27' },
+    { ...data, bookId: '00000000-0000-4000-8000-000000000001' },
+  ]) {
+    vi.mocked(invoke).mockResolvedValue(result)
+    await expect(getLongestStreak(request)).rejects.toEqual({
+      code: 'invalid_stored_data',
+    })
+  }
+  vi.mocked(invoke).mockRejectedValue({ code: 'persistence' })
+  await expect(getLongestStreak(request)).rejects.toEqual({
+    code: 'persistence',
+  })
+  await expect(getLongestStreak({ ...request, today: 'bad' })).rejects.toEqual({
+    code: 'validation',
+  })
+  vi.mocked(isTauri).mockReturnValue(false)
+  await expect(getLongestStreak(request)).rejects.toEqual({
+    code: 'desktop_required',
+  })
+})
 const request = { startDate: '2026-10-28', endDate: '2026-10-28', bookId: null }
 const response = () => ({
   ...request,

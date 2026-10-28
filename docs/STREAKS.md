@@ -1,6 +1,6 @@
-# Current writing streak (5.5)
+# Writing streaks (5.5?5.6)
 
-Implemented: a native read-only current-streak calculation, validated IPC/service and a shared summary in My Library and Activity Calendar. Longest streak remains 5.6. No schema, dependency or persistence write is introduced.
+Implemented: a native read-only current-streak calculation, validated IPC/service and a shared summary in My Library and Activity Calendar. Task 5.6 adds the longest recorded streak with dates and honest incomplete-history bounds. No schema, dependency or persistence write is introduced.
 
 ## Which days count
 
@@ -46,4 +46,18 @@ All 696 Vitest tests passed (50 files), including current-streak response valida
 
 All 152 Edge cases passed. Four new cases exercise library/calendar display, scope and browsed-month independence, local-midnight reset, pending/error/retry, stale global replies, unknown history, 320/1100px, 200% text and axe. Existing calendar/editor/layout regressions passed. Lint, format:check, strict TypeScript/build, Cargo fmt/Clippy and diff checks passed.
 
-Native tests use disposable databases; browser fixtures are test-only IPC data. No real library was modified and no new native GUI/startup/restart or manual screen-reader session is claimed. Next: 5.6, longest streak.
+Native tests use disposable databases; browser fixtures are test-only IPC data. No real library was modified and no new native GUI/startup/restart or manual screen-reader session is claimed. Next after 5.6: 5.7, preferred writing days and effective schedule history.
+
+## Longest recorded streak (5.6)
+
+`get_longest_streak({ today, bookId })` scans the entire recorded interval from its earliest stored activity date through local today, in ascending pages of at most 366 civil dates under one read transaction. It shares the current-streak day classifier and validated daily reader. Runs continue across page/month/year boundaries. Future records are excluded. Invalid data/read failures propagate; no fallback zero, migration, persisted counter or write is introduced.
+
+Reached scheduled goals add one day; a confirmed scoped day off is neutral. A known past pending goal resets the run. Unknown/unconfigured/global-ambiguous past dates split confirmed runs and make the maximum a lower bound. The open today cannot add a day until a goal is reached, and cannot erase an earlier record. The entire history is still scanned after a miss or gap. Strict improvement selects the earliest run when lengths tie; returned start/end dates are its first/last completed dates, excluding trailing rest days.
+
+The DTO contains today/bookId, days, exact, historyStartDate and nullable startDate/endDate. Here `exact` means exact **within the recorded interval**; it makes no claim about activity before historyStartDate. This differs from the current suffix, whose `history_start` boundary may conceal an older continuation. Empty recorded history has zero days and null dates. Unknown history with zero confirmed days shows insufficient history. Positive uncertain maxima show At least N completed days and explain gaps; all nonempty results identify the recorded-history start.
+
+My Library and Activity Calendar show a separate labelled longest-record card. It shares current-streak refresh, active-view, local-midnight and focus/resume triggers, but has independent loading/error handling. Refresh streak retries both metrics. Book scope changes cancel old replies; browsing another month does not change the record. Global results retain removed sources and count any reached book once per date; a deleted scoped book is still an error.
+
+Native coverage includes historical records after later misses, earliest ties, today completion, missing/null/import-only history, scoped rest/global ambiguity, leap-day continuity, retained multi-book history, invalid/corrupt input, and a 400-day record preserved across reopen. Frontend coverage includes DTO invariants, native scope/date matching, lower bounds, error/retry, inactive views and stale replies. Browser coverage extends compact/200%/axe and midnight checks, and adds independent longest-load/failure/retry and stale-scope cases. No real library or new desktop GUI session is used. Effective schedule changes remain 5.7.
+
+Final 5.6 checks: all 717 Vitest tests (52 files), 103 Rust tests and 154 Edge cases passed, along with lint, format:check, strict TypeScript/build, Cargo fmt/Clippy and diff checks. Next: 5.7, awaiting approval.

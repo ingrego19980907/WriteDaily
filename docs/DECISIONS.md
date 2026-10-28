@@ -255,3 +255,7 @@ Use positive net word deltas per committed contiguous edit context, including pa
 ## Current streak semantics (5.5)
 
 Count completed scheduled goal days, with personal/global completion defined as at least one reached book goal per date. Give an unfinished today until local midnight; a known past pending target ends the series. Skip confirmed scoped days off without adding a completed day. Do not infer a global rest day from only observed book rests or fill missing historic settings from current metadata. Stop verification at uncertainty and show an explicit lower bound; only a known break/valid-calendar boundary establishes exactness. Read across paged history in one snapshot, independent of visible calendar month. See [STREAKS.md](STREAKS.md).
+
+## Longest recorded streak semantics (5.6)
+
+The historical maximum uses the same goal-day qualification as the current streak, scans all recorded history and keeps the earliest tie. Unknown past dates split confirmed runs; they cannot be silently bridged or treated as known misses. Exactness explicitly covers the recorded interval, whose first date is shown, rather than claiming an all-time record before tracking began. A new read-only IPC and independently validated UI result keep longest-history failures separate from current-suffix failures. No persisted record counter or schema change. See [STREAKS.md](STREAKS.md).

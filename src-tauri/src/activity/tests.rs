@@ -7,6 +7,164 @@ use crate::{
 use rusqlite::{Connection, params};
 use serde_json::{Value, json};
 
+#[test]
+fn longest_record_survives_later_misses_keeps_earliest_tie_and_extends_on_completion() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = database::open(dir.path()).unwrap();
+    let mut c = db.lock().unwrap();
+    let mut chapter = seed(&mut c, Some(1));
+    let mut words = 0;
+    for (day, reached) in [
+        (20, true),
+        (21, true),
+        (22, false),
+        (23, true),
+        (24, true),
+        (25, false),
+    ] {
+        words += i32::from(reached);
+        chapter = save(
+            &mut c,
+            &chapter,
+            &vec!["word"; words as usize].join(" "),
+            &format!("2026-10-{day}"),
+            Some(1),
+            "editor",
+        );
+    }
+    let result = get_longest_streak(&mut c, "2026-10-25", None).unwrap();
+    assert_eq!((result.days, result.exact), (2, true));
+    assert_eq!(result.start_date.as_deref(), Some("2026-10-20"));
+    assert_eq!(result.end_date.as_deref(), Some("2026-10-21"));
+    save(
+        &mut c,
+        &chapter,
+        "one two three four five",
+        "2026-10-25",
+        Some(1),
+        "editor",
+    );
+    let extended = get_longest_streak(&mut c, "2026-10-25", None).unwrap();
+    assert_eq!(extended.days, 3);
+    assert_eq!(extended.start_date.as_deref(), Some("2026-10-23"));
+    assert_eq!(extended.end_date.as_deref(), Some("2026-10-25"));
+    assert_eq!(
+        get_longest_streak(&mut c, "2026-10-27", None).unwrap().days,
+        3
+    );
+    assert!(
+        !get_longest_streak(&mut c, "2026-10-27", None)
+            .unwrap()
+            .exact
+    );
+}
+
+#[test]
+fn longest_unknown_days_split_runs_but_confirmed_scoped_rest_is_neutral() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = database::open(dir.path()).unwrap();
+    let mut c = db.lock().unwrap();
+    let chapter = seed(&mut c, Some(1));
+    let one = save(&mut c, &chapter, "one", "2024-02-28", Some(1), "editor");
+    let rest = save(&mut c, &one, "one", "2024-02-29", Some(1), "editor");
+    save(&mut c, &rest, "one two", "2024-03-01", Some(1), "editor");
+    c.execute(
+        "UPDATE activity_day_plans SET scheduled=0 WHERE local_date='2024-02-29'",
+        [],
+    )
+    .unwrap();
+    let scoped = get_longest_streak(&mut c, "2024-03-01", Some(&chapter.summary.book_id)).unwrap();
+    assert_eq!((scoped.days, scoped.exact), (2, true));
+    let global = get_longest_streak(&mut c, "2024-03-01", None).unwrap();
+    assert_eq!((global.days, global.exact), (1, false));
+    // Absent plans are unknown, never inferred from today's book configuration.
+    c.execute(
+        "DELETE FROM writing_activity WHERE local_date='2024-02-29'",
+        [],
+    )
+    .unwrap();
+    let missing = get_longest_streak(&mut c, "2024-03-01", Some(&chapter.summary.book_id)).unwrap();
+    assert_eq!((missing.days, missing.exact), (1, false));
+    c.execute(
+        "DELETE FROM activity_day_plans WHERE local_date='2024-03-01'",
+        [],
+    )
+    .unwrap();
+    assert!(matches!(
+        get_longest_streak(&mut c, "2024-03-01", None),
+        Err(ActivityError::InvalidStoredData)
+    ));
+}
+
+#[test]
+fn longest_global_counts_any_book_once_and_retains_deleted_book_history() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = database::open(dir.path()).unwrap();
+    let mut c = db.lock().unwrap();
+    let first = seed(&mut c, Some(1));
+    let second = seed(&mut c, Some(1));
+    save(&mut c, &first, "one", "2026-10-27", Some(1), "editor");
+    let one = save(&mut c, &second, "one", "2026-10-27", Some(1), "editor");
+    save(&mut c, &one, "one two", "2026-10-28", Some(1), "editor");
+    let result = get_longest_streak(&mut c, "2026-10-28", None).unwrap();
+    assert_eq!((result.days, result.exact), (2, true));
+    c.execute("DELETE FROM books WHERE id=?1", [&first.summary.book_id])
+        .unwrap();
+    assert_eq!(
+        get_longest_streak(&mut c, "2026-10-28", None).unwrap(),
+        result
+    );
+    assert!(matches!(
+        get_longest_streak(&mut c, "2026-10-28", Some(&first.summary.book_id)),
+        Err(ActivityError::NotFound)
+    ));
+}
+
+#[test]
+fn longest_empty_future_import_unconfigured_and_invalid_requests_do_not_invent_success() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = database::open(dir.path()).unwrap();
+    let mut c = db.lock().unwrap();
+    let chapter = seed(&mut c, None);
+    let empty = get_longest_streak(&mut c, "2026-10-28", None).unwrap();
+    assert_eq!(
+        (empty.days, empty.exact, empty.history_start_date),
+        (0, true, None)
+    );
+    let imported = save(&mut c, &chapter, "one two", "2026-10-26", None, "import");
+    let unconfigured = save(
+        &mut c,
+        &imported,
+        "one two three",
+        "2026-10-27",
+        None,
+        "editor",
+    );
+    save(
+        &mut c,
+        &unconfigured,
+        "one two three four",
+        "2026-10-29",
+        Some(1),
+        "editor",
+    );
+    let unknown = get_longest_streak(&mut c, "2026-10-28", None).unwrap();
+    assert_eq!(
+        (unknown.days, unknown.exact, unknown.start_date),
+        (0, false, None)
+    );
+    for day in ["bad", "2026-02-29", "0000-01-01"] {
+        assert!(matches!(
+            get_longest_streak(&mut c, day, None),
+            Err(ActivityError::Validation)
+        ));
+    }
+    assert!(matches!(
+        get_longest_streak(&mut c, "2026-10-28", Some("bad")),
+        Err(ActivityError::Validation)
+    ));
+}
+
 fn seed(connection: &mut Connection, goal: Option<i64>) -> Chapter {
     let book = BookRepository::new(connection)
         .create(BookDetails {
@@ -609,10 +767,18 @@ fn current_streak_history_is_paged_beyond_366_days_and_never_truncated_to_calend
         (400, false, "history_start")
     );
     assert_eq!(streak.start_date.as_deref(), Some("2025-01-01"));
+    let longest = get_longest_streak(&mut c, &today, Some(&chapter.summary.book_id)).unwrap();
+    assert_eq!(longest.days, 400);
+    assert!(longest.exact);
+    assert_eq!(longest.end_date.as_deref(), Some(today.as_str()));
     drop(c);
     drop(db);
     let db = database::open(dir.path()).unwrap();
     let mut c = db.lock().unwrap();
+    assert_eq!(
+        get_longest_streak(&mut c, &today, Some(&chapter.summary.book_id)).unwrap(),
+        longest
+    );
     assert_eq!(
         get_current_streak(&mut c, &today, Some(&chapter.summary.book_id)).unwrap(),
         streak

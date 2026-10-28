@@ -39,7 +39,7 @@ Each `bookGoals` item contains `sourceBookId`, nullable live `bookId`, `dailyWor
 | pending      | A scheduled positive target is not reached; remainingWords is target minus credited words |
 | reached      | A scheduled positive target is reached/exceeded; remainingWords is zero                   |
 
-`pending` means not reached, including historical dates; it does not imply an unsaved write. Global results keep each book goal separate rather than summing different book targets into an invented global goal. A day with no editor events has zero totals/saveCount, active false and an empty bookGoals array. Its historical goal/schedule is unavailable rather than guessed from today's settings. Effective schedule history for empty dates remains 5.7. Current-streak/grace rules are defined and implemented in [STREAKS.md](STREAKS.md) (5.5); longest streak and achievement evaluation remain their own subtasks.
+`pending` means not reached, including historical dates; it does not imply an unsaved write. Global results keep each book goal separate rather than summing different book targets into an invented global goal. A day with no editor events has zero totals/saveCount, active false and an empty bookGoals array. Its historical goal/schedule is unavailable rather than guessed from today's settings. Effective schedule history for empty dates remains 5.7. Current-streak/grace rules are defined and implemented in [STREAKS.md](STREAKS.md) (5.5); longest recorded streak is implemented there in 5.6; achievement evaluation remains a later subtask.
 
 ## Validation and failures
 

@@ -1,6 +1,6 @@
 # Writing activity model and recording (5.1-5.2)
 
-Status: 5.1 domain contracts and 5.2 capture/atomic persistence are implemented. Schema v5 adds migration 005, operation receipts, activity segments and sealed day plans. The editor sends activity with each content save. Task 5.3 now provides daily statistics queries; calendar UI is implemented in 5.4 and current streak is implemented in 5.5; longest streak remains 5.6. See [DAILY_STATISTICS.md](DAILY_STATISTICS.md).
+Status: 5.1 domain contracts and 5.2 capture/atomic persistence are implemented. Schema v5 adds migration 005, operation receipts, activity segments and sealed day plans. The editor sends activity with each content save. Task 5.3 now provides daily statistics queries; calendar UI is implemented in 5.4 and current streak is implemented in 5.5; longest recorded streak is implemented in 5.6; preferred-day history remains 5.7. See [DAILY_STATISTICS.md](DAILY_STATISTICS.md).
 
 ## What counts
 

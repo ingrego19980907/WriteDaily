@@ -12,7 +12,7 @@ Each day has a fixed credited-word intensity: zero, 1-249, 250-499, 500-999 or 1
 
 Month totals show credited words and positive-credit active days. Checked accumulation displays an unavailable-total explanation if otherwise-valid daily totals exceed the safe numeric range; it never rounds an unsafe monthly sum. Save counts are shown for individual dates rather than incorrectly summing distinct per-day operations into a distinct monthly save count.
 
-Selected-day details show credited, added and deleted words, save count and separate book-goal results. These use sealed historical targets returned by 5.3, including unconfigured/unscheduled states; no current setting is used to invent past targets. Empty days/months are described as having no recorded activity, not as missed goals. Calendar activity remains separate from manuscript length and timed writing sessions. Task 5.5 adds the shared current-streak/today-credit summary; longest streak remains 5.6.
+Selected-day details show credited, added and deleted words, save count and separate book-goal results. These use sealed historical targets returned by 5.3, including unconfigured/unscheduled states; no current setting is used to invent past targets. Empty days/months are described as having no recorded activity, not as missed goals. Calendar activity remains separate from manuscript length and timed writing sessions. Task 5.5 adds the shared current-streak/today-credit summary; 5.6 adds a separate longest-record card with its dates and incomplete-history bounds.
 
 ## Loading, refresh and failures
 

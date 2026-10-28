@@ -8,6 +8,7 @@ import type {
   DailyStatisticsRange,
 } from '../../src/features/activity/daily-statistics'
 import { activityBooks, activityFixture } from './activity-data'
+import { longestFixture } from './longest-streak-data'
 import { streakFixture, streakCalendarFixture } from './streak-data'
 import type {
   StreakRequest,
@@ -17,6 +18,9 @@ import type {
 Object.assign(globalThis, { isTauri: true })
 const state = new URLSearchParams(location.search).get('state')
 const streakMode = new URLSearchParams(location.search).get('streak') ?? ''
+const longestMode = new URLSearchParams(location.search).get('longest') ?? ''
+let longestReads = 0
+let finishLongest: (() => void) | undefined
 let streakReads = 0
 let finishStreak: (() => void) | undefined
 let reads = 0
@@ -25,8 +29,23 @@ Object.assign(globalThis, {
   completeActivityRead: () => finish?.(),
   activityReadCount: () => reads,
   completeStreakRead: () => finishStreak?.(),
+  completeLongestRead: () => finishLongest?.(),
 })
 mockIPC((command, payload) => {
+  if (command === 'get_longest_streak') {
+    longestReads++
+    if (streakMode === 'loading' || longestMode === 'loading')
+      return new Promise(() => {})
+    if (longestMode === 'failure' && longestReads === 1)
+      throw { code: 'persistence' }
+    const request = payload as StreakRequest
+    const response = longestFixture(request, streakMode)
+    if (longestMode === 'stale' && request.bookId === null)
+      return new Promise((resolve) => {
+        finishLongest = () => resolve(response)
+      })
+    return response
+  }
   if (command === 'get_current_streak') {
     streakReads++
     const request = payload as StreakRequest

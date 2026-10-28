@@ -1,3 +1,7 @@
+import {
+  isLongestStreak,
+  type LongestStreak,
+} from '../features/activity/longest-streak'
 import { invoke, isTauri } from '@tauri-apps/api/core'
 import {
   isCurrentStreak,
@@ -43,6 +47,24 @@ export async function getCurrentStreak(
   })
   if (
     !isCurrentStreak(result) ||
+    result.today !== request.today ||
+    result.bookId !== request.bookId
+  )
+    throw { code: 'invalid_stored_data' }
+  return result
+}
+
+export async function getLongestStreak(
+  request: StreakRequest,
+): Promise<LongestStreak> {
+  if (!isTauri()) throw { code: 'desktop_required' }
+  if (!isStreakRequest(request)) throw { code: 'validation' }
+  const result = await invoke<unknown>('get_longest_streak', {
+    today: request.today,
+    bookId: request.bookId,
+  })
+  if (
+    !isLongestStreak(result) ||
     result.today !== request.today ||
     result.bookId !== request.bookId
   )

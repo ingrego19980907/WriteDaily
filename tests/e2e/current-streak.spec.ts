@@ -18,6 +18,12 @@ for (const width of [320, 1100]) {
     await expect(summary).toContainText('3 completed days')
     await expect(summary).toContainText('50 credited words')
     await expect(summary).toContainText('until local midnight')
+    const longest = page.getByRole('group', {
+      name: 'Longest recorded writing streak',
+      exact: true,
+    })
+    await expect(longest).toContainText('3 completed days')
+    await expect(longest).toContainText('Oct 25, 2026 – Oct 27, 2026')
     await page
       .getByRole('button', { name: 'Activity Calendar', exact: true })
       .click()
@@ -31,10 +37,12 @@ for (const width of [320, 1100]) {
       .getByLabel('Book', { exact: true })
       .selectOption(activityBooks[0].id)
     await expect(summary).toContainText('At least 2 completed days')
+    await expect(longest).toContainText('At least 2 completed days')
     await page.getByLabel('Book', { exact: true }).selectOption('')
     await expect(summary).toContainText('3 completed days')
     await page.clock.runFor(20000)
     await expect(summary).toContainText('0 completed days')
+    await expect(longest).toContainText('3 completed days')
     await page.clock.resume()
     await page.addStyleTag({ content: 'html{font-size:200%;}' })
     expect(

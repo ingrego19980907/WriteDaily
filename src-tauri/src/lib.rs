@@ -18,6 +18,7 @@ pub fn run() {
             commands::create_book,
             activity_commands::get_daily_statistics,
             activity_commands::get_current_streak,
+            activity_commands::get_longest_streak,
             commands::list_books,
             commands::get_book,
             commands::update_book,

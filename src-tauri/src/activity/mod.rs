@@ -1,5 +1,7 @@
+mod longest_streak;
 mod statistics;
 mod streak;
+pub use longest_streak::{LongestStreak, get_longest_streak};
 pub use statistics::{DailyStatisticsRange, get_daily_statistics};
 pub use streak::{CurrentStreak, get_current_streak};
 

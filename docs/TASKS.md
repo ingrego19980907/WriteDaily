@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Milestone 3 (tasks 3.1–3.12) is complete for the current editor and commit-based recovery; Tasks 4.1 (committed book word-count aggregation), 4.2 (daily goal configuration/display) 4.3 (total word goals and derived achievement) 4.4 (local-calendar deadlines) 4.5 (required writing pace calculation) 4.6 (progress presentation) and 4.7 (calculation coverage review) are complete; Milestone 4 acceptance is verified; tasks 5.1 (activity record design), 5.2 (atomic activity recording) 5.3 (daily statistics) 5.4 (activity calendar) and 5.5 (current streak) are complete; awaiting approval before 5.6 (longest streak). Library progress now uses persisted chapter totals; legacy unknowns and read failures remain unknown. Covered-book deletion now uses safe queued cleanup.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Milestone 3 (tasks 3.1–3.12) is complete for the current editor and commit-based recovery; Tasks 4.1 (committed book word-count aggregation), 4.2 (daily goal configuration/display) 4.3 (total word goals and derived achievement) 4.4 (local-calendar deadlines) 4.5 (required writing pace calculation) 4.6 (progress presentation) and 4.7 (calculation coverage review) are complete; Milestone 4 acceptance is verified; tasks 5.1 (activity record design), 5.2 (atomic activity recording) 5.3 (daily statistics) 5.4 (activity calendar) 5.5 (current streak) and 5.6 (longest recorded streak) are complete; awaiting approval before 5.7 (preferred writing days). Library progress now uses persisted chapter totals; legacy unknowns and read failures remain unknown. Covered-book deletion now uses safe queued cleanup.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -89,7 +89,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [x]  | 5.3 | Calculate daily statistics        | Completed (2026-10-28) | 5.2          | Daily totals and historical goal snapshots aggregate correctly      |
 | [x]  | 5.4 | Create activity calendar          | Completed (2026-10-28) | 5.3          | Intensity and inspectable day details reflect actual records        |
 | [x]  | 5.5 | Calculate current streak          | Completed (2026-10-28) | 5.4          | Scheduled-day grace rules pass tests                                |
-| [ ]  | 5.6 | Calculate longest streak          | Not started            | 5.5          | Historical longest streak passes schedule edge cases                |
+| [x]  | 5.6 | Calculate longest streak          | Completed (2026-10-28) | 5.5          | Historical longest streak passes schedule edge cases                |
 | [ ]  | 5.7 | Support preferred writing days    | Not started            | 5.6          | Schedule changes preserve historical interpretation                 |
 | [ ]  | 5.8 | Test date and timezone edge cases | Not started            | 5.7          | Midnight, DST and timezone changes covered                          |
 
@@ -133,6 +133,13 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [ ]  | 8.10 | Tag version 1.0.0           | Not started | 8.9          | Release gates pass and explicit authorization obtained before Git mutation |
 
 ## Historical verification evidence
+
+## Verification evidence: 5.6
+
+- Added read-only longest-record history calculation and validated IPC/service. It shares daily goal qualification, counts a global date once, skips confirmed scoped rest, splits unknown dates and keeps the earliest tie. All recorded history is scanned in 366-day pages under one snapshot; no schema or persistence writes.
+- Separate library/calendar card shows the maximum, completed date interval and history start, with lower-bound/insufficient-history and independent loading/error states. Current refresh, scope, activation and local-midnight triggers update both metrics; month navigation does not alter the record.
+- All 717 Vitest tests (52 files), 103 Rust tests and 154 Edge cases passed. Coverage includes historical maxima after misses, today completion, ties, missing/unconfigured/import-only history, scoped rest, leap dates, retained sources, 400-day paging/reopen, DTO invariants, loading/error/retry, stale responses, 320/1100px, 200% text and axe. Lint, format:check, strict TypeScript/build, Cargo fmt/Clippy and diff checks passed.
+- Disposable databases and test-only IPC fixtures only. No real writing was modified and no new native GUI/manual screen-reader observation is claimed. See [STREAKS.md](STREAKS.md). Next: 5.7, awaiting approval.
 
 ## Verification evidence: 5.5
 

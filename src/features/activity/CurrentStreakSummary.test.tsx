@@ -1,10 +1,13 @@
 import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, expect, test, vi } from 'vitest'
-import { getCurrentStreak } from '../../services/activity'
+import { getCurrentStreak, getLongestStreak } from '../../services/activity'
 import { CurrentStreakSummary } from './CurrentStreakSummary'
 import type { CurrentStreak } from './current-streak'
-vi.mock('../../services/activity', () => ({ getCurrentStreak: vi.fn() }))
+vi.mock('../../services/activity', () => ({
+  getLongestStreak: vi.fn(),
+  getCurrentStreak: vi.fn(),
+}))
 vi.mock('../../hooks/useLocalCalendarDate', () => ({
   useLocalCalendarDate: () => '2026-10-28',
 }))
@@ -21,6 +24,7 @@ const value: CurrentStreak = {
 }
 beforeEach(() => {
   vi.resetAllMocks()
+  vi.mocked(getLongestStreak).mockRejectedValue({ code: 'persistence' })
   vi.mocked(getCurrentStreak).mockResolvedValue(value)
 })
 
