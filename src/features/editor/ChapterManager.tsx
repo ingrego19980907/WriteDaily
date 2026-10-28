@@ -1,9 +1,11 @@
 import { BookDeadline } from '../library/BookDeadline'
+import { WritingPace } from '../library/WritingPace'
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { en } from '../../app/i18n/en'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
-import { listChapters } from '../../services/chapters'
+import { listChapters, reorderChapters } from '../../services/chapters'
+import { ChapterOrderControls } from './ChapterOrderControls'
 import type { Book } from '../library/book'
 import { BookProgress } from '../library/BookProgress'
 import { DailyGoal } from '../library/DailyGoal'
@@ -36,6 +38,10 @@ export function ChapterManager({
   const [failure, setFailure] = useState('')
   const [desktopOnly, setDesktopOnly] = useState(false)
   const [notice, setNotice] = useState('')
+  const [orderFailure, setOrderFailure] = useState('')
+  const [dragging, setDragging] = useState<string | null>(null)
+  const [dropTarget, setDropTarget] = useState<string | null>(null)
+  const orderPending = useRef(false)
   const request = useRef(0)
   const heading = useRef<HTMLHeadingElement>(null)
   const retry = useRef<HTMLButtonElement>(null)
@@ -48,6 +54,7 @@ export function ChapterManager({
         setChapters(result)
         setLoaded(true)
         setFailure('')
+        setOrderFailure('')
         setDesktopOnly(false)
         setLoading(false)
         return true
@@ -81,6 +88,48 @@ export function ChapterManager({
   function operationPending(next: boolean) {
     setPending(next)
     if (next) setNotice('')
+  }
+  async function moveChapter(id: string, targetIndex: number) {
+    if (disabled || orderPending.current) return
+    const from = chapters.findIndex((chapter) => chapter.id === id)
+    if (
+      from < 0 ||
+      from === targetIndex ||
+      targetIndex < 0 ||
+      targetIndex >= chapters.length
+    )
+      return
+    const next = [...chapters]
+    next.splice(targetIndex, 0, ...next.splice(from, 1))
+    orderPending.current = true
+    setPending(true)
+    setOrderFailure('')
+    setNotice(copy.orderSaving)
+    const token = ++request.current
+    try {
+      const committed = await reorderChapters(book.id, {
+        expected: chapters.map(({ id, revision }) => ({ id, revision })),
+        chapterIds: next.map((chapter) => chapter.id),
+      })
+      if (token !== request.current) return
+      setChapters(committed)
+      setNotice(copy.orderSaved)
+      // The moved control may become disabled at a boundary; focus its row.
+      requestAnimationFrame(() =>
+        document.getElementById(`chapter-${id}`)?.focus(),
+      )
+    } catch (error: unknown) {
+      if (token !== request.current) return
+      setNotice('')
+      setOrderFailure(
+        chapterErrorCode(error) === 'conflict'
+          ? copy.orderConflict
+          : chapterFailure(error, copy.orderFailure),
+      )
+    } finally {
+      orderPending.current = false
+      if (token === request.current) setPending(false)
+    }
   }
   function saved(chapter: ChapterSummary, created: boolean) {
     setChapters((previous) =>
@@ -126,6 +175,12 @@ export function ChapterManager({
             targetWordCount={book.targetWordCount}
           />
         )}
+        <WritingPace
+          wordCount={bookWordCount}
+          targetWordCount={book.targetWordCount}
+          deadline={book.deadline}
+          completed={book.completedAt !== null}
+        />
         <Button variant="secondary" onClick={onBack}>
           {en.library.backToLibrary}
         </Button>
@@ -134,24 +189,50 @@ export function ChapterManager({
         <h2 ref={heading} tabIndex={-1} className="font-writing text-writing">
           {copy.heading}
         </h2>
-        <ChapterTitleDialog
-          bookId={book.id}
-          disabled={disabled}
-          onPending={operationPending}
-          onSaved={saved}
-          onCommittedClose={() => heading.current?.focus()}
-        />
+        <div className="flex flex-wrap items-center gap-2">
+          <ChapterTitleDialog
+            bookId={book.id}
+            disabled={disabled}
+            onPending={operationPending}
+            onSaved={saved}
+            onCommittedClose={() => heading.current?.focus()}
+          />
+          <Button
+            variant="ghost"
+            className="h-11 w-11 shrink-0 p-2"
+            aria-label={copy.refresh}
+            title={copy.refresh}
+            disabled={loading || pending}
+            onClick={() => {
+              setLoading(true)
+              void load()
+            }}
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path d="M20 5v5h-5M20 10a8 8 0 1 0-1 8" />
+            </svg>
+          </Button>
+        </div>
       </div>
-      <Button
-        variant="ghost"
-        disabled={loading || pending}
-        onClick={() => {
-          setLoading(true)
-          void load()
-        }}
-      >
-        {copy.refresh}
-      </Button>
+      {chapters.length > 1 && (
+        <p className="text-secondary text-sm">{copy.orderHint}</p>
+      )}
+      {orderFailure && (
+        <p role="alert" className="text-error break-words">
+          {orderFailure}
+        </p>
+      )}
       <p className="text-secondary">{copy.pending}</p>
       <p role="status" className="break-words">
         {notice}
@@ -195,19 +276,66 @@ export function ChapterManager({
         )}
         {chapters.length > 0 && (
           <ol aria-label={copy.heading} className="space-y-3">
-            {chapters.map((chapter) => (
-              <li key={chapter.id}>
+            {chapters.map((chapter, index) => (
+              <li
+                key={chapter.id}
+                onDragOver={(event) => {
+                  if (!disabled && dragging && dragging !== chapter.id) {
+                    event.preventDefault()
+                    event.dataTransfer.dropEffect = 'move'
+                    setDropTarget(chapter.id)
+                  }
+                }}
+                onDrop={(event) => {
+                  if (!dragging || disabled) return
+                  event.preventDefault()
+                  const id = dragging
+                  setDragging(null)
+                  setDropTarget(null)
+                  void moveChapter(id, index)
+                }}
+                className={
+                  dropTarget === chapter.id
+                    ? 'outline-2 outline-accent-strong rounded-xl'
+                    : ''
+                }
+              >
                 <Card
                   role="group"
                   aria-labelledby={`chapter-${chapter.id}`}
                   className="space-y-3"
                 >
-                  <h3
-                    id={`chapter-${chapter.id}`}
-                    className="font-writing text-writing break-words"
-                  >
-                    {chapter.title}
-                  </h3>
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <h3
+                      id={`chapter-${chapter.id}`}
+                      tabIndex={-1}
+                      className="min-w-0 flex-1 font-writing text-writing break-words"
+                    >
+                      {chapter.title}
+                    </h3>
+                    <ChapterOrderControls
+                      title={chapter.title}
+                      disabled={disabled}
+                      first={index === 0}
+                      last={index === chapters.length - 1}
+                      onMove={(direction) =>
+                        void moveChapter(chapter.id, index + direction)
+                      }
+                      onDragStart={(event) => {
+                        if (disabled || orderPending.current) {
+                          event.preventDefault()
+                          return
+                        }
+                        event.dataTransfer.effectAllowed = 'move'
+                        event.dataTransfer.setData('text/plain', chapter.id)
+                        setDragging(chapter.id)
+                      }}
+                      onDragEnd={() => {
+                        setDragging(null)
+                        setDropTarget(null)
+                      }}
+                    />
+                  </div>
                   <div className="flex flex-wrap gap-3">
                     <Suspense
                       fallback={

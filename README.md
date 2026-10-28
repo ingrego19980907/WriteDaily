@@ -262,3 +262,7 @@ Deadlines (4.4) appear on cards and editor book headers using local-calendar mis
 Task 4.4 verification: 597 Vitest, 130 Edge and 74 Rust tests passed, including local-midnight/timezone interpretation, retained deadline drafts, native reopen/removal and completed-book presentation.
 
 Required writing pace (4.5): the pure calculation handles inclusive scheduled days, rounded-up words/day, missing configuration, unknown totals, overdue dates and reached/completed books. See [writing pace](docs/WRITING_PACE.md). Presentation follows in 4.6; preferred-day configuration follows in 5.7.
+
+Writing pace presentation (4.6): library cards and editor headers now show the required words per writing day and available days, with missing/unknown/overdue/reached/completed guidance. Values use committed totals and refresh across local midnight. See [writing pace](docs/WRITING_PACE.md#presentation-46). Next: 4.7 (calculation coverage review).
+
+Milestone 4 is complete through 4.7. The calculation review adds cross-domain goal/deadline/pace tests and independent schedule/rate checks; see [calculation test review](docs/GOAL_CALCULATION_TESTS.md). Next: 5.1 (activity record design).

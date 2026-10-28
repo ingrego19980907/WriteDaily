@@ -118,6 +118,18 @@ export const en = {
     deadlineUnavailable: 'Deadline unavailable',
     deadlineToday: 'Due today',
     deadlineCompleted: 'Book completed',
+    writingPace: 'Required writing pace',
+    paceSummary: (words: string, count: number) =>
+      `${words} ${count === 1 ? 'word' : 'words'} per writing day`,
+    paceDays: (days: string, count: number) =>
+      `${days} writing ${count === 1 ? 'day' : 'days'} available, including today and the deadline when scheduled.`,
+    paceCompleted: 'Book completed. No writing pace needed.',
+    paceUnavailable: 'Writing pace unavailable.',
+    paceNoTarget: 'Set a total word target to calculate your pace.',
+    paceNoDeadline: 'Set a deadline to calculate your pace.',
+    paceOverdue: 'Deadline passed. Choose a new date to calculate your pace.',
+    paceNoWritingDays: 'No scheduled writing days remain before the deadline.',
+    paceTargetReached: 'Word target reached. No additional words needed.',
     deadlineRemaining: (days: string, count: number) =>
       `${days} ${count === 1 ? 'day' : 'days'} left`,
     deadlineOverdue: (days: string, count: number) =>
@@ -169,6 +181,17 @@ export const en = {
       'Could not load the chapters. Existing rows are kept. Retry before making changes.',
     retry: 'Retry loading chapters',
     refresh: 'Reload chapters',
+    dragChapter: 'Drag to reorder chapter',
+    orderHint:
+      'Drag the dotted handle to reorder chapters, or use the up and down buttons.',
+    moveUp: (title: string) => `Move chapter up: ${title}`,
+    moveDown: (title: string) => `Move chapter down: ${title}`,
+    orderSaving: 'Saving chapter order...',
+    orderSaved: 'Chapter order saved.',
+    orderFailure:
+      'Could not save the chapter order. The displayed order is unchanged. Try again or reload chapters.',
+    orderConflict:
+      'Chapters changed elsewhere. Reload chapters before reordering again.',
     missingList:
       'This book is no longer available. Return to the library and load it again.',
     desktop: 'Open the desktop app to manage saved chapters.',

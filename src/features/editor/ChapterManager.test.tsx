@@ -1,4 +1,11 @@
-import { act, render, screen, waitFor, within } from '@testing-library/react'
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, expect, test, vi } from 'vitest'
 import { en } from '../../app/i18n/en'
@@ -8,6 +15,7 @@ import {
   getChapter,
   listChapters,
   renameChapter,
+  reorderChapters,
 } from '../../services/chapters'
 import { createEmptyChapterContent } from './chapter-content'
 import type { Chapter, ChapterSummary } from './chapter'
@@ -20,6 +28,7 @@ vi.mock('../../services/chapters', () => ({
   getChapter: vi.fn(),
   listChapters: vi.fn(),
   renameChapter: vi.fn(),
+  reorderChapters: vi.fn(),
 }))
 const copy = en.chapters
 const book: Book = {
@@ -364,4 +373,105 @@ test('opening an untouched rename form uses a newly loaded title and position re
     expectedRevision: 8,
     details: { title: 'New title' },
   })
+})
+
+test('reorder waits for commit, serializes moves and uses the full revision vector', async () => {
+  const user = userEvent.setup()
+  let commit!: (rows: ChapterSummary[]) => void
+  vi.mocked(reorderChapters).mockReturnValue(
+    new Promise((resolve) => {
+      commit = resolve
+    }),
+  )
+  mount()
+  await screen.findByRole('list')
+  const originalFirst = row(0)
+  const originalSecond = row(1)
+  expect(
+    within(originalFirst).getByRole('button', {
+      name: copy.moveUp(first.title),
+    }),
+  ).toBeDisabled()
+  await user.click(
+    within(originalFirst).getByRole('button', {
+      name: copy.moveDown(first.title),
+    }),
+  )
+  expect(reorderChapters).toHaveBeenCalledWith(book.id, {
+    expected: [
+      { id: first.id, revision: 1 },
+      { id: second.id, revision: 1 },
+    ],
+    chapterIds: [second.id, first.id],
+  })
+  expect(row(0)).toBe(originalFirst)
+  expect(screen.queryByText(copy.orderSaved)).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: copy.refresh })).toBeDisabled()
+  await user.click(
+    within(originalSecond).getByRole('button', {
+      name: copy.moveUp(second.title),
+    }),
+  )
+  expect(reorderChapters).toHaveBeenCalledTimes(1)
+  await act(async () =>
+    commit([
+      { ...second, position: 0, revision: 2 },
+      { ...first, position: 1, revision: 2 },
+    ]),
+  )
+  expect(row(0)).toBe(originalSecond)
+  expect(screen.getByText(copy.orderSaved)).toBeVisible()
+  await waitFor(() =>
+    expect(within(originalFirst).getByRole('heading')).toHaveFocus(),
+  )
+})
+
+test.each(['conflict', 'persistence'])(
+  'failed reorder keeps rows and reload permits retry: %s',
+  async (code) => {
+    const user = userEvent.setup()
+    vi.mocked(reorderChapters).mockRejectedValue({ code })
+    mount()
+    await screen.findByRole('list')
+    const originalFirst = row(0)
+    await user.click(
+      within(originalFirst).getByRole('button', {
+        name: copy.moveDown(first.title),
+      }),
+    )
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      code === 'conflict' ? copy.orderConflict : copy.orderFailure,
+    )
+    expect(row(0)).toBe(originalFirst)
+    expect(screen.queryByText(copy.orderSaved)).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: copy.refresh }))
+    await waitFor(() =>
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument(),
+    )
+    expect(listChapters).toHaveBeenCalledTimes(2)
+  },
+)
+
+test('dragging the handle submits an ID permutation; dropping on the same row is a no-op', async () => {
+  vi.mocked(reorderChapters).mockResolvedValue([
+    { ...second, position: 0 },
+    { ...first, position: 1 },
+  ])
+  mount()
+  await screen.findByRole('list')
+  const originalFirst = row(0)
+  const originalSecond = row(1)
+  const dataTransfer = { setData: vi.fn(), effectAllowed: '', dropEffect: '' }
+  fireEvent.dragStart(within(originalFirst).getByTitle(copy.dragChapter), {
+    dataTransfer,
+  })
+  fireEvent.drop(originalFirst, { dataTransfer })
+  expect(reorderChapters).not.toHaveBeenCalled()
+  fireEvent.dragStart(within(originalFirst).getByTitle(copy.dragChapter), {
+    dataTransfer,
+  })
+  fireEvent.dragOver(originalSecond, { dataTransfer })
+  fireEvent.drop(originalSecond, { dataTransfer })
+  await waitFor(() => expect(row(0)).toBe(originalSecond))
+  expect(dataTransfer.setData).toHaveBeenCalledWith('text/plain', first.id)
 })

@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Milestone 3 (tasks 3.1–3.12) is complete for the current editor and commit-based recovery; Tasks 4.1 (committed book word-count aggregation), 4.2 (daily goal configuration/display) 4.3 (total word goals and derived achievement) 4.4 (local-calendar deadlines) and 4.5 (required writing pace calculation) are complete; awaiting approval before 4.6 (progress components). Library progress now uses persisted chapter totals; legacy unknowns and read failures remain unknown. Covered-book deletion now uses safe queued cleanup.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Milestone 3 (tasks 3.1–3.12) is complete for the current editor and commit-based recovery; Tasks 4.1 (committed book word-count aggregation), 4.2 (daily goal configuration/display) 4.3 (total word goals and derived achievement) 4.4 (local-calendar deadlines) 4.5 (required writing pace calculation) 4.6 (progress presentation) and 4.7 (calculation coverage review) are complete; Milestone 4 acceptance is verified; awaiting approval before 5.1 (activity record design). Library progress now uses persisted chapter totals; legacy unknowns and read failures remain unknown. Covered-book deletion now uses safe queued cleanup.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -77,8 +77,8 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [x]  | 4.3 | Implement total word goals      | Completed (2026-10-27) | 4.2          | Optional targets persist and handle completion           |
 | [x]  | 4.4 | Implement deadlines             | Completed (2026-10-27) | 4.3          | Missing, today and overdue dates handled locally         |
 | [x]  | 4.5 | Calculate required writing pace | Completed (2026-10-27) | 4.4          | Scheduled days and nonnegative remaining words handled   |
-| [ ]  | 4.6 | Create progress components      | Not started            | 4.5          | Actual goal results render accessibly                    |
-| [ ]  | 4.7 | Add calculation tests           | Not started            | 4.6          | Missing goals, overdue dates and completed books covered |
+| [x]  | 4.6 | Create progress components      | Completed (2026-10-27) | 4.5          | Actual goal results render accessibly                    |
+| [x]  | 4.7 | Add calculation tests           | Completed (2026-10-27) | 4.6          | Missing goals, overdue dates and completed books covered |
 
 ## Milestone 5: Activity & Streaks
 
@@ -133,6 +133,18 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [ ]  | 8.10 | Tag version 1.0.0           | Not started | 8.9          | Release gates pass and explicit authorization obtained before Git mutation |
 
 ## Historical verification evidence
+
+## Verification evidence: 4.7
+
+- Reviewed aggregation/progress/deadline/pace contracts and added 12 cross-calculation tests for missing goals, overdue dates, explicit completion, unavailable/overflowing totals, recalculation and minimal sufficient integer rates. An independent civil-date oracle adds 21,120 schedule comparisons across all weekday subsets/start weekdays, century boundaries and supported early/late years. No production defect found. See [GOAL_CALCULATION_TESTS.md](GOAL_CALCULATION_TESTS.md).
+- All 621 Vitest tests passed (42 files), plus lint, format:check, strict TypeScript, production build and diff checks. No UI/native/dependency/schema changes; browser/native suites were not repeated for this test-only change. No numerical coverage-percentage claim. Milestone 4 acceptance is verified.
+- Next: 5.1, awaiting approval.
+
+## Verification evidence: 4.6
+
+- Added shared WritingPace to library cards and editor book headers, using committed totals, saved metadata and local-midnight/resume refresh. Shows words per writing day and available days, or distinct missing/unknown/overdue/reached/completed explanations. DailyGoal remains a configured target, not fabricated daily activity. English copy remains centralized.
+- All 609 Vitest tests passed; lint, format:check, strict TypeScript, production build and diff checks passed. Full Edge run passed 131 cases; three new pace cases initially timed out due to test-clock setup. After shortening the simulated interval and resuming timers before axe, all four pace cases passed on rerun: all 134 distinct browser cases now have passing evidence. No production code changes were needed after the full run. See [WRITING_PACE.md](WRITING_PACE.md) and the accessibility review. No native/schema/dependency changes or desktop-startup claim.
+- Next: 4.7, awaiting approval.
 
 ## Verification evidence: 4.5
 

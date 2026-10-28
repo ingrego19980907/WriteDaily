@@ -1,6 +1,6 @@
 # Required writing pace (4.5)
 
-`calculateWritingPace` in `src/features/library/writing-pace.ts` is a pure domain calculation. Callers supply committed book word counts, the optional total target/deadline, explicit completion and today's local calendar date. It performs no persistence, clock reads or UI work. Presentation is task 4.6; preferred-day configuration and history remain task 5.7.
+`calculateWritingPace` in `src/features/library/writing-pace.ts` is a pure domain calculation. Callers supply committed book word counts, the optional total target/deadline, explicit completion and today's local calendar date. It performs no persistence, clock reads or UI work. Presentation is implemented in task 4.6; preferred-day configuration and history remain task 5.7.
 
 For an unfinished book below its target:
 
@@ -16,4 +16,16 @@ Explicit completion takes precedence and suppresses planning, even when counts a
 
 Verification covers inclusive dates, ceiling, weekday selection/deduplication, unavailable days, missing/invalid data, explicit completion, target attainment, safe-integer bounds, leap days, DST boundaries, year rollover and the entire supported date range. No UI, schema, dependency or native persistence changes are included in 4.5.
 
-Checks: all 607 Vitest tests passed (40 files), including 10 pace tests. Every one of the 128 weekday combinations was compared against enumerated dates for 1?22-day intervals crossing leap day. Lint, formatting, strict TypeScript, production build and diff checks passed. Browser and Cargo checks were not rerun because this task changes neither UI nor native persistence.
+Checks: all 607 Vitest tests passed (40 files), including 10 pace tests. Every one of the 128 weekday combinations was compared against enumerated dates for 1-22-day intervals crossing leap day. Lint, formatting, strict TypeScript, production build and diff checks passed. Browser and Cargo checks were not rerun because this task changes neither UI nor native persistence.
+
+## Presentation (4.6)
+
+Shared `WritingPace` renders on library cards and editor book headers. Its labelled group contains a visible title, localized whole-number words per writing day and available scheduled days, with an inclusive-date explanation. Other calculation states render readable guidance without a misleading numeric rate. Singular word/day forms are supported. No live alert or color-only meaning is used.
+
+Both consumers supply committed manuscript totals and persisted metadata; pending/failed edits do not reduce the required pace. Unknown or failed totals stay unavailable. The shared local-date hook refreshes at midnight, focus/resume and on active clock/timezone polling. All days are currently scheduled; there is no preferred-day picker until 5.7. DailyGoal continues to show configuration rather than a daily achievement, since activity recording is Milestone 5.
+
+Verification: 609 Vitest tests passed, including component state transitions and midnight updates. The full Edge run passed 131 cases and exposed test-clock timeouts in three new cases. After limiting the clock jump to a 20-second midnight boundary and resuming timers before axe, all four pace browser cases passed on rerun; all 134 distinct cases have passing evidence. New coverage includes card/header agreement, retained cancelled metadata, committed goal/date changes, missing/overdue/reached/completed/unknown states, 320/640/1100px, 200% text and axe. Lint, formatting, strict TypeScript, production build and diff checks passed. No production changes followed the full run; native persistence is unchanged.
+
+## Calculation review (4.7)
+
+Cross-calculation tests now cover aggregation through pace, missing goals, overdue dates, explicit completion, recalculation and integer-rate invariants. The schedule oracle covers all starting weekdays plus early/late years and leap/non-leap centuries. See [GOAL_CALCULATION_TESTS.md](GOAL_CALCULATION_TESTS.md). Production behavior is unchanged.

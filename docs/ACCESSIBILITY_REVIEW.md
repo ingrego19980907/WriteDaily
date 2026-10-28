@@ -194,3 +194,11 @@ BookDeadline is shared by cards and editor book headers and renders missing/unav
 All 597 Vitest, 130 Edge and 74 Rust tests passed. New coverage includes canonical dates/year bounds, leap/century rules, DST-adjacent day arithmetic, local midnight, focus resume, polling/timer cleanup, invalid clock/data, retained failed metadata drafts, native revision conflicts and date removal/reopen with other goals preserved. Browser workflows cover 320/640/1100px with axe and 200% enlargement, card/header consistency, completed books, local midnight in America/Los_Angeles and the next local day in Asia/Tokyo while UTC is still on the prior date.
 
 Lint, format:check, strict TypeScript/build, Cargo fmt/Clippy and diff checks passed. Existing editor/A4/goal regressions remain passing. No production Rust/API, database migration, dependency or real-library changes. Disposable DB reopen is automated evidence; no native GUI startup/restart or manual screen-reader session was added. Next numbered task is 4.5.
+
+## 4.6 required writing pace
+
+WritingPace is a labelled group with a visible title and readable rate/day count or explanatory state. Information does not depend on color or tooltips; no live announcements repeat on polling. The shared component renders on cards and editor headers from committed totals.
+
+All 609 Vitest tests passed. Full Edge run: 131 passed, with three new cases hitting test-clock timeouts. The test now simulates only the 20-second midnight boundary and resumes timers before axe; all four pace cases passed on rerun, providing passing evidence for all 134 distinct browser cases. Existing editor/A4/autosave regressions passed. New checks cover card/header consistency, cancelled metadata, saved goals/dates, local midnight, unavailable totals, completed books, axe at 320/640/1100px and 200% text reflow. No axe rules were disabled.
+
+Lint, format:check, strict TypeScript/build and diff checks passed. No native persistence changes, desktop startup/restart observation or manual screen-reader review was added. Next numbered task is 4.7.

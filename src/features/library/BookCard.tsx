@@ -1,4 +1,5 @@
 import { BookDeadline } from './BookDeadline'
+import { WritingPace } from './WritingPace'
 import { useId } from 'react'
 import { en } from '../../app/i18n/en'
 import { Card } from '../../components/ui/Card'
@@ -54,6 +55,12 @@ export function BookCard({
           <BookProgress
             wordCount={wordCount}
             targetWordCount={book.targetWordCount}
+          />
+          <WritingPace
+            wordCount={wordCount}
+            targetWordCount={book.targetWordCount}
+            deadline={book.deadline}
+            completed={book.completedAt !== null}
           />
           <div className="book-card__actions">
             {onOpen && (

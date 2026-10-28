@@ -54,6 +54,8 @@ let saveAttempts = 0
 let destroyed = false
 let finishSave: (() => void) | undefined
 let finishRead: (() => void) | undefined
+let finishReorder: (() => void) | undefined
+let reorderAttempts = 0
 let targetReads = 0
 let preferenceReads = 0
 let preferenceWrites = 0
@@ -91,6 +93,7 @@ Object.assign(globalThis, {
   testSaveAttempts: () => saveAttempts,
   testChapterReads: () => [...chapterReads],
   completeTestRead: () => finishRead?.(),
+  completeTestReorder: () => finishReorder?.(),
   completePreferenceSave: () => finishPreferenceSave?.(),
   testPreferenceWrites: () => preferenceWrites,
 })
@@ -156,6 +159,56 @@ mockIPC(
       contentJson: string
     }
     if (args.bookId !== book.id) throw new Error('Unscoped test IPC')
+    if (command === 'reorder_chapters') {
+      const change = payload as {
+        expected: { id: string; revision: number }[]
+        chapterIds: string[]
+      }
+      reorderAttempts++
+      if (scenario === 'reorder-conflict' && reorderAttempts === 1) {
+        chapters = chapters.map((chapter) => ({
+          ...chapter,
+          revision: chapter.revision + 1,
+        }))
+        throw { code: 'conflict' }
+      }
+      if (
+        change.expected.length !== chapters.length ||
+        change.expected.some(
+          (item, position) =>
+            item.id !== chapters[position].id ||
+            item.revision !== chapters[position].revision,
+        )
+      )
+        throw { code: 'conflict' }
+      if (
+        change.chapterIds.length !== chapters.length ||
+        new Set(change.chapterIds).size !== chapters.length ||
+        change.chapterIds.some(
+          (id) => !chapters.some((chapter) => chapter.id === id),
+        )
+      )
+        throw { code: 'validation' }
+      const commit = () => {
+        chapters = change.chapterIds.map((id, position) => {
+          const chapter = chapters.find((item) => item.id === id)!
+          return {
+            ...chapter,
+            position,
+            revision:
+              chapter.position === position
+                ? chapter.revision
+                : chapter.revision + 1,
+          }
+        })
+        return structuredClone(chapters)
+      }
+      if (scenario === 'reorder-pending')
+        return new Promise((resolve) => {
+          finishReorder = () => resolve(commit())
+        })
+      return commit()
+    }
     if (command === 'create_chapter') {
       createAttempts += 1
       if (scenario === 'errors' && createAttempts === 1)

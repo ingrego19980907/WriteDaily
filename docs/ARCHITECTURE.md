@@ -192,3 +192,5 @@ Total goals (4.3): calculateBookProgress derives reached from committed totals a
 Deadlines (4.4): utils/calendar-date holds canonical validation and calendar-day arithmetic; book-deadline derives pure states. useLocalCalendarDate owns midnight/resume/polling lifecycle, while BookDeadline renders committed metadata in cards/headers. No state transition writes to persistence. See [DEADLINES.md](DEADLINES.md).
 
 Task 4.5 adds the pure library-domain `calculateWritingPace`, reusing validated book progress and Gregorian date arithmetic. Callers provide the local date and committed count; no clock, persistence or UI dependencies enter the calculation. Optional weekdays are a calculation input, not a new persisted schedule. See [WRITING_PACE.md](WRITING_PACE.md).
+
+Task 4.6 adds shared `WritingPace` presentation to BookCard and ChapterManager. It combines the pure calculation with `useLocalCalendarDate`, receives existing committed totals/metadata and uses centralized English copy. Existing BookProgress, DailyGoal and BookDeadline keep their distinct meanings; daily activity remains Milestone 5.
