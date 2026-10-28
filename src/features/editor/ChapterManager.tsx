@@ -345,6 +345,7 @@ export function ChapterManager({
                       }
                     >
                       <ChapterEditorDialog
+                        dailyWordGoal={book.dailyWordGoal}
                         bookId={book.id}
                         chapter={chapter}
                         chapters={chapters}

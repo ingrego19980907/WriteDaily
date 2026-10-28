@@ -58,6 +58,7 @@ export function saveChapterContent(
     id,
     expectedRevision: change.expectedRevision,
     contentJson: JSON.stringify(validation.data),
+    activityJson: JSON.stringify(change.activity),
   })
 }
 /** Call only after explicit confirmation of deletion for this loaded snapshot. */

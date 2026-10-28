@@ -1,4 +1,5 @@
 import type { ChapterContent } from './chapter-content'
+import type { ActivitySubmission } from '../activity/activity'
 
 export const CHAPTER_TITLE_MAX_LENGTH = 200
 
@@ -24,6 +25,7 @@ export type ChapterMetadataChange = {
 export type ChapterContentChange = {
   readonly expectedRevision: number
   readonly content: ChapterContent
+  readonly activity: ActivitySubmission
 }
 export type ChapterOrderEntry = {
   readonly id: string

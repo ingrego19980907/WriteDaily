@@ -116,7 +116,7 @@ test('failed autosave pauses until explicit retry, then resumes (test IPC)', asy
   await field.fill('resumed')
   await page.clock.runFor(2000)
   await expect(page.locator('.manuscript-counts')).toContainText('1 saved word')
-  expect(await attempts(page)).toBe(3)
+  expect(await attempts(page)).toBe(4)
 })
 
 test('navigation flushes the debounce once and old timers cannot write the next chapter (test IPC)', async ({

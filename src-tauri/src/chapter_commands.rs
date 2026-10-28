@@ -104,13 +104,15 @@ pub async fn save_chapter_content(
     id: String,
     expected_revision: i64,
     content_json: String,
+    activity_json: String,
 ) -> Result<Chapter, ChapterCommandError> {
     execute(app, move |connection| {
-        ChapterRepository::new(connection).save_content(
+        ChapterRepository::new(connection).save_content_with_activity(
             &book_id,
             &id,
             expected_revision,
             &content_json,
+            &activity_json,
         )
     })
     .await

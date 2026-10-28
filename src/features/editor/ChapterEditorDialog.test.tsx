@@ -113,6 +113,7 @@ test('loads by identity and saves validated real editor JSON only after a commit
   expect(saveChapterContent).toHaveBeenCalledWith('book', 'chapter', {
     expectedRevision: 4,
     content: expect.objectContaining({ schemaVersion: 1 }),
+    activity: expect.objectContaining({ policyVersion: 1, origin: 'editor' }),
   })
   expect(field).toHaveAttribute('contenteditable', 'false')
   expect(screen.queryByText(copy.saved)).not.toBeInTheDocument()
@@ -654,24 +655,38 @@ test.each(['persistence', 'conflict', 'not_found', 'invalid_stored_data'])(
     const button = screen.getByRole('button', { name: copy.save })
     if (code === 'persistence') {
       expect(button).toBeEnabled()
-      vi.mocked(saveChapterContent).mockResolvedValue({
-        ...chapter,
-        revision: 5,
-      })
+      vi.mocked(saveChapterContent).mockImplementation(
+        async (_book, _chapter, change) => ({
+          ...chapter,
+          revision: change.expectedRevision + 1,
+          content: change.content,
+        }),
+      )
       await act(async () => {
         fireEvent.click(button)
       })
+      expect(vi.mocked(saveChapterContent).mock.calls[1][2]).toEqual(
+        vi.mocked(saveChapterContent).mock.calls[0][2],
+      )
+      expect(
+        vi.mocked(saveChapterContent).mock.calls[2][2].activity.operationId,
+      ).not.toBe(
+        vi.mocked(saveChapterContent).mock.calls[0][2].activity.operationId,
+      )
+      expect(
+        vi.mocked(saveChapterContent).mock.calls[2][2].expectedRevision,
+      ).toBe(5)
       act(() => {
         editor.commands.insertContent({ type: 'text', text: ' retry resumes' })
       })
       await act(async () => {
         await vi.advanceTimersByTimeAsync(2000)
       })
-      expect(saveChapterContent).toHaveBeenCalledTimes(3)
+      expect(saveChapterContent).toHaveBeenCalledTimes(4)
       expect(saveChapterContent).toHaveBeenLastCalledWith(
         'book',
         'chapter',
-        expect.objectContaining({ expectedRevision: 5 }),
+        expect.objectContaining({ expectedRevision: 6 }),
       )
     } else expect(button).toBeDisabled()
   },

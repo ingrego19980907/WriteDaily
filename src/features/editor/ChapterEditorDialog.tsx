@@ -18,6 +18,7 @@ export function ChapterEditorDialog({
   disabled,
   onPending,
   onSaved,
+  dailyWordGoal = null,
 }: {
   bookId: string
   chapter: ChapterSummary
@@ -25,6 +26,7 @@ export function ChapterEditorDialog({
   disabled: boolean
   onPending: (pending: boolean) => void
   onSaved: (chapter: ChapterSummary) => void
+  dailyWordGoal?: number | null
 }) {
   const [open, setOpen] = useState(false)
   const [loaded, setLoaded] = useState<{
@@ -294,6 +296,7 @@ export function ChapterEditorDialog({
         <ManuscriptEditor
           key={loaded.chapter.id}
           chapter={loaded.chapter}
+          dailyWordGoal={dailyWordGoal}
           document={loaded.document}
           canCloseRef={canClose}
           onClose={close}

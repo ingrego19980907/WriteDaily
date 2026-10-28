@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Milestone 3 (tasks 3.1–3.12) is complete for the current editor and commit-based recovery; Tasks 4.1 (committed book word-count aggregation), 4.2 (daily goal configuration/display) 4.3 (total word goals and derived achievement) 4.4 (local-calendar deadlines) 4.5 (required writing pace calculation) 4.6 (progress presentation) and 4.7 (calculation coverage review) are complete; Milestone 4 acceptance is verified; task 5.1 (activity record design) is complete; awaiting approval before 5.2 (atomic activity recording). Library progress now uses persisted chapter totals; legacy unknowns and read failures remain unknown. Covered-book deletion now uses safe queued cleanup.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Milestone 3 (tasks 3.1–3.12) is complete for the current editor and commit-based recovery; Tasks 4.1 (committed book word-count aggregation), 4.2 (daily goal configuration/display) 4.3 (total word goals and derived achievement) 4.4 (local-calendar deadlines) 4.5 (required writing pace calculation) 4.6 (progress presentation) and 4.7 (calculation coverage review) are complete; Milestone 4 acceptance is verified; tasks 5.1 (activity record design), 5.2 (atomic activity recording) and 5.3 (daily statistics) are complete; awaiting approval before 5.4 (activity calendar). Library progress now uses persisted chapter totals; legacy unknowns and read failures remain unknown. Covered-book deletion now uses safe queued cleanup.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -85,8 +85,8 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | Done | ID  | Description                       | Status                 | Dependencies | Acceptance criteria                                                 |
 | ---- | --- | --------------------------------- | ---------------------- | ------------ | ------------------------------------------------------------------- |
 | [x]  | 5.1 | Design activity records           | Completed (2026-10-28) | 4.7          | Paste, deletion, imports, local days and retention policy finalized |
-| [ ]  | 5.2 | Record writing sessions/activity  | Not started            | 5.1          | Content and idempotent activity commit atomically                   |
-| [ ]  | 5.3 | Calculate daily statistics        | Not started            | 5.2          | Daily totals and historical goal snapshots aggregate correctly      |
+| [x]  | 5.2 | Record writing sessions/activity  | Completed (2026-10-28) | 5.1          | Content and idempotent activity commit atomically                   |
+| [x]  | 5.3 | Calculate daily statistics        | Completed (2026-10-28) | 5.2          | Daily totals and historical goal snapshots aggregate correctly      |
 | [ ]  | 5.4 | Create activity calendar          | Not started            | 5.3          | Intensity and inspectable day details reflect actual records        |
 | [ ]  | 5.5 | Calculate current streak          | Not started            | 5.4          | Scheduled-day grace rules pass tests                                |
 | [ ]  | 5.6 | Calculate longest streak          | Not started            | 5.5          | Historical longest streak passes schedule edge cases                |
@@ -133,6 +133,19 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [ ]  | 8.10 | Tag version 1.0.0           | Not started | 8.9          | Release gates pass and explicit authorization obtained before Git mutation |
 
 ## Historical verification evidence
+
+## Verification evidence: 5.3
+
+- Added read-only native daily-statistics aggregation and registered get_daily_statistics IPC plus validated frontend types/service. Inclusive 1-366-day ranges return ordered local dates with zero gaps, editor added/deleted/credited words, distinct per-day save counts, active flags and separate sealed per-book goal results. Global retained history includes detached sources; book scope requires a live book. Current settings/manuscript counts never fabricate historical goals or credit. See [DAILY_STATISTICS.md](DAILY_STATISTICS.md).
+- All 662 Vitest tests passed (46 files), including 20 new domain/service cases; all 92 Rust tests passed, including nine disposable-database statistics cases. Lint, format:check, typecheck/build, Cargo fmt/Clippy and diff checks passed. Tests cover reopen, goal changes, imports/deletions, source retention, local dates, duplicate-segment save counting, overflow, malformed rows/missing plans and uncommitted writes.
+- No schema/dependency/UI changes, real-library operations or new desktop GUI observation. Calendar presentation remains 5.4; no new browser run was needed for this read/calculation-only task. Next: 5.4, awaiting approval.
+
+## Verification evidence: 5.2
+
+- Added append-only migration 005/schema v5 for unique operation receipts, activity segments and sealed day plans. Production content IPC now requires bounded activity JSON and atomically persists content/count/revision plus activity. Native SHA-256 semantic fingerprints recognize committed retries before stale-revision checks; changed/advanced/deleted sources never overwrite newer writing. Live references detach on deletion; history remains.
+- Added edit-time capture with local-day/timezone/offset/goal boundaries, a stable frozen save payload and separately queued post-failure edits. Existing autosave/manual/Ctrl+S/navigation/close behavior uses the same path. Legacy NULL baselines are counted from stored content; migration creates no historical credit. No activity statistics UI or duration tracking. See [ACTIVITY_MODEL.md](ACTIVITY_MODEL.md).
+- All 642 Vitest, 142 Edge and 83 Rust tests passed, plus lint, format:check, typecheck/build, Cargo fmt/Clippy and diff checks. Coverage includes upgrade/reopen, exactly-once retry, changed payloads, concurrent stale writes, failed/deferred commits, retention, midnight and lost-response recovery. All databases are disposable; no real-library or new desktop startup/restart claim. sha2 0.10.9 was promoted from the existing lockfile after official API compatibility review.
+- Next: 5.3, awaiting approval.
 
 ## Verification evidence: 5.1
 

@@ -16,6 +16,7 @@ import type {
   ChapterDetails,
 } from '../../src/features/editor/chapter'
 import type { Book } from '../../src/features/library/book'
+import type { ActivitySubmission } from '../../src/features/activity/activity'
 
 const book: Book = {
   id: '8af2b704-45bc-4e41-8e25-d12f427da441',
@@ -51,6 +52,12 @@ let createAttempts = 0
 let renameAttempts = 0
 let deleteAttempts = 0
 let saveAttempts = 0
+const activityReceipts = new Map<
+  string,
+  { fingerprint: string; revision: number }
+>()
+const activityEvents: ActivitySubmission[] = []
+const activityRequests: ActivitySubmission[] = []
 let destroyed = false
 let finishSave: (() => void) | undefined
 let finishRead: (() => void) | undefined
@@ -81,7 +88,7 @@ if (requestedScenario?.startsWith('goal-')) {
   chapters = chapters.map((chapter) => ({ ...chapter, wordCount: 0 }))
   manuscripts.clear()
 }
-if (scenario?.startsWith('book-count-')) {
+if (scenario?.startsWith('book-count-') || scenario?.startsWith('activity-')) {
   chapters = chapters.map((chapter) => ({ ...chapter, wordCount: 0 }))
   for (const chapter of chapters)
     manuscripts.set(chapter.id, createEmptyChapterContent())
@@ -93,6 +100,8 @@ Object.assign(globalThis, {
   testWindowDestroyed: () => destroyed,
   completeTestSave: () => finishSave?.(),
   testSaveAttempts: () => saveAttempts,
+  testActivityEvents: () => structuredClone(activityEvents),
+  testActivityRequests: () => structuredClone(activityRequests),
   testChapterReads: () => [...chapterReads],
   completeTestRead: () => finishRead?.(),
   completeTestReorder: () => finishReorder?.(),
@@ -159,6 +168,7 @@ mockIPC(
       expectedRevision: number
       confirmed: boolean
       contentJson: string
+      activityJson: string
     }
     if (args.bookId !== book.id) throw new Error('Unscoped test IPC')
     if (command === 'reorder_chapters') {
@@ -268,6 +278,30 @@ mockIPC(
     }
     if (command === 'save_chapter_content') {
       saveAttempts += 1
+      const activity = JSON.parse(args.activityJson) as ActivitySubmission
+      if (
+        activity.policyVersion !== 1 ||
+        !activity.operationId ||
+        !activity.segments.length
+      )
+        throw { code: 'validation' }
+      activityRequests.push(structuredClone(activity))
+      const fingerprint = JSON.stringify([
+        args.bookId,
+        args.id,
+        args.expectedRevision,
+        args.contentJson,
+        activity,
+      ])
+      const receipt = activityReceipts.get(activity.operationId)
+      if (receipt) {
+        if (
+          receipt.fingerprint !== fingerprint ||
+          receipt.revision !== chapters[index].revision
+        )
+          throw { code: 'conflict' }
+        return { ...chapters[index], content: manuscripts.get(args.id) }
+      }
       if (scenario === 'editor-conflict') throw { code: 'conflict' }
       if (
         (scenario === 'editor-failure' || scenario === 'book-count-failure') &&
@@ -285,12 +319,25 @@ mockIPC(
           wordCount: countChapterWords(result.data),
         }
         manuscripts.set(args.id, result.data)
+        activityEvents.push(structuredClone(activity))
+        activityReceipts.set(activity.operationId, {
+          fingerprint,
+          revision: chapters[index].revision,
+        })
         return { ...chapters[index], content: result.data }
       }
-      if (scenario === 'editor-pending' || scenario === 'book-count-pending')
+      if (
+        scenario === 'editor-pending' ||
+        scenario === 'book-count-pending' ||
+        scenario === 'activity-pending'
+      )
         return new Promise((resolve) => {
           finishSave = () => resolve(commit())
         })
+      if (scenario === 'activity-lost-response' && saveAttempts === 1) {
+        commit()
+        throw { code: 'persistence' }
+      }
       return commit()
     }
     if (command === 'rename_chapter') {

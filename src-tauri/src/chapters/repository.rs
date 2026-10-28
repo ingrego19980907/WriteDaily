@@ -238,6 +238,7 @@ impl<'connection> ChapterRepository<'connection> {
     }
 
     /// Raw bounded JSON envelope, not a client snapshot or caller-supplied word count.
+    #[cfg(test)]
     pub fn save_content(
         &mut self,
         book_id: &str,
@@ -247,6 +248,54 @@ impl<'connection> ChapterRepository<'connection> {
     ) -> Result<Chapter, ChapterError> {
         let content = ChapterContent::parse(raw)?;
         self.update(book_id, chapter_id, expected_revision, None, Some(content))
+    }
+
+    pub fn save_content_with_activity(
+        &mut self,
+        book_id: &str,
+        chapter_id: &str,
+        expected_revision: i64,
+        raw: &str,
+        activity_raw: &str,
+    ) -> Result<Chapter, ChapterError> {
+        id(book_id)?;
+        id(chapter_id)?;
+        revision(expected_revision)?;
+        let content = ChapterContent::parse(raw)?;
+        let activity = super::activity::Submission::parse(activity_raw)?;
+        let digest = activity.digest(book_id, chapter_id, expected_revision, &content)?;
+        let tx = self
+            .connection
+            .transaction_with_behavior(TransactionBehavior::Immediate)?;
+        // A committed retry must be recognized before checking the old revision.
+        if let Some(committed_revision) = activity.receipt(&tx, &digest)? {
+            if expected_revision.checked_add(1) != Some(committed_revision) {
+                return Err(ChapterError::InvalidStoredData);
+            }
+            let current = load(&tx, book_id, chapter_id)?;
+            if current.summary.revision != committed_revision {
+                return Err(ChapterError::Conflict);
+            }
+            if current.content != content {
+                return Err(ChapterError::InvalidStoredData);
+            }
+            tx.commit()?;
+            return Ok(current);
+        }
+        list(&tx, book_id)?;
+        let current = load(&tx, book_id, chapter_id)?;
+        expected(&current.summary, expected_revision)?;
+        activity.check_endpoints(current.content.word_count(), content.word_count())?;
+        let (next_revision, time) = next(&current.summary)?;
+        let (version, document) = content.storage()?;
+        let changed = tx.execute("UPDATE chapters SET content_schema_version=?1, content_json=?2, word_count=?3, revision=?4, updated_at=?5 WHERE book_id=?6 AND id=?7 AND revision=?8", params![version,document,content.word_count(),next_revision,time,book_id,chapter_id,expected_revision])?;
+        if changed != 1 {
+            return Err(ChapterError::Conflict);
+        }
+        activity.persist(&tx, book_id, chapter_id, expected_revision, &digest, &time)?;
+        let chapter = load(&tx, book_id, chapter_id)?;
+        tx.commit()?;
+        Ok(chapter)
     }
 
     fn update(

@@ -8,11 +8,13 @@ const INITIAL_SCHEMA: &str = include_str!("../../migrations/001_books.sql");
 const COVER_SCHEMA: &str = include_str!("../../migrations/002_cover_cleanup.sql");
 const CHAPTER_SCHEMA: &str = include_str!("../../migrations/003_chapters.sql");
 const PREFERENCE_SCHEMA: &str = include_str!("../../migrations/004_editor_preferences.sql");
+const ACTIVITY_SCHEMA: &str = include_str!("../../migrations/005_writing_activity.sql");
 const MIGRATION_STEPS: &[M<'static>] = &[
     M::up(INITIAL_SCHEMA),
     M::up(COVER_SCHEMA),
     M::up(CHAPTER_SCHEMA),
     M::up(PREFERENCE_SCHEMA),
+    M::up(ACTIVITY_SCHEMA),
 ];
 const MIGRATIONS: Migrations<'static> = Migrations::from_slice(MIGRATION_STEPS);
 
@@ -46,6 +48,13 @@ pub fn open(data_directory: &Path) -> Result<Database, DatabaseError> {
     connection.prepare("SELECT id, book_id, title, position, content_schema_version, content_json, word_count, revision, created_at, updated_at FROM chapters LIMIT 0")?;
     connection.prepare(
         "SELECT id, schema_version, font_size, revision FROM editor_preferences LIMIT 0",
+    )?;
+    connection.prepare(
+        "SELECT operation_id, payload_digest, committed_revision FROM activity_operations LIMIT 0",
+    )?;
+    connection.prepare("SELECT operation_id, segment_index, credited_words, local_date FROM writing_activity LIMIT 0")?;
+    connection.prepare(
+        "SELECT source_book_id, local_date, daily_word_goal FROM activity_day_plans LIMIT 0",
     )?;
     Ok(Mutex::new(connection))
 }

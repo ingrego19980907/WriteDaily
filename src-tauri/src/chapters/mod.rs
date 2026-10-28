@@ -1,3 +1,4 @@
+mod activity;
 mod content;
 mod repository;
 mod word_count;
@@ -56,6 +57,8 @@ pub enum ChapterError {
     Database(#[from] rusqlite::Error),
 }
 
+#[cfg(test)]
+mod activity_tests;
 #[cfg(test)]
 mod tests;
 #[cfg(test)]

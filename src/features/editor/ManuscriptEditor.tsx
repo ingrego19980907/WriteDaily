@@ -14,7 +14,12 @@ import { en } from '../../app/i18n/en'
 import { Button } from '../../components/ui/Button'
 import { saveChapterContent } from '../../services/chapters'
 import { protectWritingClose } from '../../services/writing-close'
-import type { Chapter, ChapterSummary } from './chapter'
+import type { Chapter, ChapterSummary, ChapterContentChange } from './chapter'
+import {
+  ActivityRecorder,
+  captureActivityContext,
+  ACTIVITY_FLUSH_SEGMENTS,
+} from '../activity/activity-recorder'
 import { chapterErrorCode } from './chapter-errors'
 import {
   chapterExtensions,
@@ -47,10 +52,12 @@ export function ManuscriptEditor({
   formattingTarget,
   footerTarget,
   preview = false,
+  dailyWordGoal = null,
 }: {
   formattingTarget?: HTMLDivElement | null
   footerTarget?: HTMLDivElement | null
   preview?: boolean
+  dailyWordGoal?: number | null
   chapter: Chapter
   document: JSONContent
   canCloseRef: RefObject<() => boolean>
@@ -88,6 +95,15 @@ export function ManuscriptEditor({
   const dirtyRef = useRef(false)
   const savingRef = useRef(false)
   const revision = useRef(chapter.revision)
+  const [activity] = useState(
+    () => new ActivityRecorder(countChapterWords(chapter.content)),
+  )
+  const frozenSave = useRef<ChapterContentChange | null>(null)
+  const goalRef = useRef(dailyWordGoal)
+  useEffect(() => {
+    goalRef.current = dailyWordGoal
+  }, [dailyWordGoal])
+  const flushRef = useRef<() => void>(() => {})
   const hintId = useId()
   const rootRef = useRef<HTMLDivElement>(null)
   const headingRef = useRef<HTMLHeadingElement>(null)
@@ -141,9 +157,25 @@ export function ManuscriptEditor({
       },
     },
     onUpdate({ editor: current }) {
-      setWordCount(
-        countChapterWords(serializeEditorDocument(current.getJSON())),
+      const count = countChapterWords(
+        serializeEditorDocument(current.getJSON()),
       )
+      setWordCount(count)
+      try {
+        const now = new Date()
+        activity.record(
+          count,
+          captureActivityContext(goalRef.current, now),
+          now,
+        )
+        if (activity.size >= ACTIVITY_FLUSH_SEGMENTS) {
+          current.setEditable(false, false)
+          queueMicrotask(() => flushRef.current())
+        }
+      } catch {
+        setFatal(true)
+        setFailure(copy.activityFailure)
+      }
       dirtyRef.current = true
       setDirty(true)
       setSaved(false)
@@ -249,12 +281,25 @@ export function ManuscriptEditor({
     setSaved(false)
     onPending(true)
     try {
-      const committed = await saveChapterContent(chapter.bookId, chapter.id, {
-        expectedRevision: revision.current,
-        content,
-      })
-      revision.current = committed.revision
-      setSavedWordCount(committed.wordCount)
+      // Retry the exact uncertain payload first. Edits made after its failure
+      // become a separate operation based on the acknowledged revision.
+      do {
+        if (!frozenSave.current)
+          frozenSave.current = {
+            expectedRevision: revision.current,
+            content,
+            activity: activity.take(),
+          }
+        const committed = await saveChapterContent(
+          chapter.bookId,
+          chapter.id,
+          frozenSave.current,
+        )
+        revision.current = committed.revision
+        setSavedWordCount(committed.wordCount)
+        frozenSave.current = null
+        onSaved(committed)
+      } while (activity.size > 0)
       dirtyRef.current = false
       setDirty(false)
       setSaved(true)
@@ -263,7 +308,6 @@ export function ManuscriptEditor({
       setAutosavePaused(false)
       setClosing(false)
       setDiscard(false)
-      onSaved(committed)
       return true
     } catch (error) {
       setAutosavePaused(true)
@@ -303,7 +347,14 @@ export function ManuscriptEditor({
     onPending,
     onSaved,
     navigationLocked,
+    activity,
   ])
+
+  useEffect(() => {
+    flushRef.current = () => {
+      void save()
+    }
+  }, [save])
 
   useEffect(() => {
     const shortcut = (event: KeyboardEvent) => {

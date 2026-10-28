@@ -292,6 +292,8 @@ export const en = {
     saveUnavailable: 'Saving is unavailable.',
     failure:
       'Could not save the chapter text. Your writing is kept in this editor. Automatic saving is paused. Choose Save chapter text to try again.',
+    activityFailure:
+      'Writing activity could not be captured safely. Your text is kept here. Copy it before closing; nothing has been reported as saved.',
     storedFailure:
       'Saved chapter data could not be safely read. Your writing is kept here. Copy any text you need before closing.',
     conflict:

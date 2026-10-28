@@ -1,3 +1,5 @@
+mod activity;
+mod activity_commands;
 pub mod books;
 mod chapter_commands;
 pub mod chapters;
@@ -14,6 +16,7 @@ pub fn run() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             commands::create_book,
+            activity_commands::get_daily_statistics,
             commands::list_books,
             commands::get_book,
             commands::update_book,
