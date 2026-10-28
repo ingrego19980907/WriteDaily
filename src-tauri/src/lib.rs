@@ -17,6 +17,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::create_book,
             activity_commands::get_daily_statistics,
+            activity_commands::get_current_streak,
             commands::list_books,
             commands::get_book,
             commands::update_book,

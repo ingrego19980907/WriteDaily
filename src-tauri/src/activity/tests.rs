@@ -447,3 +447,236 @@ fn another_connections_uncommitted_changes_are_not_counted() {
         2
     );
 }
+
+#[test]
+fn current_streak_today_grace_only_counts_reached_goals_and_a_known_miss_ends_it() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = database::open(dir.path()).unwrap();
+    let mut c = db.lock().unwrap();
+    let chapter = seed(&mut c, Some(1));
+    let missed = save(&mut c, &chapter, "", "2026-10-24", Some(1), "editor");
+    let one = save(&mut c, &missed, "one", "2026-10-25", Some(1), "editor");
+    let two = save(&mut c, &one, "one two", "2026-10-26", Some(1), "editor");
+    let pending = save(&mut c, &two, "same count", "2026-10-27", Some(1), "editor");
+    let streak = get_current_streak(&mut c, "2026-10-27", None).unwrap();
+    assert_eq!(
+        (
+            streak.days,
+            streak.exact,
+            streak.today_state,
+            streak.boundary
+        ),
+        (2, true, "pending", "missed_day")
+    );
+    assert_eq!(streak.start_date.as_deref(), Some("2026-10-25"));
+    assert_eq!(streak.last_completed_date.as_deref(), Some("2026-10-26"));
+    let reached = save(
+        &mut c,
+        &pending,
+        "one two three",
+        "2026-10-27",
+        Some(1),
+        "editor",
+    );
+    assert_eq!(
+        get_current_streak(&mut c, "2026-10-27", None).unwrap().days,
+        3
+    );
+    let grace = get_current_streak(&mut c, "2026-10-28", None).unwrap();
+    assert_eq!(
+        (grace.days, grace.exact, grace.today_state),
+        (3, true, "unknown")
+    );
+    save(
+        &mut c,
+        &reached,
+        "one two three",
+        "2026-10-28",
+        Some(1),
+        "editor",
+    );
+    let ended = get_current_streak(&mut c, "2026-10-29", None).unwrap();
+    assert_eq!(
+        (ended.days, ended.exact, ended.boundary),
+        (0, true, "missed_day")
+    );
+}
+
+#[test]
+fn current_streak_unknown_history_and_unconfigured_goals_are_not_invented_breaks_or_successes() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = database::open(dir.path()).unwrap();
+    let mut c = db.lock().unwrap();
+    let chapter = seed(&mut c, Some(1));
+    let prior = save(&mut c, &chapter, "one", "2026-10-25", Some(1), "editor");
+    save(&mut c, &prior, "one two", "2026-10-27", Some(1), "editor");
+    let suffix = get_current_streak(&mut c, "2026-10-27", None).unwrap();
+    assert_eq!(
+        (suffix.days, suffix.exact, suffix.boundary),
+        (1, false, "unknown_day")
+    );
+    let unknown = get_current_streak(&mut c, "2026-10-29", None).unwrap();
+    assert_eq!((unknown.days, unknown.exact), (0, false));
+    let unconfigured = seed(&mut c, None);
+    save(
+        &mut c,
+        &unconfigured,
+        "many credited words",
+        "2026-10-27",
+        None,
+        "editor",
+    );
+    let result =
+        get_current_streak(&mut c, "2026-10-28", Some(&unconfigured.summary.book_id)).unwrap();
+    assert_eq!(result.days, 0);
+    assert!(!result.exact);
+    assert_eq!(result.boundary, "unknown_day");
+}
+
+#[test]
+fn current_streak_confirmed_book_days_off_are_neutral_but_do_not_prove_global_rest() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = database::open(dir.path()).unwrap();
+    let mut c = db.lock().unwrap();
+    let chapter = seed(&mut c, Some(1));
+    let miss = save(&mut c, &chapter, "", "2026-10-23", Some(1), "editor");
+    let one = save(&mut c, &miss, "one", "2026-10-24", Some(1), "editor");
+    let rest = save(&mut c, &one, "one", "2026-10-25", Some(1), "editor");
+    let two = save(&mut c, &rest, "one two", "2026-10-26", Some(1), "editor");
+    save(&mut c, &two, "one two", "2026-10-27", Some(1), "editor");
+    // Simulate sealed rest history for future 5.7; no preferred-day write UI is added here.
+    c.execute(
+        "UPDATE activity_day_plans SET scheduled=0 WHERE local_date='2026-10-25'",
+        [],
+    )
+    .unwrap();
+    let scoped = get_current_streak(&mut c, "2026-10-27", Some(&chapter.summary.book_id)).unwrap();
+    assert_eq!((scoped.days, scoped.exact), (2, true));
+    let global = get_current_streak(&mut c, "2026-10-27", None).unwrap();
+    assert_eq!(
+        (global.days, global.exact, global.boundary),
+        (1, false, "unknown_day")
+    );
+}
+
+#[test]
+fn current_streak_global_day_counts_once_for_any_reached_book_and_retains_removed_sources() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = database::open(dir.path()).unwrap();
+    let mut c = db.lock().unwrap();
+    let first = seed(&mut c, Some(1));
+    let second = seed(&mut c, Some(10));
+    let one = save(&mut c, &first, "one", "2026-10-27", Some(1), "editor");
+    save(&mut c, &one, "one two", "2026-10-28", Some(1), "editor");
+    save(&mut c, &second, "one", "2026-10-28", Some(10), "editor");
+    let result = get_current_streak(&mut c, "2026-10-28", None).unwrap();
+    assert_eq!(
+        (result.days, result.exact, result.today_credited_words),
+        (2, false, 2)
+    );
+    assert_eq!(result.boundary, "history_start");
+    c.execute("DELETE FROM books WHERE id=?1", [&first.summary.book_id])
+        .unwrap();
+    assert_eq!(
+        get_current_streak(&mut c, "2026-10-28", None).unwrap(),
+        result
+    );
+    assert!(matches!(
+        get_current_streak(&mut c, "2026-10-28", Some(&first.summary.book_id)),
+        Err(ActivityError::NotFound)
+    ));
+}
+
+#[test]
+fn current_streak_history_is_paged_beyond_366_days_and_never_truncated_to_calendar_month() {
+    use chrono::{Duration, NaiveDate};
+    let dir = tempfile::tempdir().unwrap();
+    let db = database::open(dir.path()).unwrap();
+    let mut c = db.lock().unwrap();
+    let mut chapter = seed(&mut c, Some(1));
+    let first = NaiveDate::from_ymd_opt(2025, 1, 1).unwrap();
+    for index in 0..400 {
+        let day = (first + Duration::days(index))
+            .format("%Y-%m-%d")
+            .to_string();
+        let text = vec!["word"; index as usize + 1].join(" ");
+        chapter = save(&mut c, &chapter, &text, &day, Some(1), "editor");
+    }
+    let today = (first + Duration::days(399)).format("%Y-%m-%d").to_string();
+    let streak = get_current_streak(&mut c, &today, Some(&chapter.summary.book_id)).unwrap();
+    assert_eq!(
+        (streak.days, streak.exact, streak.boundary),
+        (400, false, "history_start")
+    );
+    assert_eq!(streak.start_date.as_deref(), Some("2025-01-01"));
+    drop(c);
+    drop(db);
+    let db = database::open(dir.path()).unwrap();
+    let mut c = db.lock().unwrap();
+    assert_eq!(
+        get_current_streak(&mut c, &today, Some(&chapter.summary.book_id)).unwrap(),
+        streak
+    );
+}
+
+#[test]
+fn current_streak_handles_empty_future_invalid_and_supported_first_date_without_utc_bucketing() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = database::open(dir.path()).unwrap();
+    let mut c = db.lock().unwrap();
+    let chapter = seed(&mut c, Some(1));
+    let empty = get_current_streak(&mut c, "2026-10-28", None).unwrap();
+    assert_eq!(
+        (empty.days, empty.exact, empty.boundary),
+        (0, true, "empty_history")
+    );
+    save(&mut c, &chapter, "future", "2026-10-29", Some(1), "editor");
+    assert_eq!(
+        get_current_streak(&mut c, "2026-10-28", None).unwrap(),
+        empty
+    );
+    for value in ["bad", "2026-02-29", "0000-01-01"] {
+        assert!(matches!(
+            get_current_streak(&mut c, value, None),
+            Err(ActivityError::Validation)
+        ));
+    }
+    let earliest = seed(&mut c, Some(1));
+    save(&mut c, &earliest, "one", "0001-01-01", Some(1), "editor");
+    let streak = get_current_streak(&mut c, "0001-01-01", Some(&earliest.summary.book_id)).unwrap();
+    assert_eq!(
+        (streak.days, streak.exact, streak.boundary),
+        (1, true, "date_start")
+    );
+}
+
+#[test]
+fn current_streak_uses_calendar_leap_and_dst_adjacent_days_and_rejects_corrupt_history() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = database::open(dir.path()).unwrap();
+    let mut c = db.lock().unwrap();
+    for dates in [
+        ["2024-02-28", "2024-02-29", "2024-03-01"],
+        ["2026-10-24", "2026-10-25", "2026-10-26"],
+    ] {
+        let chapter = seed(&mut c, Some(1));
+        let one = save(&mut c, &chapter, "one", dates[0], Some(1), "editor");
+        let two = save(&mut c, &one, "one two", dates[1], Some(1), "editor");
+        save(&mut c, &two, "one two three", dates[2], Some(1), "editor");
+        assert_eq!(
+            get_current_streak(&mut c, dates[2], Some(&chapter.summary.book_id))
+                .unwrap()
+                .days,
+            3
+        );
+    }
+    c.execute(
+        "DELETE FROM activity_day_plans WHERE local_date='2026-10-26'",
+        [],
+    )
+    .unwrap();
+    assert!(matches!(
+        get_current_streak(&mut c, "2026-10-26", None),
+        Err(ActivityError::InvalidStoredData)
+    ));
+}

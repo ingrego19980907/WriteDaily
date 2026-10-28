@@ -48,7 +48,7 @@ struct Day {
     save_count: i64,
     goals: BTreeMap<String, BookDailyGoal>,
 }
-fn date(value: &str) -> Option<NaiveDate> {
+pub(super) fn date(value: &str) -> Option<NaiveDate> {
     let parsed = NaiveDate::parse_from_str(value, "%Y-%m-%d").ok()?;
     ((1..=9999).contains(&parsed.year()) && parsed.format("%Y-%m-%d").to_string() == value)
         .then_some(parsed)
@@ -74,15 +74,26 @@ pub fn get_daily_statistics(
     end_date: &str,
     book_id: Option<&str>,
 ) -> Result<DailyStatisticsRange, ActivityError> {
+    let transaction = connection.transaction()?;
+    let result = read_daily_statistics(&transaction, start_date, end_date, book_id)?;
+    transaction.commit()?;
+    Ok(result)
+}
+
+pub(super) fn read_daily_statistics(
+    connection: &Connection,
+    start_date: &str,
+    end_date: &str,
+    book_id: Option<&str>,
+) -> Result<DailyStatisticsRange, ActivityError> {
     let start = date(start_date).ok_or(ActivityError::Validation)?;
     let end = date(end_date).ok_or(ActivityError::Validation)?;
     let distance = (end - start).num_days();
     if !(0..366).contains(&distance) || book_id.is_some_and(|id| !valid_id(id)) {
         return Err(ActivityError::Validation);
     }
-    let transaction = connection.transaction()?;
     if let Some(id) = book_id {
-        crate::books::load(&transaction, id).map_err(|error| match error {
+        crate::books::load(connection, id).map_err(|error| match error {
             BookError::NotFound => ActivityError::NotFound,
             BookError::Database(error) => ActivityError::Database(error),
             _ => ActivityError::InvalidStoredData,
@@ -90,7 +101,7 @@ pub fn get_daily_statistics(
     }
     let mut days = BTreeMap::<String, Day>::new();
     // No SQL SUM: native checked addition fails visibly instead of overflowing or rounding.
-    let mut statement = transaction.prepare("SELECT w.operation_id,w.segment_index,w.book_id,w.chapter_id,w.local_date,w.before_words,w.after_words,w.added_words,w.deleted_words,w.credited_words,o.policy_version,o.origin,o.source_book_id,o.source_chapter_id,o.expected_revision,o.committed_revision,o.committed_at,o.payload_digest,w.time_zone,w.utc_offset_minutes,w.first_edited_at,w.last_edited_at,w.daily_word_goal,w.scheduled,p.source_book_id,p.book_id,p.daily_word_goal,p.scheduled,p.policy_version FROM writing_activity w LEFT JOIN activity_operations o ON o.operation_id=w.operation_id LEFT JOIN activity_day_plans p ON p.source_book_id=o.source_book_id AND p.local_date=w.local_date WHERE w.local_date>=?1 AND w.local_date<=?2 AND (?3 IS NULL OR w.book_id=?3) ORDER BY w.local_date,w.operation_id,w.segment_index")?;
+    let mut statement = connection.prepare("SELECT w.operation_id,w.segment_index,w.book_id,w.chapter_id,w.local_date,w.before_words,w.after_words,w.added_words,w.deleted_words,w.credited_words,o.policy_version,o.origin,o.source_book_id,o.source_chapter_id,o.expected_revision,o.committed_revision,o.committed_at,o.payload_digest,w.time_zone,w.utc_offset_minutes,w.first_edited_at,w.last_edited_at,w.daily_word_goal,w.scheduled,p.source_book_id,p.book_id,p.daily_word_goal,p.scheduled,p.policy_version FROM writing_activity w LEFT JOIN activity_operations o ON o.operation_id=w.operation_id LEFT JOIN activity_day_plans p ON p.source_book_id=o.source_book_id AND p.local_date=w.local_date WHERE w.local_date>=?1 AND w.local_date<=?2 AND (?3 IS NULL OR w.book_id=?3) ORDER BY w.local_date,w.operation_id,w.segment_index")?;
     let mut rows = statement.query(params![start_date, end_date, book_id])?;
     while let Some(row) = rows.next()? {
         let operation: String = row.get(0)?;
@@ -241,7 +252,6 @@ pub fn get_daily_statistics(
             book_goals: goals,
         });
     }
-    transaction.commit()?;
     Ok(DailyStatisticsRange {
         start_date: start_date.into(),
         end_date: end_date.into(),

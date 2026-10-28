@@ -1,5 +1,7 @@
 mod statistics;
+mod streak;
 pub use statistics::{DailyStatisticsRange, get_daily_statistics};
+pub use streak::{CurrentStreak, get_current_streak};
 
 #[derive(Debug, thiserror::Error)]
 pub enum ActivityError {

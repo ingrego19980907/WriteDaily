@@ -8,7 +8,7 @@ import {
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, expect, test, vi } from 'vitest'
-import { getDailyStatistics } from '../../services/activity'
+import { getDailyStatistics, getCurrentStreak } from '../../services/activity'
 import { listBooks } from '../../services/books'
 import {
   activityBooks,
@@ -17,7 +17,10 @@ import {
 import { ActivityCalendar } from './ActivityCalendar'
 import type { DailyStatisticsRange } from './daily-statistics'
 
-vi.mock('../../services/activity', () => ({ getDailyStatistics: vi.fn() }))
+vi.mock('../../services/activity', () => ({
+  getDailyStatistics: vi.fn(),
+  getCurrentStreak: vi.fn(),
+}))
 vi.mock('../../services/books', () => ({
   listBooks: vi.fn(),
   bookErrorCode: (error: { code: string }) => error.code,
@@ -31,6 +34,7 @@ beforeEach(() => {
     value: vi.fn(),
   })
   vi.resetAllMocks()
+  vi.mocked(getCurrentStreak).mockRejectedValue({ code: 'persistence' })
   vi.mocked(listBooks).mockResolvedValue(activityBooks)
   vi.mocked(getDailyStatistics).mockImplementation(async (request) =>
     activityFixture(request),

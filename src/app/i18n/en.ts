@@ -1,5 +1,25 @@
 export const en = {
   activity: {
+    currentStreak: 'Current writing streak',
+    refreshStreak: 'Refresh streak',
+    streakLoading: 'Loading streak...',
+    streakUnavailable: 'Streak could not be loaded. Try refreshing.',
+    streakDays: (days: string, count: number) =>
+      `${days} completed ${count === 1 ? 'day' : 'days'}`,
+    streakAtLeast: (days: string, count: number) =>
+      `At least ${days} completed ${count === 1 ? 'day' : 'days'}`,
+    streakUnknown: 'Not enough recorded history to confirm a streak.',
+    streakLimited:
+      'Earlier goal or schedule history is incomplete. Only the confirmed part of the streak is shown.',
+    streakGrace:
+      'Today has not added a completed day yet. It has until local midnight.',
+    streakToday: (date: string, words: string) =>
+      `Today (${date}): ${words} credited words`,
+    streakLast: (date: string) => `Last completed day: ${date}`,
+    streakGlobalPolicy:
+      'A day counts once when at least one scheduled book goal is reached. Current streak is based on today, independently of the month being viewed.',
+    streakBookPolicy:
+      'Scheduled days count when the saved daily goal is reached. Confirmed days off are skipped; missing history is not assumed to be a day off.',
     month: 'Month',
     book: 'Book',
     allBooks: 'All books, including removed books',

@@ -17,6 +17,7 @@ import {
   formatActivityMonth,
 } from './activity-calendar'
 import { ActivityDayDetails } from './ActivityDayDetails'
+import { CurrentStreakSummary } from './CurrentStreakSummary'
 import './activity-calendar.css'
 
 const copy = en.activity
@@ -158,6 +159,11 @@ export function ActivityCalendar() {
 
   return (
     <section className="space-y-4 min-w-0" aria-label={copy.calendar}>
+      <CurrentStreakSummary
+        bookId={bookId}
+        refreshVersion={refreshVersion}
+        refreshOnFocus={false}
+      />
       <Card className="space-y-4 min-w-0">
         {!today && <p className="text-secondary">{copy.clockUnavailable}</p>}
         <div className="activity-controls">

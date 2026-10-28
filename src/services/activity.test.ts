@@ -1,6 +1,6 @@
 import { beforeEach, expect, test, vi } from 'vitest'
 import { invoke, isTauri } from '@tauri-apps/api/core'
-import { getDailyStatistics } from './activity'
+import { getDailyStatistics, getCurrentStreak } from './activity'
 
 vi.mock('@tauri-apps/api/core', () => ({ invoke: vi.fn(), isTauri: vi.fn() }))
 const request = { startDate: '2026-10-28', endDate: '2026-10-28', bookId: null }
@@ -60,4 +60,47 @@ test('rejects malformed, incomplete and wrong-scope native results', async () =>
       code: 'invalid_stored_data',
     })
   }
+})
+
+test('current streak uses the whole native history scope and validates its response', async () => {
+  const request = { today: '2026-10-28', bookId: null }
+  const data = {
+    ...request,
+    days: 0,
+    exact: true,
+    todayState: 'unknown',
+    todayCreditedWords: 0,
+    startDate: null,
+    lastCompletedDate: null,
+    boundary: 'empty_history',
+  }
+  vi.mocked(invoke).mockResolvedValue(data)
+  expect(await getCurrentStreak(request)).toEqual(data)
+  expect(invoke).toHaveBeenCalledWith('get_current_streak', request)
+  for (const result of [
+    { ...data, exact: false },
+    { ...data, today: '2026-10-27' },
+    { ...data, bookId: '00000000-0000-4000-8000-000000000001' },
+    null,
+  ]) {
+    vi.mocked(invoke).mockResolvedValue(result)
+    await expect(getCurrentStreak(request)).rejects.toEqual({
+      code: 'invalid_stored_data',
+    })
+  }
+})
+test('current streak refuses browser/invalid requests and propagates native failure', async () => {
+  const request = { today: '2026-10-28', bookId: null }
+  vi.mocked(isTauri).mockReturnValue(false)
+  await expect(getCurrentStreak(request)).rejects.toEqual({
+    code: 'desktop_required',
+  })
+  vi.mocked(isTauri).mockReturnValue(true)
+  await expect(getCurrentStreak({ ...request, today: 'bad' })).rejects.toEqual({
+    code: 'validation',
+  })
+  vi.mocked(invoke).mockRejectedValue({ code: 'persistence' })
+  await expect(getCurrentStreak(request)).rejects.toEqual({
+    code: 'persistence',
+  })
 })

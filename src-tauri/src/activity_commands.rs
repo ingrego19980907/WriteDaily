@@ -42,3 +42,23 @@ pub async fn get_daily_statistics(
         code: "persistence",
     })?
 }
+
+#[tauri::command]
+pub async fn get_current_streak(
+    app: tauri::AppHandle,
+    today: String,
+    book_id: Option<String>,
+) -> Result<activity::CurrentStreak, ActivityCommandError> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let db = app.state::<Database>();
+        let mut connection = db.lock().map_err(|_| ActivityCommandError {
+            code: "persistence",
+        })?;
+        activity::get_current_streak(&mut connection, &today, book_id.as_deref())
+            .map_err(Into::into)
+    })
+    .await
+    .map_err(|_| ActivityCommandError {
+        code: "persistence",
+    })?
+}

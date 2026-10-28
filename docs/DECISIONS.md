@@ -251,3 +251,7 @@ Twenty-five native tests and 86 frontend tests pass, including shared fixtures, 
 ## Activity policy and retention (5.1)
 
 Use positive net word deltas per committed contiguous edit context, including paste; track net deletions separately without removing historical credit. Import/restore, formatting and equal-length changes earn no credit. Split at local date/timezone/offset/goal/schedule boundaries at edit time, not save time. Retry a frozen payload under one operation ID and commit content/count/revision, receipt and activity atomically. Preserve receipts/events/day plans when sources are removed, detaching live references and retaining immutable source UUIDs. Seal each book/date goal/schedule at its first committed editor segment to prevent later configuration edits rewriting history. Implementation and migration remain 5.2; see [ACTIVITY_MODEL.md](ACTIVITY_MODEL.md).
+
+## Current streak semantics (5.5)
+
+Count completed scheduled goal days, with personal/global completion defined as at least one reached book goal per date. Give an unfinished today until local midnight; a known past pending target ends the series. Skip confirmed scoped days off without adding a completed day. Do not infer a global rest day from only observed book rests or fill missing historic settings from current metadata. Stop verification at uncertainty and show an explicit lower bound; only a known break/valid-calendar boundary establishes exactness. Read across paged history in one snapshot, independent of visible calendar month. See [STREAKS.md](STREAKS.md).

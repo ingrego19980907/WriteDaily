@@ -6,6 +6,7 @@ import { bookErrorCode, listBooks } from '../../services/books'
 import type { Book } from './book'
 import { CreateBook } from './CreateBook'
 import { CountedBookCard } from './CountedBookCard'
+import { CurrentStreakSummary } from '../activity/CurrentStreakSummary'
 
 const copy = en.library
 
@@ -114,6 +115,7 @@ export function Library({
   return (
     <div className="space-y-4">
       <CreateBook onSaved={saved} />
+      <CurrentStreakSummary active={active} refreshVersion={countsVersion} />
       {openFailure && (
         <p role="alert" className="text-error">
           {openFailure}
