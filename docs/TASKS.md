@@ -2,7 +2,7 @@
 
 Source of truth. Checked items have verified acceptance criteria. All unlisted implementation is absent.
 
-Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Milestone 3 (tasks 3.1–3.12) is complete for the current editor and commit-based recovery; Tasks 4.1 (committed book word-count aggregation), 4.2 (daily goal configuration/display) 4.3 (total word goals and derived achievement) 4.4 (local-calendar deadlines) 4.5 (required writing pace calculation) 4.6 (progress presentation) and 4.7 (calculation coverage review) are complete; Milestone 4 acceptance is verified; tasks 5.1 (activity record design), 5.2 (atomic activity recording) and 5.3 (daily statistics) are complete; awaiting approval before 5.4 (activity calendar). Library progress now uses persisted chapter totals; legacy unknowns and read failures remain unknown. Covered-book deletion now uses safe queued cleanup.
+Current stop: tasks 0.1-0.9 completed. Milestone 0 (Foundation) acceptance is verified. Tasks 1.1-1.9 are complete; Milestone 1 acceptance is verified for the current shell/shared UI. Milestone 2 (tasks 2.1-2.12) is complete, including real Windows desktop restart persistence; Milestone 3 (tasks 3.1–3.12) is complete for the current editor and commit-based recovery; Tasks 4.1 (committed book word-count aggregation), 4.2 (daily goal configuration/display) 4.3 (total word goals and derived achievement) 4.4 (local-calendar deadlines) 4.5 (required writing pace calculation) 4.6 (progress presentation) and 4.7 (calculation coverage review) are complete; Milestone 4 acceptance is verified; tasks 5.1 (activity record design), 5.2 (atomic activity recording) 5.3 (daily statistics) and 5.4 (activity calendar) are complete; awaiting approval before 5.5 (current streak). Library progress now uses persisted chapter totals; legacy unknowns and read failures remain unknown. Covered-book deletion now uses safe queued cleanup.
 
 Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3. Cargo still needs a session PATH entry (see README). Existing VS 2017 C++ tools/SDK and WebView2 are detected by Tauri; compile verification is recorded below.
 
@@ -87,7 +87,7 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [x]  | 5.1 | Design activity records           | Completed (2026-10-28) | 4.7          | Paste, deletion, imports, local days and retention policy finalized |
 | [x]  | 5.2 | Record writing sessions/activity  | Completed (2026-10-28) | 5.1          | Content and idempotent activity commit atomically                   |
 | [x]  | 5.3 | Calculate daily statistics        | Completed (2026-10-28) | 5.2          | Daily totals and historical goal snapshots aggregate correctly      |
-| [ ]  | 5.4 | Create activity calendar          | Not started            | 5.3          | Intensity and inspectable day details reflect actual records        |
+| [x]  | 5.4 | Create activity calendar          | Completed (2026-10-28) | 5.3          | Intensity and inspectable day details reflect actual records        |
 | [ ]  | 5.5 | Calculate current streak          | Not started            | 5.4          | Scheduled-day grace rules pass tests                                |
 | [ ]  | 5.6 | Calculate longest streak          | Not started            | 5.5          | Historical longest streak passes schedule edge cases                |
 | [ ]  | 5.7 | Support preferred writing days    | Not started            | 5.6          | Schedule changes preserve historical interpretation                 |
@@ -133,6 +133,12 @@ Desktop environment: Rust/Cargo updated to 1.99.1 MSVC with approval in task 0.3
 | [ ]  | 8.10 | Tag version 1.0.0           | Not started | 8.9          | Release gates pass and explicit authorization obtained before Git mutation |
 
 ## Historical verification evidence
+
+## Verification evidence: 5.4
+
+- Replaced the Activity Calendar placeholder with a monthly native-statistics view, fixed word-intensity levels, selected-day metrics and sealed book-goal results. Added current-book scope/all retained history, month navigation/Today/Refresh, local-day/focus refresh and explicit loading/desktop/error/empty outcomes. Late reads cannot replace a newer view; no zero fallback or production mock persistence. See [ACTIVITY_CALENDAR.md](ACTIVITY_CALENDAR.md).
+- All 672 Vitest tests passed (48 files); the full 148-case Edge run passed, followed by all six calendar cases after final copy/type cleanup. Lint, format:check, strict TypeScript/build and diff checks passed. Tests cover filters, historical goals/removed books, read failures, stale results, keyboard, year bounds, 320/640/1100px, axe, 200% text/local scrolling and forced colors.
+- No native/API/schema/dependency changes; prior native query evidence remains 5.3 and Rust checks were not repeated. No new native GUI or manual screen-reader claim. Next: 5.5, awaiting approval.
 
 ## Verification evidence: 5.3
 

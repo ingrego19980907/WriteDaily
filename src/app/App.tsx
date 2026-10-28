@@ -6,6 +6,7 @@ import type { SectionId } from './navigation'
 import { Card } from '../components/ui/Card'
 import { Library } from '../features/library/Library'
 import { ChapterManager } from '../features/editor/ChapterManager'
+import { ActivityCalendar } from '../features/activity/ActivityCalendar'
 import type { Book } from '../features/library/book'
 import { bookErrorCode, getBook } from '../services/books'
 
@@ -107,7 +108,9 @@ export default function App() {
             />
           </div>
         )}
+        {activeSection === 'activity' && <ActivityCalendar />}
         {activeSection !== 'library' &&
+          activeSection !== 'activity' &&
           (activeSection !== 'editor' || !selectedBook) && (
             <Card className="space-y-2">
               <h2 className="font-semibold">{en.shell.comingSoon}</h2>

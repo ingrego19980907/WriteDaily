@@ -214,3 +214,11 @@ Drag ordering has native up/down button alternatives for keyboard and touch, des
 No new statistics/calendar controls were added. Existing save status, pending locks, focus/preview restrictions and close/discard guards use the same content/activity transaction. A centralized visible capture error protects text when activity context cannot be safely recorded.
 
 All 642 Vitest, 142 Edge and 83 Rust tests passed. New browser cases exercise edit-time midnight splits, pending writes without premature saved status and lost-response retries followed by further edits. The full existing accessibility/layout/editor/autosave/goal suite passed. Native tests cover disposable upgrade/reopen/deduplication, concurrency, rollback and detached history. Lint, format:check, strict TypeScript/build, Cargo fmt/Clippy and diff checks passed. No new manual screen-reader session or native GUI/startup/restart observation; next numbered task is 5.3.
+
+## 5.4 activity calendar and day statistics
+
+Calendar presentation now uses a captioned month table, weekday headers, labelled date buttons, one roving Tab stop, arrow/Home/End navigation and aria-controls to selected-day details. Date/credit/save labels and variable-length bars supplement color; selected/current days have separate patterns. Native filters and month/Today/Refresh controls retain labels and boundaries. Table overflow is local and keyboard-focusable at compact/enlarged widths; body overflow is absent.
+
+All 672 Vitest tests passed. All 148 full-run Edge cases passed, then all six calendar cases passed after final copy/type cleanup. New checks cover 320/640/1100px, axe, 200% text, focused dates inside the scrollport, forced colors/reduced motion, recorded totals, filters, sealed/removed-book goals, empty/loading/read/malformed/deleted-scope states, stale reads, refresh and year bounds. Global CSS is imported first in fixtures and no axe rules were disabled. Inspected the enlarged 1100px screenshot; the calendar deliberately scrolls locally rather than shrinking date targets.
+
+Lint, format:check, strict TypeScript/build and diff checks passed. No native/schema/dependency changes, manual screen-reader session or new native GUI observation. Native query tests remain the 5.3 evidence. See [ACTIVITY_CALENDAR.md](ACTIVITY_CALENDAR.md). Next: 5.5.

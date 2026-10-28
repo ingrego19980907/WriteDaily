@@ -221,3 +221,7 @@ Chapter writing/preview uses A4-proportion paper sheets, scaled margins, warm su
 ## Chapter order controls (ED.19)
 
 Dotted drag handles, currentColor rounded up/down SVG buttons and a drop-target outline use existing tokens. Native buttons have accessible direction/title names, visible focus and boundary/pending disabling; a text hint explains both interaction methods. Controls wrap at compact widths and 200% enlargement. The reload icon retains its accessible name and tooltip beside Create chapter. See [CHAPTER_ORDER.md](CHAPTER_ORDER.md).
+
+## Activity calendar (5.4)
+
+A Monday-first semantic month table uses existing surface/background, sage, success and strong-accent tokens for fixed credited-word bands (0, 1-249, 250-499, 500-999, 1000+). Bar lengths and numeric labels supplement color. Current day is underlined; selection uses a double outline and aria-pressed; focus keeps an outer outline. Native date buttons retain 2.75rem target height with a roving Tab stop. Filters/metrics wrap and an explicitly labelled local scroll region preserves table geometry at compact/200% layouts without page overflow. Forced colors use system colors and retain bar lengths/selection. English copy is centralized. See [ACTIVITY_CALENDAR.md](ACTIVITY_CALENDAR.md).

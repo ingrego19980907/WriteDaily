@@ -1,4 +1,71 @@
 export const en = {
+  activity: {
+    month: 'Month',
+    book: 'Book',
+    allBooks: 'All books, including removed books',
+    previousMonth: 'Previous month',
+    nextMonth: 'Next month',
+    today: 'Today',
+    refresh: 'Refresh activity',
+    invalidMonth: 'Choose a month between January 0001 and December 9999.',
+    clockUnavailable:
+      'The current local date is unavailable. Choose a month to view activity.',
+    loading: 'Loading activity...',
+    desktop: 'Open the desktop app to view saved writing activity.',
+    failure: 'Could not load activity. Refresh to try again.',
+    missingBook:
+      'This book is no longer available. Choose All books to view retained history.',
+    invalidData:
+      'Saved activity could not be read safely. Refresh to retry; existing data has not been changed.',
+    limit:
+      'Activity totals exceed the supported range. Try another month or book.',
+    booksFailure: 'Book names could not be loaded. Refresh to try again.',
+    unavailableBook: 'Unavailable book',
+    removedBook: (number: number) => `Removed book ${number}`,
+    unnamedBook: (number: number) => `Book ${number} (name unavailable)`,
+    calendar: 'Writing activity calendar',
+    calendarScroll: 'Calendar, scroll horizontally if needed',
+    keyboardHint:
+      'Select a day for details. Use arrow keys to move between days, Home for the first day and End for the last.',
+    weekdays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    weekdayNames: [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ],
+    legend: 'Credited words per day',
+    levels: ['0', '1–249', '250–499', '500–999', '1,000+'],
+    dayLabel: (date: string, words: string, saves: string) =>
+      `${date}: ${words} credited words, ${saves} saves. Select for details.`,
+    monthTotals: 'Month totals',
+    credited: 'Credited words',
+    added: 'Added words',
+    deleted: 'Deleted words',
+    saves: 'Saves',
+    activeDays: 'Active days',
+    totalUnavailable: 'The monthly total is too large to display.',
+    emptyMonth: 'No writing activity recorded this month.',
+    emptyDay: 'No writing activity recorded for this day.',
+    dayDetails: (date: string) => `Activity for ${date}`,
+    goals: 'Daily book goals',
+    noPlans: 'No historical goal snapshot is available for this day.',
+    goalProgress: (words: string, goal: string) =>
+      `${words} / ${goal} credited words`,
+    reached: 'Daily goal reached',
+    pending: (words: string) => `${words} words remaining`,
+    unconfigured: 'No daily goal was configured for this day.',
+    unscheduled: 'This was not a scheduled writing day.',
+    policy:
+      'Only saved editor activity counts. Paste is included; imports and restores are excluded. Deletions do not remove earlier credit.',
+    planPolicy:
+      'Daily results use the goal saved for that day. Later goal changes do not rewrite these results.',
+    savePolicy:
+      'Saves count committed editor operations for this day, including formatting. They do not measure writing time.',
+  },
   library: {
     actions: 'Book actions',
     create: 'Create book',

@@ -1,6 +1,6 @@
 # Daily statistics (5.3)
 
-Implemented: native committed-history aggregation, `get_daily_statistics` IPC and a typed, validated frontend service. Calendar presentation is task 5.4. This task adds no screen, schema migration, dependency, streak calculation or persistence writes.
+Implemented: native committed-history aggregation, `get_daily_statistics` IPC and a typed, validated frontend service. Calendar presentation is implemented in 5.4; see [ACTIVITY_CALENDAR.md](ACTIVITY_CALENDAR.md). This task adds no screen, schema migration, dependency, streak calculation or persistence writes.
 
 ## Request and scope
 
