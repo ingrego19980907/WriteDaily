@@ -65,3 +65,7 @@ Final 5.6 checks: all 717 Vitest tests (52 files), 103 Rust tests and 154 Edge c
 ## Preferred writing days (5.7)
 
 Goals & Deadlines saves the shared weekly schedule from the next local date. Effective target/schedule history supplies known pending goals and rest on empty dates without creating activity. Global writingDay=false proves rest when no sealed reached/pending goal overrides it. Both streak scans include the start of tracked history as well as saved activity. Pretracking uncertainty and today grace remain unchanged. See [WRITING_SCHEDULE.md](WRITING_SCHEDULE.md).
+
+## Date/timezone review (5.8)
+
+Completed: the shared browser/native matrix verifies stored local labels, both DST directions, half-hour and quarter-hour offsets, date-line revisits, backward clocks, both streaks, reopen and frozen retry identity. Counts and existing policies remain unchanged. See [DATE_TIME_REVIEW.md](DATE_TIME_REVIEW.md) for current results and limits; next: 6.1, achievement rules.

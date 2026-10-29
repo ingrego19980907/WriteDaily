@@ -14,6 +14,74 @@ fn book(c: &mut Connection, goal: Option<i64>) -> crate::books::Book {
         })
         .unwrap()
 }
+
+#[test]
+fn tomorrow_uses_civil_boundaries_and_backward_dates_preserve_history() {
+    for (today, tomorrow) in [
+        ("2024-03-31", "2024-04-01"),
+        ("2024-10-27", "2024-10-28"),
+        ("2024-02-29", "2024-03-01"),
+        ("2024-12-31", "2025-01-01"),
+    ] {
+        let dir = tempfile::tempdir().unwrap();
+        let db = database::open(dir.path()).unwrap();
+        let mut c = db.lock().unwrap();
+        let b = book(&mut c, Some(1));
+        let saved = save_on(&mut c, 0, &[], today).unwrap();
+        assert_eq!(saved.history[0].effective_from, today);
+        assert_eq!(saved.history[1].effective_from, tomorrow);
+        assert_eq!(scheduled(&c, today).unwrap(), Some(true));
+        assert_eq!(scheduled(&c, tomorrow).unwrap(), Some(false));
+        let yesterday = date(today)
+            .unwrap()
+            .pred_opt()
+            .unwrap()
+            .format("%Y-%m-%d")
+            .to_string();
+        assert!(matches!(
+            save_on(&mut c, saved.revision, &[1], &yesterday),
+            Err(ScheduleError::Validation)
+        ));
+        assert_eq!(read(&c).unwrap(), saved);
+        let range = activity::get_daily_statistics(&mut c, today, tomorrow, Some(&b.id)).unwrap();
+        assert_eq!(range.days[0].book_goals[0].state, "pending");
+        assert_eq!(range.days[1].book_goals[0].state, "unscheduled");
+        assert!(
+            range
+                .days
+                .iter()
+                .all(|day| day.credited_words == 0 && day.save_count == 0)
+        );
+    }
+}
+
+#[test]
+fn production_schedule_boundary_rejects_a_client_date_that_disagrees_with_the_os() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = database::open(dir.path()).unwrap();
+    let mut c = db.lock().unwrap();
+    book(&mut c, Some(1));
+    let current = date(&local_today().unwrap()).unwrap();
+    // More than one day away keeps this check stable if the test crosses midnight.
+    for offset in [-7, 7] {
+        let stale = current
+            .checked_add_signed(chrono::Duration::days(offset))
+            .unwrap()
+            .format("%Y-%m-%d")
+            .to_string();
+        assert!(matches!(
+            save(&mut c, 0, &[1], &stale),
+            Err(ScheduleError::Validation)
+        ));
+        assert_eq!(read(&c).unwrap().revision, 0);
+        let goals: i64 = c
+            .query_row("SELECT count(*) FROM activity_goal_history", [], |r| {
+                r.get(0)
+            })
+            .unwrap();
+        assert_eq!(goals, 0);
+    }
+}
 #[test]
 fn defaults_are_not_backfilled_and_changes_start_tomorrow_with_conflicts_and_reopen() {
     let dir = tempfile::tempdir().unwrap();

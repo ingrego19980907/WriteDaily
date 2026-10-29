@@ -52,6 +52,132 @@ fn counts(connection: &Connection) -> (i64, i64, i64, i64) {
 }
 
 #[test]
+fn calendar_context_matrix_retains_days_streaks_and_receipts_after_reopen() {
+    let cases: Vec<Value> =
+        serde_json::from_str(include_str!("../../../tests/fixtures/date-time-cases.json")).unwrap();
+    for case in cases {
+        let dir = tempfile::tempdir().unwrap();
+        let db = database::open(dir.path()).unwrap();
+        let mut connection = db.lock().unwrap();
+        let chapter = seed(&mut connection);
+        let points = case["points"].as_array().unwrap();
+        let mut segments: Vec<Value> = Vec::new();
+        for (index, point) in points.iter().enumerate() {
+            let context = json!({"localDate":point["localDate"],"timeZone":point["timeZone"],"utcOffsetMinutes":point["offset"],"dailyWordGoal":1,"scheduled":true});
+            if let Some(last) = segments
+                .last_mut()
+                .filter(|last| last["context"] == context)
+            {
+                last["afterWords"] = json!(index + 1);
+                last["lastEditedAt"] = point["instant"].clone();
+            } else {
+                segments.push(json!({"context":context,"firstEditedAt":point["instant"],"lastEditedAt":point["instant"],"beforeWords":index,"afterWords":index+1}));
+            }
+        }
+        let payload = json!({"policyVersion":1,"operationId":uuid::Uuid::new_v4().to_string(),"origin":"editor","segments":segments});
+        let text = vec!["word"; points.len()].join(" ");
+        let saved = save(&mut connection, &chapter, &text, &payload).unwrap();
+        let expected = case["expectedDayCredits"].as_array().unwrap();
+        let first_day = expected.first().unwrap()[0].as_str().unwrap();
+        let last_day = expected.last().unwrap()[0].as_str().unwrap();
+        let range = crate::activity::get_daily_statistics(
+            &mut connection,
+            first_day,
+            last_day,
+            Some(&chapter.summary.book_id),
+        )
+        .unwrap();
+        assert_eq!(range.days.len(), expected.len(), "{}", case["name"]);
+        for (day, expected_day) in range.days.iter().zip(expected) {
+            assert_eq!(day.date, expected_day[0].as_str().unwrap());
+            assert_eq!(day.credited_words, expected_day[1].as_i64().unwrap());
+            assert_eq!(day.save_count, 1);
+            assert_eq!(day.book_goals[0].daily_word_goal, Some(1));
+            assert_eq!(day.book_goals[0].state, "reached");
+        }
+        for scope in [None, Some(chapter.summary.book_id.as_str())] {
+            assert_eq!(
+                crate::activity::get_current_streak(&mut connection, last_day, scope)
+                    .unwrap()
+                    .days,
+                expected.len() as i64
+            );
+            let longest =
+                crate::activity::get_longest_streak(&mut connection, last_day, scope).unwrap();
+            assert_eq!(longest.days, expected.len() as i64);
+            assert_eq!(longest.start_date.as_deref(), Some(first_day));
+            assert_eq!(longest.end_date.as_deref(), Some(last_day));
+            // Moving the current date backward excludes future labels, without rewriting them.
+            assert_eq!(
+                crate::activity::get_current_streak(&mut connection, first_day, scope)
+                    .unwrap()
+                    .days,
+                1
+            );
+            assert_eq!(
+                crate::activity::get_longest_streak(&mut connection, first_day, scope)
+                    .unwrap()
+                    .days,
+                1
+            );
+        }
+        let expected_counts = (
+            1,
+            case["expectedSegments"].as_i64().unwrap(),
+            expected.len() as i64,
+            points.len() as i64,
+        );
+        assert_eq!(counts(&connection), expected_counts);
+        drop(connection);
+        drop(db);
+        let db = database::open(dir.path()).unwrap();
+        let mut connection = db.lock().unwrap();
+        assert_eq!(
+            save(&mut connection, &chapter, &text, &payload).unwrap(),
+            saved
+        );
+        assert_eq!(counts(&connection), expected_counts);
+        assert_eq!(
+            crate::activity::get_daily_statistics(
+                &mut connection,
+                first_day,
+                last_day,
+                Some(&chapter.summary.book_id)
+            )
+            .unwrap(),
+            range
+        );
+    }
+}
+
+#[test]
+fn wrong_quarter_hour_offset_sign_cannot_commit_content_or_activity() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = database::open(dir.path()).unwrap();
+    let mut connection = db.lock().unwrap();
+    let chapter = seed(&mut connection);
+    let mut payload = submission(0, 1);
+    let segment = &mut payload["segments"][0];
+    segment["context"] = json!({"localDate":"2024-02-29","timeZone":"Asia/Kathmandu","utcOffsetMinutes":-345,"dailyWordGoal":1,"scheduled":true});
+    segment["firstEditedAt"] = json!("2024-02-28T18:15:00.000Z");
+    segment["lastEditedAt"] = segment["firstEditedAt"].clone();
+    assert!(matches!(
+        save(&mut connection, &chapter, "word", &payload),
+        Err(ChapterError::Validation("invalid_activity"))
+    ));
+    assert_eq!(counts(&connection), (0, 0, 0, 0));
+    assert_eq!(
+        ChapterRepository::new(&mut connection)
+            .get(&chapter.summary.book_id, &chapter.summary.id)
+            .unwrap(),
+        chapter
+    );
+    payload["segments"][0]["context"]["utcOffsetMinutes"] = json!(345);
+    save(&mut connection, &chapter, "word", &payload).unwrap();
+    assert_eq!(counts(&connection), (1, 1, 1, 1));
+}
+
+#[test]
 fn content_activity_and_receipt_reopen_and_retry_without_double_credit() {
     let directory = tempfile::tempdir().unwrap();
     let db = database::open(directory.path()).unwrap();

@@ -300,3 +300,7 @@ Writing statistics verification (LIB.11): all 750 Vitest tests and 171 Edge case
 Header alignment (LIB.12): statistics sit to the right of My Library on wide windows, with an italic subtitle and a brighter filled orange/gold flame. The header wraps on narrow/enlarged layouts; compact metric labels/values stay aligned. Data sources and calculations are unchanged.
 
 Header alignment verification (LIB.12): all 750 Vitest and 171 Edge tests passed, with explicit side-by-side/top/value alignment and italic-subtitle checks plus compact/200%/axe/forced-color coverage. Lint, formatting, strict TypeScript/build and diff checks passed. See [task tracker](docs/TASKS.md); awaiting review.
+
+## Date/timezone verification (5.8)
+
+Milestone 5 acceptance is complete. The date/timezone audit found no production logic defect: tests verify edit-time local labels, midnight/DST refresh, travel across the date line, immutable retries, daily totals, both streaks and next-day schedules without rewriting recorded history. All 778 Vitest, 114 Rust and 201 full-run Edge tests passed, plus lint, formatting, typecheck/build and Cargo fmt/Clippy. No real library or host clock/timezone was changed. Run the focused browser matrix with `npm.cmd run test:e2e -- tests/e2e/date-time.spec.ts`; see [review and limits](docs/DATE_TIME_REVIEW.md). Next: 6.1, define achievement rules, awaiting approval.

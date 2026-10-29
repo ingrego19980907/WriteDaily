@@ -65,3 +65,7 @@ The read-only statistics API aggregates committed editor activity by stored loca
 ## Effective schedule integration (5.7)
 
 The next-day shared schedule and per-book goal history allow known empty-day misses/rest without synthetic activity. Sealed editor plans still win. Goal changes and deletion retirement append tomorrow's history atomically with metadata. Both streaks consume the same dated results, with confirmed global rest now neutral. See [WRITING_SCHEDULE.md](WRITING_SCHEDULE.md).
+
+## Date/timezone review (5.8)
+
+Completed: the shared browser/native matrix verifies stored local labels, both DST directions, half-hour and quarter-hour offsets, date-line revisits, backward clocks, both streaks, reopen and frozen retry identity. Counts and existing policies remain unchanged. See [DATE_TIME_REVIEW.md](DATE_TIME_REVIEW.md) for current results and limits; next: 6.1, achievement rules.
