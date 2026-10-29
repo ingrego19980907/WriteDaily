@@ -48,9 +48,7 @@ test('shows only the latest scoped read after returning from the editor', async 
   expect(screen.getByText('Word count unavailable')).toBeVisible()
   rerender(<CountedBookCard {...props} active={false} countsVersion={0} />)
   rerender(<CountedBookCard {...props} active countsVersion={1} />)
-  expect(
-    await screen.findByText('12 / 100 words \u00b7 12% of target'),
-  ).toBeVisible()
+  expect(await screen.findByText('12 / 100 words')).toBeVisible()
   await act(async () => stale(chapters(99)))
   expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '12')
   expect(listChapters).toHaveBeenCalledTimes(2)
@@ -70,7 +68,5 @@ test('read failures and legacy unknown counts never invent zero; a new visit ret
   await act(async () => {})
   expect(screen.getByRole('progressbar')).not.toHaveAttribute('aria-valuenow')
   rerender(<CountedBookCard {...props} active countsVersion={2} />)
-  expect(
-    await screen.findByText('0 / 100 words \u00b7 0% of target'),
-  ).toBeVisible()
+  expect(await screen.findByText('0 / 100 words')).toBeVisible()
 })

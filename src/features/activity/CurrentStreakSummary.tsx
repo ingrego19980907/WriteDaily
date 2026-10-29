@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { en } from '../../app/i18n/en'
 import { Card } from '../../components/ui/Card'
 import { Button } from '../../components/ui/Button'
@@ -13,16 +13,26 @@ const numbers = new Intl.NumberFormat('en')
 type Result =
   | { key: string; data: CurrentStreak; error?: never }
   | { key: string; error: true; data?: never }
+export type CurrentStreakSnapshot = {
+  today: string | null
+  data: CurrentStreak | undefined
+  loading: boolean
+  failed: boolean
+  refreshKey: string
+  active: boolean
+}
 export function CurrentStreakSummary({
   bookId = null,
   refreshVersion = 0,
   active = true,
   refreshOnFocus = true,
+  children,
 }: {
   bookId?: string | null
   refreshVersion?: number
   active?: boolean
   refreshOnFocus?: boolean
+  children?: (snapshot: CurrentStreakSnapshot) => ReactNode
 }) {
   const today = useLocalCalendarDate()
   const [version, setVersion] = useState(0)
@@ -61,6 +71,14 @@ export function CurrentStreakSummary({
   const failed = !today || (result?.key === key && result.error)
   return (
     <>
+      {children?.({
+        today,
+        data,
+        loading,
+        failed: !!failed,
+        refreshKey: key,
+        active,
+      })}
       <Card
         className="space-y-3 min-w-0 break-words"
         role="group"

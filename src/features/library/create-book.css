@@ -1,0 +1,168 @@
+@layer components {
+  .library-primary-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .create-book-entry {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    max-width: 100%;
+  }
+  .new-book-button {
+    border-radius: 0.75rem;
+    font-weight: 600;
+    transition:
+      background-color 150ms ease,
+      border-color 150ms ease;
+  }
+  .new-book-button svg {
+    flex-shrink: 0;
+  }
+  .create-book-status {
+    font-size: 0.875rem;
+  }
+  .create-book-modal {
+    width: min(56rem, calc(100vw - 2rem));
+    background: var(--color-background);
+    border-radius: 1.25rem;
+  }
+  .create-book-modal .modal-title {
+    color: var(--color-accent-strong);
+    font-size: 1.75rem;
+  }
+  .create-book-modal .modal-header {
+    max-height: 40dvh;
+    overflow-y: auto;
+  }
+  .create-book-modal .modal-body {
+    padding: clamp(1rem, 3vw, 1.5rem);
+    container-type: inline-size;
+  }
+  .create-book-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.75rem;
+  }
+  .create-book-cover,
+  .create-book-fields {
+    display: grid;
+    align-content: start;
+    gap: 1rem;
+    min-width: 0;
+  }
+  .create-book-cover__label {
+    font-weight: 600;
+  }
+  .create-book-cover__preview {
+    width: min(10.5rem, 100%);
+    aspect-ratio: 3 / 4;
+    margin-inline: auto;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+    background: var(--color-surface);
+  }
+  .create-book-cover__preview .book-cover-image {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    border: 0;
+    border-radius: 0;
+  }
+  .create-book-cover__preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .create-book-cover__placeholder {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1rem;
+    color: var(--color-accent-strong);
+    text-align: center;
+    background: linear-gradient(
+      150deg,
+      var(--color-background),
+      color-mix(in srgb, var(--color-sage) 20%, var(--color-surface))
+    );
+    font-family: var(--font-writing);
+    overflow-wrap: anywhere;
+  }
+  .create-book-cover__placeholder svg {
+    flex-shrink: 0;
+  }
+  .create-book-cover__placeholder span {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    overflow: hidden;
+  }
+  .create-book-cover__hint {
+    text-align: center;
+  }
+  .create-book-cover__hint,
+  .create-book-fields > .text-secondary {
+    color: var(--color-secondary);
+    font-size: 0.8125rem;
+  }
+  .create-book-cover .cover-picker {
+    padding: 1rem;
+    gap: 0.625rem;
+    border-radius: 0.875rem;
+    background: var(--color-surface);
+  }
+  .create-book-cover .cover-picker__title {
+    font-size: 0.875rem;
+  }
+  .create-book-cover .cover-picker__hint {
+    font-size: 0.75rem;
+  }
+  .create-book-cover .cover-picker__icon {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+  .create-book-submit {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding-block-start: 0.5rem;
+  }
+  .create-book-partial {
+    padding: 0.75rem;
+    border: 1px solid var(--color-secondary);
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+  }
+  @container (min-width: 40rem) {
+    .create-book-form {
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.3fr);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .new-book-button {
+      transition: none;
+    }
+  }
+  @media (forced-colors: active) {
+    .create-book-cover__preview {
+      border-color: CanvasText;
+    }
+    .create-book-cover__placeholder {
+      background: Canvas;
+      color: CanvasText;
+    }
+    .create-book-modal .modal-title {
+      color: CanvasText;
+    }
+  }
+}

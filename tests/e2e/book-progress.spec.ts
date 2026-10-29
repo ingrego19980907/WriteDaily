@@ -29,7 +29,8 @@ for (const width of [320, 640, 1100]) {
       'aria-valuetext',
       '1,500 / 1,000 words · 100% of target',
     )
-    await expect(exceeded.getByText('500 words above target')).toBeVisible()
+    await expect(exceeded.locator('details')).toHaveCount(0)
+    await expect(exceeded.getByText('1,500 / 1,000 words')).toBeVisible()
     await expect(
       page
         .getByRole('article', { name: 'No target', exact: true })

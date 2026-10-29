@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Feather } from 'lucide-react'
 import { en } from './i18n/en'
 import './app-shell.css'
 
@@ -14,16 +15,24 @@ export function AppShell({
   wide = false,
 }: AppShellProps) {
   return (
-    <div className="app-shell">
+    <div className={`app-shell${navigation ? ' app-shell--navigation' : ''}`}>
       <a
         href="#main-content"
         className="absolute top-4 left-4 z-10 -translate-y-[200%] rounded border border-foreground bg-surface px-4 py-2 text-foreground focus:translate-y-0 focus:outline-2 focus:outline-offset-2 focus:outline-foreground"
       >
         {en.shell.skipToContent}
       </a>
-      <header className="border-b border-border bg-surface px-6 py-4">
-        <p className="font-writing text-2xl">{en.app.name}</p>
-        <p className="text-sm text-secondary">{en.app.tagline}</p>
+      <header className="app-shell__brand">
+        <div className="app-shell__identity">
+          <Feather
+            className="app-shell__feather"
+            strokeWidth={1.5}
+            aria-hidden="true"
+            focusable="false"
+          />
+          <p className="app-shell__wordmark">{en.app.name}</p>
+        </div>
+        <p className="app-shell__tagline">{en.app.tagline}</p>
       </header>
       <div
         className={
@@ -35,7 +44,7 @@ export function AppShell({
         {navigation && (
           <aside
             aria-label={en.shell.navigationArea}
-            className="app-shell__sidebar bg-surface p-6"
+            className="app-shell__sidebar"
           >
             {navigation}
           </aside>

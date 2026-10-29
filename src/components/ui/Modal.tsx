@@ -18,6 +18,7 @@ export type ModalProps = {
   headerCenter?: ReactNode
   footer?: ReactNode
   headerActions?: ReactNode
+  className?: string
 }
 
 export function Modal({
@@ -35,6 +36,7 @@ export function Modal({
   headerActions,
   headerCenter,
   footer,
+  className = '',
 }: ModalProps) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -44,7 +46,7 @@ export function Modal({
         <Dialog.Content
           onCloseAutoFocus={onCloseAutoFocus}
           onEscapeKeyDown={onEscapeKeyDown}
-          className={`modal-content${size === 'large' ? ' modal-content--large' : ''}${fullScreen ? ' modal-content--fullscreen' : ''}`}
+          className={`modal-content${size === 'large' ? ' modal-content--large' : ''}${fullScreen ? ' modal-content--fullscreen' : ''}${className ? ` ${className}` : ''}`}
           {...(!description ? { 'aria-describedby': undefined } : {})}
         >
           <div

@@ -157,7 +157,9 @@ export async function verifyEditorRestart(h: Harness) {
   const chapterTitle = 'Однаковий заголовок'
   let page = await h.launch('editor-1-create-format-save')
   await expect(
-    page.getByText('No books yet. Create your first story.'),
+    page.getByText(
+      'Create your first book and begin writing, one day at a time.',
+    ),
   ).toBeVisible()
   await page.getByRole('button', { name: 'Create book', exact: true }).click()
   await page.getByLabel('Title', { exact: true }).fill(title)

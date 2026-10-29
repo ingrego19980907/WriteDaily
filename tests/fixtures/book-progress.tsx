@@ -23,6 +23,12 @@ const examples = [
   { title: 'Above target', words: 1500, target: 1000 },
   { title: 'No target', words: 500, target: null },
   { title: 'Unknown count', words: null, target: 1000 },
+  {
+    title: 'Very large count',
+    words: Number.MAX_SAFE_INTEGER,
+    target: Number.MAX_SAFE_INTEGER,
+  },
+  { title: 'Overdue', words: 250, target: 1000, deadline: '2020-01-01' },
 ]
 createRoot(document.getElementById('root')!).render(
   <AppShell wide>
@@ -36,6 +42,7 @@ createRoot(document.getElementById('root')!).render(
                 ...book,
                 title: example.title,
                 targetWordCount: example.target,
+                deadline: example.deadline ?? null,
               }}
               wordCount={example.words}
               onSaved={() => {}}

@@ -3,6 +3,17 @@ import { BookDetailsDialog } from './BookDetailsDialog'
 
 export function CreateBook({
   onSaved,
-}: { onSaved?: (book: Book) => void } = {}) {
-  return <BookDetailsDialog onSaved={onSaved} />
+  additionalTriggerTarget,
+}: {
+  onSaved?: (book: Book) => void
+  additionalTriggerTarget?: HTMLDivElement | null
+} = {}) {
+  return (
+    <div className="create-book-entry">
+      <BookDetailsDialog
+        onSaved={onSaved}
+        additionalTriggerTarget={additionalTriggerTarget}
+      />
+    </div>
+  )
 }

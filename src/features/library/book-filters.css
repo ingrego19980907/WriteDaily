@@ -1,0 +1,84 @@
+@layer components {
+  .book-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    width: fit-content;
+    max-width: 100%;
+    padding: 0.375rem;
+    border: 1px solid var(--color-border);
+    border-radius: 1.75rem;
+    background: var(--color-surface);
+  }
+  .book-filters__button[data-variant='ghost'] {
+    min-width: 0;
+    border-radius: 999px;
+    padding: 0.5rem 0.875rem;
+    color: var(--color-secondary);
+    transition:
+      background-color 150ms ease,
+      color 150ms ease,
+      border-color 150ms ease;
+  }
+  .book-filters__button[data-variant='ghost']:not(:disabled):hover {
+    background: var(--color-background);
+    color: var(--color-foreground);
+  }
+  .book-filters__button[data-variant='ghost'][aria-pressed='true'] {
+    background: var(--color-accent-strong);
+    border-color: var(--color-accent-strong);
+    color: var(--color-surface);
+  }
+  .book-filters__button[data-variant='ghost'][aria-pressed='true']:not(
+      :disabled
+    ):hover {
+    background: var(--color-accent-strong-hover);
+    border-color: var(--color-accent-strong-hover);
+    color: var(--color-surface);
+  }
+  .book-filters__button:focus-visible {
+    outline: 2px solid var(--color-accent-strong);
+    outline-offset: 2px;
+  }
+  .book-filters__count {
+    min-width: 1.5rem;
+    padding: 0.0625rem 0.375rem;
+    border-radius: 999px;
+    background: var(--color-background);
+    color: var(--color-secondary);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+  .book-filters__button[aria-pressed='true'] .book-filters__count {
+    background: color-mix(
+      in srgb,
+      var(--color-surface) 16%,
+      var(--color-accent-strong)
+    );
+    color: var(--color-surface);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .book-filters__button[data-variant='ghost'] {
+      transition: none;
+    }
+  }
+  @media (forced-colors: active) {
+    .book-filters__button[data-variant='ghost'][aria-pressed='true'],
+    .book-filters__button[data-variant='ghost'][aria-pressed='true']:not(
+        :disabled
+      ):hover {
+      background: Highlight;
+      border: 3px double Highlight;
+      color: HighlightText;
+    }
+    .book-filters__button .book-filters__count,
+    .book-filters__button[aria-pressed='true'] .book-filters__count {
+      background: Canvas;
+      color: CanvasText;
+    }
+    .book-filters__button:focus-visible {
+      outline-color: Highlight;
+    }
+  }
+}

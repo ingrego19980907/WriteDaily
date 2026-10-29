@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { en } from '../../app/i18n/en'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
@@ -7,6 +8,17 @@ import type { Book } from './book'
 import { CreateBook } from './CreateBook'
 import { CountedBookCard } from './CountedBookCard'
 import { CurrentStreakSummary } from '../activity/CurrentStreakSummary'
+import { WritingStatisticsSummary } from './WritingStatisticsSummary'
+import { BookFilters } from './BookFilters'
+import {
+  countBookFilters,
+  filterBooks,
+  searchBooks,
+  type BookFilter,
+} from './book-filters'
+import { LibraryViewControls, type LibraryView } from './LibraryViewControls'
+import { LibraryEmptyState } from './LibraryEmptyState'
+import './library-layout.css'
 
 const copy = en.library
 
@@ -18,9 +30,11 @@ export function Library({
   onBookDeleted,
   active = true,
   countsVersion = 0,
+  statisticsTarget,
 }: {
   active?: boolean
   countsVersion?: number
+  statisticsTarget?: HTMLDivElement | null
   onOpenBook?: (book: Book) => void
   openingId?: string | null
   openFailure?: string
@@ -28,6 +42,9 @@ export function Library({
   onBookDeleted?: (id: string) => void
 }) {
   const [books, setBooks] = useState<Book[]>([])
+  const [filter, setFilter] = useState<BookFilter>('all')
+  const [query, setQuery] = useState('')
+  const [view, setView] = useState<LibraryView>('grid')
   const [loading, setLoading] = useState(true)
   const [hasLoaded, setHasLoaded] = useState(false)
   const [desktopOnly, setDesktopOnly] = useState(false)
@@ -39,6 +56,9 @@ export function Library({
   const retryHadFocus = useRef(false)
   const [deleted, setDeleted] = useState('')
   const [cleanupPending, setCleanupPending] = useState(false)
+  const [createTriggerTarget, setCreateTriggerTarget] =
+    useState<HTMLDivElement | null>(null)
+  const searchInput = useRef<HTMLInputElement>(null)
 
   const load = useCallback(() => {
     const current = ++request.current
@@ -112,19 +132,36 @@ export function Library({
     requestAnimationFrame(() => heading.current?.focus())
   }
 
+  const visibleBooks = searchBooks(filterBooks(books, filter), query)
+  const filterCounts = hasLoaded ? countBookFilters(books) : null
   return (
-    <div className="space-y-4">
-      <CreateBook onSaved={saved} />
-      <CurrentStreakSummary active={active} refreshVersion={countsVersion} />
+    <div className="library-screen">
+      <div className="library-primary-toolbar">
+        <h2 ref={heading} tabIndex={-1} className="library-collection-title">
+          {copy.books}
+        </h2>
+        <div className="library-toolbar-actions">
+          <LibraryViewControls
+            searchRef={searchInput}
+            query={query}
+            view={view}
+            onQueryChange={setQuery}
+            onViewChange={setView}
+          />
+          <CreateBook
+            onSaved={saved}
+            additionalTriggerTarget={createTriggerTarget}
+          />
+        </div>
+      </div>
       {openFailure && (
         <p role="alert" className="text-error">
           {openFailure}
         </p>
       )}
-      <h2 ref={heading} tabIndex={-1} className="font-semibold">
-        {copy.books}
-      </h2>
-      <p role="status">{deleted ? `${copy.deleted} ${deleted}` : ''}</p>
+      <p role="status" className="library-notice">
+        {deleted ? `${copy.deleted} ${deleted}` : ''}
+      </p>
       {cleanupPending && <p role="status">{copy.coverCleanupPending}</p>}
       {loading && <p role="status">{copy.loading}</p>}
       {failure && (
@@ -149,15 +186,49 @@ export function Library({
           )}
         </Card>
       )}
+      <BookFilters
+        value={filter}
+        counts={filterCounts}
+        loading={loading}
+        onChange={setFilter}
+      />
+      <p role="status" className="sr-only">
+        {hasLoaded && !loading && !failure
+          ? en.libraryView.results(visibleBooks.length)
+          : ''}
+      </p>
       {hasLoaded && !loading && !failure && books.length === 0 && (
-        <Card className="space-y-2">
-          <h3 className="font-writing text-writing">{copy.emptyTitle}</h3>
-          <p className="text-secondary">{copy.empty}</p>
-          <p className="text-secondary">{copy.emptyHint}</p>
-        </Card>
+        <LibraryEmptyState kind="library">
+          <div ref={setCreateTriggerTarget} />
+        </LibraryEmptyState>
       )}
-      <ul className="library-grid" aria-label={copy.books} aria-busy={loading}>
-        {books.map((book) => (
+      {hasLoaded &&
+        !loading &&
+        !failure &&
+        books.length > 0 &&
+        visibleBooks.length === 0 && (
+          <LibraryEmptyState kind={query.trim() ? 'search' : 'filter'}>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                if (query.trim()) {
+                  setQuery('')
+                  searchInput.current?.focus()
+                } else setFilter('all')
+              }}
+            >
+              {query.trim()
+                ? en.libraryView.clearSearch
+                : en.libraryFilters.labels.all}
+            </Button>
+          </LibraryEmptyState>
+        )}
+      <ul
+        className={view === 'grid' ? 'library-grid' : 'library-list'}
+        aria-label={copy.books}
+        aria-busy={loading}
+      >
+        {visibleBooks.map((book) => (
           <li key={book.id} className="space-y-2">
             <CountedBookCard
               active={active}
@@ -171,6 +242,18 @@ export function Library({
           </li>
         ))}
       </ul>
+      <div className="library-history">
+        <CurrentStreakSummary active={active} refreshVersion={countsVersion}>
+          {(snapshot) =>
+            active && statisticsTarget
+              ? createPortal(
+                  <WritingStatisticsSummary {...snapshot} />,
+                  statisticsTarget,
+                )
+              : null
+          }
+        </CurrentStreakSummary>
+      </div>
     </div>
   )
 }

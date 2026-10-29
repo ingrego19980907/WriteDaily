@@ -1,5 +1,11 @@
 # Data model
 
+## Library status filtering (LIB.13)
+
+The existing nullable `completed_at` / `Book.completedAt` timestamp supports explicit completion filtering without a migration. All Books includes every loaded record; In Progress means `completedAt === null`, including unstarted books; Completed means a saved non-null completion timestamp. Word totals and reached word targets never imply completion. Filtering is an in-memory read-only view and performs no repository writes. Existing metadata updates preserve completion; this task adds no mark-complete operation.
+
+Archive status is not present in the schema, DTOs or repositories. Archived is therefore disabled and its count is unavailable, not zero. Future archive support needs an approved append-only migration (for example nullable canonical UTC `archived_at`), validated Rust/TypeScript snapshots and repository projections, revision-checked archive/unarchive commands and explicit UI, plus migration/persistence tests. Define the overlap of archived and completed status and whether All Books includes archived records before implementation. Archiving must preserve books, chapters, covers and activity. None of these database changes are implemented here.
+
 Current schema (5.7): v6 adds writing_schedule_state, effective writing_schedule_history and per-book activity_goal_history via append-only migration 006. Existing writing and sealed plans are retained without backfill. See [WRITING_SCHEDULE.md](WRITING_SCHEDULE.md).
 
 Previous schema (5.2): v5 adds activity_operations, writing_activity and activity_day_plans through append-only migration 005. Content/revision/count and activity commit atomically; existing chapters are preserved without credit backfill. See [ACTIVITY_MODEL.md](ACTIVITY_MODEL.md).

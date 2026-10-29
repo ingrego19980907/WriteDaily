@@ -246,9 +246,33 @@ function rows() {
 function card(page: Page, title: string) {
   return page.getByRole('article', { name: title, exact: true })
 }
+async function verifyLibraryCover(page: Page, title: string, custom: boolean) {
+  const selected = card(page, title)
+  const frame = selected.locator('.library-cover__frame')
+  await expect(frame).toBeVisible()
+  const bounds = (await frame.boundingBox())!
+  assert(Math.abs(bounds.height / bounds.width - 4 / 3) < 0.02)
+  if (custom) {
+    const image = frame.getByRole('img', { name: 'Book cover' })
+    await expect(image).toBeVisible()
+    await expect
+      .poll(() =>
+        image.evaluate((element) => (element as HTMLImageElement).naturalWidth),
+      )
+      .toBeGreaterThan(0)
+    assert.equal(
+      await image.evaluate((element) => getComputedStyle(element).objectFit),
+      'cover',
+    )
+    await expect(image).toHaveAttribute('src', /^data:image\/png;base64,/)
+  } else {
+    await expect(frame).toHaveClass(/library-cover__frame--default/)
+    await expect(frame.locator('.library-cover__title')).toHaveText(title)
+  }
+}
 async function create(page: Page, title: string, goals = false) {
-  await page.getByRole('button', { name: 'Create book', exact: true }).click()
-  await page.getByLabel('Title', { exact: true }).fill(title)
+  await page.getByRole('button', { name: 'New Book', exact: true }).click()
+  await page.getByLabel('Book title', { exact: true }).fill(title)
   if (goals) {
     await page.getByLabel('Target word count (optional)').fill('60000')
     await page.getByLabel('Daily word goal (optional)').fill('750')
@@ -266,7 +290,7 @@ async function cover(page: Page, title: string, source: string) {
     await selected
       .getByRole('button', { name: 'Book actions', exact: true })
       .click()
-    await selected
+    await page
       .getByRole('button', { name: 'Manage cover', exact: true })
       .click()
   }
@@ -287,9 +311,7 @@ async function removeBook(page: Page, title: string) {
   await card(page, title)
     .getByRole('button', { name: 'Book actions', exact: true })
     .click()
-  await card(page, title)
-    .getByRole('button', { name: 'Delete book', exact: true })
-    .click()
+  await page.getByRole('button', { name: 'Delete book', exact: true }).click()
   await page.getByRole('checkbox').check()
   await page
     .getByRole('dialog')
@@ -335,7 +357,9 @@ try {
     await copyFile(path.join(root, 'src-tauri/icons/32x32.png'), source)
     let page = await launch('1-create-edit-import')
     await expect(
-      page.getByText('No books yet. Create your first story.'),
+      page.getByText(
+        'Create your first book and begin writing, one day at a time.',
+      ),
     ).toBeVisible()
     await create(page, title, true)
     await create(page, title)
@@ -350,9 +374,7 @@ try {
     await selectedCard
       .getByRole('button', { name: 'Book actions', exact: true })
       .click()
-    await selectedCard
-      .getByRole('button', { name: 'Edit book', exact: true })
-      .click()
+    await page.getByRole('button', { name: 'Edit book', exact: true }).click()
     await page.getByLabel('Title', { exact: true }).fill(editedTitle)
     await page.getByLabel('Target word count (optional)').fill('84000')
     await page.getByLabel('Daily word goal (optional)').fill('900')
@@ -364,8 +386,8 @@ try {
     await card(page, editedTitle)
       .getByRole('button', { name: 'Book actions', exact: true })
       .click()
-    await card(page, editedTitle)
-      .getByText('Manage cover', { exact: true })
+    await page
+      .getByRole('button', { name: 'Manage cover', exact: true })
       .click()
     await page
       .getByRole('dialog')
@@ -387,6 +409,7 @@ try {
       null,
     )
     await cover(page, editedTitle, source)
+    await verifyLibraryCover(page, editedTitle, true)
     const first = await snapshot(page, 'first')
     const persisted = first.find((book) => book.id === selected.id)!
     assert.equal(persisted.dailyWordGoal, 900)
@@ -406,6 +429,7 @@ try {
     assert.equal(rows().length, 2)
 
     page = await launch('2-reopen-replace-delete-duplicate')
+    await verifyLibraryCover(page, editedTitle, true)
     await expect(
       card(page, editedTitle).getByRole('img', { name: 'Book cover' }),
     ).toBeVisible()
@@ -429,9 +453,7 @@ try {
     await card(page, editedTitle)
       .getByRole('button', { name: 'Book actions', exact: true })
       .click()
-    await card(page, editedTitle)
-      .getByRole('button', { name: 'Edit book', exact: true })
-      .click()
+    await page.getByRole('button', { name: 'Edit book', exact: true }).click()
     await page.getByLabel('Daily word goal (optional)').fill('1000')
     await page
       .getByRole('button', { name: 'Save changes', exact: true })
@@ -454,9 +476,7 @@ try {
     await card(page, title)
       .getByRole('button', { name: 'Book actions', exact: true })
       .click()
-    await card(page, title)
-      .getByRole('button', { name: 'Delete book', exact: true })
-      .click()
+    await page.getByRole('button', { name: 'Delete book', exact: true }).click()
     await page.getByRole('button', { name: 'Cancel', exact: true }).click()
     assert((await books(page)).some((book) => book.id === duplicate.id))
     await removeBook(page, title)
@@ -465,6 +485,7 @@ try {
     assert.equal(rows().length, 1)
 
     page = await launch('3-reopen-remove-cover')
+    await verifyLibraryCover(page, editedTitle, true)
     assert.deepEqual(await books(page), second)
     assert.equal(second[0].dailyWordGoal, 1000)
     await expect(
@@ -473,8 +494,8 @@ try {
     await card(page, editedTitle)
       .getByRole('button', { name: 'Book actions', exact: true })
       .click()
-    await card(page, editedTitle)
-      .getByText('Manage cover', { exact: true })
+    await page
+      .getByRole('button', { name: 'Manage cover', exact: true })
       .click()
     await page
       .getByRole('dialog')
@@ -489,6 +510,7 @@ try {
     assert.equal(rows()[0].cover_path, null)
 
     page = await launch('4-reopen-delete-covered-book')
+    await verifyLibraryCover(page, editedTitle, false)
     assert.deepEqual(await books(page), third)
     await expect(
       card(page, editedTitle).getByText('No cover yet', { exact: true }),
@@ -501,7 +523,9 @@ try {
 
     page = await launch('5-confirm-empty-after-restart')
     await expect(
-      page.getByText('No books yet. Create your first story.'),
+      page.getByText(
+        'Create your first book and begin writing, one day at a time.',
+      ),
     ).toBeVisible()
     assert.deepEqual(await books(page), [])
     assert.deepEqual(

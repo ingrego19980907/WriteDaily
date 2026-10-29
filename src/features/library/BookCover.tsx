@@ -1,3 +1,4 @@
+import { CoverPicker } from './CoverPicker'
 import { CoverImage } from './CoverImage'
 import { CoverDraftPreview } from './CoverDraftPreview'
 import './book-card.css'
@@ -127,49 +128,21 @@ export function BookCover({
         ) : book.coverPath ? (
           <CoverImage book={book} />
         ) : null)}
-      <label htmlFor={id} className="cover-picker">
-        <svg
-          className="cover-picker__icon"
-          aria-hidden="true"
-          focusable="false"
-          viewBox="0 0 32 32"
-          width="40"
-          height="40"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M18 28H8a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h11l7 7v7" />
-          <path d="M19 4v7h7M21 24h10M26 19v10" />
-        </svg>
-        <span className="cover-picker__title">{copy.coverChoose}</span>
-        <span id={`${id}-hint`} className="cover-picker__hint">
-          {copy.coverHint}
-        </span>
-        {file && <span className="cover-picker__filename">{file.name}</span>}
-        <input
-          id={id}
-          ref={input}
-          type="file"
-          accept="image/png,image/jpeg,image/webp"
-          disabled={pending}
-          aria-label={copy.cover}
-          aria-describedby={`${id}-hint${failure ? ` ${id}-error` : ''}`}
-          aria-invalid={
-            failure === copy.coverInvalid || failure === copy.coverTooLarge
-              ? true
-              : undefined
-          }
-          className="cover-picker__input"
-          onChange={(event) => {
-            setFile(event.target.files?.[0] ?? null)
-            setFailure('')
-            setStatus('')
-          }}
-        />
-      </label>
+      <CoverPicker
+        id={id}
+        inputRef={input}
+        file={file}
+        pending={pending}
+        failure={failure}
+        invalid={
+          failure === copy.coverInvalid || failure === copy.coverTooLarge
+        }
+        onChange={(selected) => {
+          setFile(selected)
+          setFailure('')
+          setStatus('')
+        }}
+      />
       <div className="flex flex-wrap gap-2">
         <Button
           variant="secondary"

@@ -16,7 +16,11 @@ for (const width of [320, 640, 1100]) {
     await expect(
       page.getByText('No word target', { exact: true }),
     ).toBeVisible()
-    await expect(page.getByText('Completed', { exact: true })).toBeVisible()
+    await expect(
+      page
+        .getByRole('list', { name: 'Books' })
+        .getByText('Completed', { exact: true }),
+    ).toBeVisible()
     for (const progress of await page.getByRole('progressbar').all()) {
       await expect(progress).not.toHaveAttribute('aria-valuenow')
       await expect(progress).toHaveAttribute(
@@ -59,7 +63,10 @@ for (const width of [320, 640, 1100]) {
     await first
       .getByRole('button', { name: 'Book actions', exact: true })
       .click()
-    const manage = first.getByText('Manage cover', { exact: true })
+    const manage = page.getByRole('button', {
+      name: 'Manage cover',
+      exact: true,
+    })
     await manage.focus()
     await page.keyboard.press('Enter')
     await expect(
@@ -71,7 +78,7 @@ for (const width of [320, 640, 1100]) {
     await first
       .getByRole('button', { name: 'Book actions', exact: true })
       .click()
-    await first.getByRole('button', { name: 'Edit book', exact: true }).click()
+    await page.getByRole('button', { name: 'Edit book', exact: true }).click()
     await expect(page.getByLabel('Title', { exact: true })).toHaveValue(
       'ДовгаНазва'.repeat(22),
     )

@@ -13,7 +13,7 @@ for (const width of [320, 640, 1100]) {
       exact: true,
     })
     await expect(
-      card.getByRole('button', { name: 'Edit book', exact: true }),
+      page.getByRole('button', { name: 'Edit book', exact: true }),
     ).toHaveCount(0)
     const bounds = await card.boundingBox()
     const dots = await trigger.boundingBox()
@@ -21,7 +21,7 @@ for (const width of [320, 640, 1100]) {
     expect(dots!.y - bounds!.y).toBeLessThan(16)
     await trigger.focus()
     await page.keyboard.press('Enter')
-    const actions = card.getByRole('group', {
+    const actions = page.getByRole('group', {
       name: 'Book actions',
       exact: true,
     })

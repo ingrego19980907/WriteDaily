@@ -9,6 +9,7 @@ for (const width of [320, 1100]) {
     await page.setViewportSize({ width, height: 850 })
     await page.clock.install({ time: new Date('2026-10-28T12:00:00Z') })
     await page.goto('/tests/fixtures/writing-schedule.html')
+    await page.getByRole('button', { name: 'Open book', exact: true }).click()
     await expect(page.getByText('20 words per writing day')).toBeVisible()
     await page
       .getByRole('button', { name: 'Goals & Deadlines', exact: true })
@@ -38,6 +39,7 @@ for (const width of [320, 1100]) {
       ).violations,
     ).toEqual([])
     await page.getByRole('button', { name: 'My Library', exact: true }).click()
+    await page.getByRole('button', { name: 'Open book', exact: true }).click()
     await expect(page.getByText('34 words per writing day')).toBeVisible()
     await page
       .getByRole('button', { name: 'Goals & Deadlines', exact: true })
@@ -103,6 +105,7 @@ test('pending and failed writes retain selection without false success; retry an
     ),
   ).toBeVisible()
   await page.getByRole('button', { name: 'My Library', exact: true }).click()
+  await page.getByRole('button', { name: 'Open book', exact: true }).click()
   await page.clock.fastForward(24 * 60 * 60 * 1000)
   await expect(
     page.getByText('No scheduled writing days remain before the deadline.'),

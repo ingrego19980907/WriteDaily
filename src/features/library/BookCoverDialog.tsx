@@ -11,10 +11,12 @@ export function BookCoverDialog({
   book,
   onSaved,
   onCloseAutoFocus,
+  trigger,
 }: {
   book: Book
   onSaved: (book: Book) => void
   onCloseAutoFocus?: ModalProps['onCloseAutoFocus']
+  trigger?: ModalProps['trigger']
 }) {
   const [open, setOpen] = useState(false)
   const pending = useRef(false)
@@ -25,7 +27,9 @@ export function BookCoverDialog({
         if (!pending.current) setOpen(next)
       }}
       onCloseAutoFocus={onCloseAutoFocus}
-      trigger={<Button variant="secondary">{copy.manageCover}</Button>}
+      trigger={
+        trigger ?? <Button variant="secondary">{copy.manageCover}</Button>
+      }
       title={copy.manageCover}
       closeLabel={copy.close}
     >

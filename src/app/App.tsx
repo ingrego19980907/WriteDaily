@@ -1,6 +1,8 @@
 import { WritingScheduleProvider } from '../features/settings/WritingScheduleProvider'
 import { WritingScheduleSettings } from '../features/settings/WritingScheduleSettings'
 import { useEffect, useRef, useState } from 'react'
+import { Leaf } from 'lucide-react'
+import '../features/library/library-header.css'
 import { en } from './i18n/en'
 import { AppShell } from './AppShell'
 import { AppNavigation } from './AppNavigation'
@@ -31,6 +33,8 @@ function AppContent() {
   const [openFailure, setOpenFailure] = useState('')
   const openRequest = useRef(0)
   const [countsVersion, setCountsVersion] = useState(0)
+  const [statisticsTarget, setStatisticsTarget] =
+    useState<HTMLDivElement | null>(null)
 
   function selectSection(sectionId: SectionId) {
     openRequest.current += 1
@@ -87,16 +91,57 @@ function AppContent() {
       }
     >
       <div className="space-y-4">
-        <h1
-          ref={headingRef}
-          tabIndex={-1}
-          className="font-writing text-display"
+        <div
+          className={
+            activeSection === 'library' ? 'library-page-header' : 'space-y-4'
+          }
         >
-          {section.title}
-        </h1>
-        <p className="font-writing text-writing">{section.subtitle}</p>
+          <div
+            className={
+              activeSection === 'library'
+                ? 'library-page-header__intro'
+                : 'space-y-4'
+            }
+          >
+            <h1
+              ref={headingRef}
+              tabIndex={-1}
+              className={
+                activeSection === 'library'
+                  ? 'library-page-header__title'
+                  : 'font-writing text-display'
+              }
+            >
+              <span>{section.title}</span>
+              {activeSection === 'library' && (
+                <Leaf
+                  className="library-page-header__leaf"
+                  strokeWidth={1.5}
+                  aria-hidden="true"
+                  focusable="false"
+                />
+              )}
+            </h1>
+            <p
+              className={
+                activeSection === 'library'
+                  ? 'library-page-header__subtitle'
+                  : 'font-writing text-writing'
+              }
+            >
+              {section.subtitle}
+            </p>
+          </div>
+          {activeSection === 'library' && (
+            <div
+              ref={setStatisticsTarget}
+              className="library-page-header__statistics"
+            />
+          )}
+        </div>
         <div hidden={activeSection !== 'library'}>
           <Library
+            statisticsTarget={statisticsTarget}
             active={activeSection === 'library'}
             countsVersion={countsVersion}
             onOpenBook={(book) => {

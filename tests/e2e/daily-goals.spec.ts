@@ -8,15 +8,16 @@ for (const width of [320, 640, 1100]) {
     await page.setViewportSize({ width, height: 650 })
     await page.goto('/tests/fixtures/book-editing.html?daily-goals')
     const card = page.getByRole('article')
-    await expect(card.getByText('No daily goal', { exact: true })).toBeVisible()
+    await expect(card.locator('details')).toHaveCount(0)
     const edit = async () => {
       await card
         .getByRole('button', { name: 'Book actions', exact: true })
         .click()
-      await card.getByRole('button', { name: 'Edit book', exact: true }).click()
+      await page.getByRole('button', { name: 'Edit book', exact: true }).click()
     }
     await edit()
     const input = page.getByLabel('Daily word goal (optional)', { exact: true })
+    await expect(input).toHaveValue('')
     await expect(input).toHaveAttribute('aria-describedby', /hint/)
     for (const invalid of ['0', '-1', '1.5', '9007199254740992']) {
       await input.fill(invalid)
@@ -28,7 +29,9 @@ for (const width of [320, 640, 1100]) {
     }
     await input.fill('1500')
     await page.keyboard.press('Escape')
-    await expect(card.getByText('No daily goal', { exact: true })).toBeVisible()
+    await expect(
+      card.getByText('Writing details', { exact: true }),
+    ).toHaveCount(0)
     await edit()
     await expect(input).toHaveValue('1500')
     expect(
@@ -41,9 +44,7 @@ for (const width of [320, 640, 1100]) {
     await page
       .getByRole('button', { name: 'Save changes', exact: true })
       .click()
-    await expect(
-      card.getByText('Daily goal: 1,500 words', { exact: true }),
-    ).toBeVisible()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
     await page.getByRole('button', { name: 'Open book', exact: true }).click()
     await expect(
       page
@@ -65,7 +66,7 @@ for (const width of [320, 640, 1100]) {
     await page
       .getByRole('button', { name: 'Save changes', exact: true })
       .click()
-    await expect(card.getByText('No daily goal', { exact: true })).toBeVisible()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
     await page.getByRole('button', { name: 'Open book', exact: true }).click()
     await expect(
       page

@@ -1,4 +1,54 @@
 export const en = {
+  libraryView: {
+    searchLabel: 'Search books',
+    searchPlaceholder: 'Search books...',
+    viewLabel: 'Book view',
+    grid: 'Grid view',
+    list: 'List view',
+    emptyTitle: 'No books found',
+    clearSearch: 'Clear search',
+    emptyHint:
+      'Try another title, clear your search, or choose a different book filter.',
+    results: (count: number) =>
+      `${new Intl.NumberFormat('en').format(count)} ${count === 1 ? 'book matches' : 'books match'} your search and filters.`,
+  },
+  libraryFilters: {
+    title: 'Filter books',
+    labels: {
+      all: 'All Books',
+      'in-progress': 'In Progress',
+      completed: 'Completed',
+    },
+    archived: 'Archived',
+    archiveUnavailable: 'Archiving is not available yet.',
+    countsLoading: 'Book counts are loading.',
+    countsUnavailable:
+      'Book counts are unavailable until the library loads successfully.',
+    name: (label: string, count: number | null) =>
+      count === null
+        ? `${label} ? (count unavailable)`
+        : `${label} ${new Intl.NumberFormat('en').format(count)} ${count === 1 ? 'book' : 'books'}`,
+    emptyTitle: 'No books match this filter',
+    emptyHint: 'Choose All Books or another filter to see your books.',
+  },
+  writingStatistics: {
+    title: 'Writing statistics',
+    streak: 'Current streak',
+    words: 'Words written today',
+    goals: 'Daily goals completed',
+    loading: 'Loading…',
+    unavailable: 'Unavailable',
+    day: 'day',
+    days: 'days',
+    today: 'today',
+    atLeast: 'At least',
+    partial: 'Confirmed days only; earlier history is incomplete.',
+    unknown: 'Not enough recorded history to confirm a streak.',
+    failure: 'Saved activity could not be loaded.',
+    wordsHint: 'Saved credited words for the current local day.',
+    goalsHint:
+      'Recorded book goals reached today, across all books, including retained history.',
+  },
   editorEntry: {
     title: 'Choose a book to edit',
     hint: 'Select a book from your library to continue writing.',
@@ -143,7 +193,23 @@ export const en = {
   library: {
     actions: 'Book actions',
     create: 'Create book',
+    newBook: 'New Book',
+    createTitle: 'Create New Book',
+    createBookTitle: 'Book title',
+    createCoverLabel: 'Cover image (optional)',
+    createCoverHint: 'Add a cover now, or choose one later.',
+    createCoverPartial:
+      'Your book was created, but its cover was not saved. Retry the cover or finish without it. Retrying will not create another book.',
+    createCoverConflict:
+      'This book has changed. Finish without a cover, then open Manage cover from its actions menu.',
+    finishWithoutCover: 'Finish without cover',
+    retryCreateCover: 'Retry cover',
     open: 'Open book',
+    openShort: 'Open',
+    titleHelp: 'Focus or hover to read the full title.',
+    progressCounts: (words: string, target: string) =>
+      `${words} / ${target} words`,
+    progressPercent: (value: string) => `${value}%`,
     opening: 'Opening…',
     openFailure: 'Could not open this book. Please try again.',
     openMissing:
@@ -229,10 +295,9 @@ export const en = {
     loading: 'Loading books…',
     loadFailure: 'Could not load your books. Please try again.',
     retry: 'Retry loading books',
-    empty: 'No books yet. Create your first story.',
-    emptyTitle: 'Room for your next story',
-    emptyHint:
-      'Choose Create book to give it a title. Goals and a deadline can wait.',
+    empty: 'Create your first book and begin writing, one day at a time.',
+    emptyTitle: 'Your story starts here',
+    createFirstBook: 'Create your first book',
     loadErrorTitle: 'Your library could not be loaded',
     desktopTitle: 'Desktop app required',
     retrying: 'Retrying…',
@@ -491,6 +556,15 @@ export const en = {
     navigationArea: 'Application navigation',
     mainNavigation: 'Main navigation',
     comingSoon: 'Coming soon',
+    navigationLabels: {
+      library: 'My Library',
+      editor: 'Writing Editor',
+      goals: 'Goals',
+      activity: 'Activity',
+      achievements: 'Achievements',
+    },
+    statistics: 'Statistics',
+    statisticsUnavailable: 'Statistics is not available yet.',
   },
   sections: {
     library: {

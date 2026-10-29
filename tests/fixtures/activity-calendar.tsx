@@ -66,8 +66,14 @@ mockIPC((command, payload) => {
   }
   if (command === 'list_chapters') return []
   if (command === 'get_daily_statistics') {
-    reads++
     const request = payload as StatisticsRequest
+    // The library header has its own one-day read; month scenarios keep their original counters.
+    if (request.startDate === request.endDate && request.bookId === null)
+      return streakCalendarFixture(
+        activityFixture(request, state === 'empty'),
+        streakMode,
+      )
+    reads++
     if (state === 'loading') return new Promise(() => {})
     if (state === 'failure' && reads === 1) throw { code: 'persistence' }
     if (state === 'invalid') return { ...request, days: [] }

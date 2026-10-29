@@ -10,7 +10,9 @@ for (const width of [320, 640, 1100]) {
     await page
       .getByRole('button', { name: 'Book actions', exact: true })
       .click()
-    await page.getByText('Manage cover', { exact: true }).click()
+    await page
+      .getByRole('button', { name: 'Manage cover', exact: true })
+      .click()
     const input = page.getByLabel('Cover image', { exact: true })
     const save = page.getByRole('button', { name: 'Save cover', exact: true })
     await expect(input).toBeVisible()

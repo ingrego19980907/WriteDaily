@@ -1,10 +1,9 @@
 import { BookDeadline } from './BookDeadline'
-import { WritingPace } from './WritingPace'
 import { useId } from 'react'
+import { Target } from 'lucide-react'
 import { en } from '../../app/i18n/en'
 import { Card } from '../../components/ui/Card'
-import { BookProgress } from './BookProgress'
-import { DailyGoal } from './DailyGoal'
+import { BookCardProgress } from './BookCardProgress'
 import { Button } from '../../components/ui/Button'
 import type { Book } from './book'
 import { BookActions } from './BookActions'
@@ -34,40 +33,51 @@ export function BookCard({
     <Card className="book-card" role="article" aria-labelledby={`${id}-title`}>
       <BookActions book={book} onSaved={onSaved} onDeleted={onDeleted} />
       <div className="book-card__overview">
-        <CoverImage book={book} />
+        <CoverImage book={book} presentation="library" />
         <div className="book-card__content">
-          <h3 id={`${id}-title`} className="book-card__title">
+          <h3
+            id={`${id}-title`}
+            className="book-card__title"
+            title={book.title}
+            tabIndex={0}
+            aria-description={copy.titleHelp}
+          >
             {book.title}
           </h3>
           {book.completedAt && (
             <p className="book-card__completion">{copy.completed}</p>
           )}
-          <p className="text-secondary">
-            {book.targetWordCount === null
-              ? copy.noTarget
-              : copy.wordTarget(numbers.format(book.targetWordCount))}
-          </p>
-          <DailyGoal value={book.dailyWordGoal} />
-          <BookDeadline
-            value={book.deadline}
-            completed={book.completedAt !== null}
-          />
-          <BookProgress
+          <div className="book-card__metadata">
+            <p className="book-card__target text-secondary">
+              <Target size={16} strokeWidth={1.6} aria-hidden="true" />
+              <span>
+                {book.targetWordCount === null
+                  ? copy.noTarget
+                  : copy.wordTarget(numbers.format(book.targetWordCount))}
+              </span>
+            </p>
+            <BookDeadline
+              value={book.deadline}
+              completed={book.completedAt !== null}
+              compact
+            />
+          </div>
+          <BookCardProgress
             wordCount={wordCount}
             targetWordCount={book.targetWordCount}
           />
-          <WritingPace
-            wordCount={wordCount}
-            targetWordCount={book.targetWordCount}
-            deadline={book.deadline}
-            completed={book.completedAt !== null}
-          />
-          <div className="book-card__actions">
-            {onOpen && (
-              <Button disabled={opening} onClick={() => onOpen(book)}>
-                {opening ? copy.opening : copy.open}
-              </Button>
-            )}
+          <div className="book-card__footer">
+            <div className="book-card__actions">
+              {onOpen && (
+                <Button
+                  aria-label={opening ? copy.opening : copy.open}
+                  disabled={opening}
+                  onClick={() => onOpen(book)}
+                >
+                  {opening ? copy.opening : copy.openShort}
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>

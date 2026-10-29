@@ -4,7 +4,7 @@ import { expect, test, type Page } from '@playwright/test'
 async function editDate(page: Page, value: string) {
   const card = page.getByRole('article')
   await card.getByRole('button', { name: 'Book actions', exact: true }).click()
-  await card.getByRole('button', { name: 'Edit book', exact: true }).click()
+  await page.getByRole('button', { name: 'Edit book', exact: true }).click()
   const input = page.getByLabel('Deadline (optional)', { exact: true })
   await expect(input).toHaveAccessibleDescription(/local calendar/)
   await input.fill(value)
@@ -43,7 +43,7 @@ for (const width of [320, 640, 1100]) {
     await card
       .getByRole('button', { name: 'Book actions', exact: true })
       .click()
-    await card.getByRole('button', { name: 'Edit book', exact: true }).click()
+    await page.getByRole('button', { name: 'Edit book', exact: true }).click()
     const input = page.getByLabel('Deadline (optional)', { exact: true })
     await expect(input).toHaveValue('2026-10-26')
     await input.fill('2024-02-29')
@@ -52,7 +52,7 @@ for (const width of [320, 640, 1100]) {
     await card
       .getByRole('button', { name: 'Book actions', exact: true })
       .click()
-    await card.getByRole('button', { name: 'Edit book', exact: true }).click()
+    await page.getByRole('button', { name: 'Edit book', exact: true }).click()
     await expect(input).toHaveValue('2024-02-29')
     await expect(page.getByLabel('Target word count (optional)')).toHaveValue(
       '50000',

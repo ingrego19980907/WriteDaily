@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
+import { BookOpen } from 'lucide-react'
 import { en } from '../../app/i18n/en'
 import { readCover } from '../../services/books'
 import type { Book } from './book'
+import './cover-image.css'
 
 const copy = en.library
 function dataUrl(bytes: number[]) {
@@ -11,7 +13,13 @@ function dataUrl(bytes: number[]) {
   return `data:image/png;base64,${btoa(binary)}`
 }
 
-export function CoverImage({ book }: { book: Book }) {
+export function CoverImage({
+  book,
+  presentation = 'preview',
+}: {
+  book: Book
+  presentation?: 'library' | 'preview'
+}) {
   const [image, setImage] = useState<{
     id: string
     path: string
@@ -40,6 +48,45 @@ export function CoverImage({ book }: { book: Book }) {
     : !loaded
       ? copy.coverLoading
       : copy.coverReadFailure
+  const uploadedImage =
+    loaded?.url && book.coverPath ? (
+      <img
+        src={loaded.url}
+        alt={copy.coverAlt}
+        onError={() =>
+          setImage({ id: book.id, path: book.coverPath!, url: null })
+        }
+      />
+    ) : null
+  if (presentation === 'library')
+    return (
+      <div className="library-cover">
+        <div
+          className={`book-cover-image library-cover__frame${!book.coverPath ? ' library-cover__frame--default' : ''}`}
+        >
+          {uploadedImage ?? (
+            <div className="library-cover__art" aria-hidden="true">
+              <BookOpen size={28} strokeWidth={1.4} />
+              {!book.coverPath && (
+                <p className="library-cover__title">{book.title}</p>
+              )}
+            </div>
+          )}
+        </div>
+        {!book.coverPath ? (
+          <span className="sr-only">{copy.noCover}</span>
+        ) : (
+          !uploadedImage && (
+            <p
+              className="library-cover__status"
+              role={loaded ? 'alert' : 'status'}
+            >
+              {text}
+            </p>
+          )
+        )}
+      </div>
+    )
   return (
     <div
       className={
@@ -48,15 +95,7 @@ export function CoverImage({ book }: { book: Book }) {
           : 'book-cover-image book-cover-image--placeholder'
       }
     >
-      {loaded?.url && book.coverPath ? (
-        <img
-          src={loaded.url}
-          alt={copy.coverAlt}
-          onError={() =>
-            setImage({ id: book.id, path: book.coverPath!, url: null })
-          }
-        />
-      ) : (
+      {uploadedImage ?? (
         <div className="book-cover-placeholder">
           <svg
             width="48"

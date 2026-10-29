@@ -80,6 +80,7 @@ mockIPC((command, payload) => {
   }
   if (command === 'list_books') return [book]
   if (command === 'list_chapters') return []
+  if (command === 'get_book') return book
   if (command === 'get_daily_statistics') {
     const request = payload as StatisticsRequest
     const range = activityFixture(request, true)

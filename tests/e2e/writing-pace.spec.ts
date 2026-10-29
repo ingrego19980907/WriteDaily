@@ -12,13 +12,23 @@ for (const width of [320, 640, 1100]) {
     await page.clock.pauseAt(new Date('2026-10-27T23:59:50Z'))
     await page.goto('/tests/fixtures/book-editing.html?total-goals&deadlines')
     const card = page.getByRole('article')
-    const pace = card.getByRole('group', { name: 'Required writing pace' })
-    await expect(pace).toContainText('Set a deadline')
+    const assertPace = async (...messages: string[]) => {
+      await page.getByRole('button', { name: 'Open book', exact: true }).click()
+      const pace = page
+        .getByRole('region', { name: 'A quiet story', exact: true })
+        .getByRole('group', { name: 'Required writing pace' })
+      for (const message of messages) await expect(pace).toContainText(message)
+      await page
+        .getByRole('button', { name: 'Back to library', exact: true })
+        .click()
+    }
+    await expect(card.locator('details')).toHaveCount(0)
+    await assertPace('Set a deadline')
     const edit = async () => {
       await card
         .getByRole('button', { name: 'Book actions', exact: true })
         .click()
-      await card.getByRole('button', { name: 'Edit book', exact: true }).click()
+      await page.getByRole('button', { name: 'Edit book', exact: true }).click()
     }
     await edit()
     await page
@@ -28,13 +38,12 @@ for (const width of [320, 640, 1100]) {
       .getByLabel('Deadline (optional)', { exact: true })
       .fill('2026-10-29')
     await page.keyboard.press('Escape')
-    await expect(pace).toContainText('Set a deadline')
+    await assertPace('Set a deadline')
     await edit()
     await page
       .getByRole('button', { name: 'Save changes', exact: true })
       .click()
-    await expect(pace).toContainText('34 words per writing day')
-    await expect(pace).toContainText('3 writing days available')
+    await assertPace('34 words per writing day', '3 writing days available')
     await page.getByRole('button', { name: 'Open book', exact: true }).click()
     const headerPace = page
       .getByRole('region', { name: 'A quiet story', exact: true })
@@ -53,7 +62,7 @@ for (const width of [320, 640, 1100]) {
     await page
       .getByRole('button', { name: 'Back to library', exact: true })
       .click()
-    await expect(pace).toContainText('50 words per writing day')
+    await assertPace('50 words per writing day')
     await edit()
     await page
       .getByLabel('Deadline (optional)', { exact: true })
@@ -61,7 +70,7 @@ for (const width of [320, 640, 1100]) {
     await page
       .getByRole('button', { name: 'Save changes', exact: true })
       .click()
-    await expect(pace).toContainText('Deadline passed.')
+    await assertPace('Deadline passed.')
     await edit()
     await page
       .getByLabel('Target word count (optional)', { exact: true })
@@ -69,7 +78,7 @@ for (const width of [320, 640, 1100]) {
     await page
       .getByRole('button', { name: 'Save changes', exact: true })
       .click()
-    await expect(pace).toContainText('Word target reached.')
+    await assertPace('Word target reached.')
     await edit()
     await page
       .getByLabel('Target word count (optional)', { exact: true })
@@ -77,7 +86,7 @@ for (const width of [320, 640, 1100]) {
     await page
       .getByRole('button', { name: 'Save changes', exact: true })
       .click()
-    await expect(pace).toContainText('Set a total word target')
+    await assertPace('Set a total word target')
     await page.addStyleTag({ content: 'html{font-size:200%;}' })
     expect(
       await page.evaluate(
@@ -98,14 +107,17 @@ test('completed books suppress planning and unknown totals never show numeric pa
   page,
 }) => {
   await page.goto('/tests/fixtures/book-editing.html?deadlines&completed')
+  await page.getByRole('button', { name: 'Open book', exact: true }).click()
   await expect(
     page.getByRole('group', { name: 'Required writing pace' }),
   ).toContainText('Book completed.')
   await page.goto('/tests/fixtures/book-editing.html?cards')
-  const unknown = page
+  await page
     .getByRole('article')
     .first()
-    .getByRole('group', { name: 'Required writing pace' })
+    .getByRole('button', { name: 'Open book', exact: true })
+    .click()
+  const unknown = page.getByRole('group', { name: 'Required writing pace' })
   await expect(unknown).toContainText('Writing pace unavailable.')
   await expect(unknown).not.toContainText('words per writing day')
 })

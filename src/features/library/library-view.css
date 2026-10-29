@@ -1,0 +1,81 @@
+@layer components {
+  .library-view-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .library-search {
+    position: relative;
+    flex: 1 1 12rem;
+    max-width: 22rem;
+    min-width: 0;
+  }
+  .library-search__icon {
+    position: absolute;
+    inset-inline-start: 0.875rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-secondary);
+    pointer-events: none;
+  }
+  .library-search__input {
+    padding-inline-start: 2.5rem;
+    border-radius: 999px;
+  }
+  .library-view-toggle {
+    display: flex;
+    padding: 0.25rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-surface);
+    gap: 0.25rem;
+    margin-inline-start: auto;
+  }
+  .library-view-toggle__button[data-variant='ghost'] {
+    width: 2.75rem;
+    padding: 0.5rem;
+    border-radius: 999px;
+    color: var(--color-secondary);
+    transition:
+      background-color 150ms ease,
+      color 150ms ease;
+  }
+  .library-view-toggle__button[data-variant='ghost'][aria-pressed='true'] {
+    color: var(--color-surface);
+    background: var(--color-accent-strong);
+  }
+  .library-view-toggle__button[data-variant='ghost'][aria-pressed='true']:not(
+      :disabled
+    ):hover {
+    color: var(--color-surface);
+    background: var(--color-accent-strong-hover);
+  }
+  .library-list {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .library-view-toggle__button[data-variant='ghost'] {
+      transition: none;
+    }
+  }
+  @media (forced-colors: active) {
+    .library-search__input,
+    .library-view-toggle {
+      border-color: CanvasText;
+    }
+    .library-view-toggle__button[data-variant='ghost'][aria-pressed='true'] {
+      border: 3px double Highlight;
+      background: Highlight;
+      color: HighlightText;
+    }
+    .library-view-toggle__button[data-variant='ghost'][aria-pressed='true']:not(
+        :disabled
+      ):hover {
+      background: Highlight;
+      color: HighlightText;
+    }
+  }
+}

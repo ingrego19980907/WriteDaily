@@ -35,6 +35,14 @@ for (const viewport of [
       path: testInfo.outputPath('app.png'),
       fullPage: true,
     })
+    await page.locator('.library-page-header').screenshot({
+      path: testInfo.outputPath('library-header.png'),
+    })
+    await page.addStyleTag({ content: 'html { font-size: 200%; }' })
+    await expectNoHorizontalOverflow(page)
+    await page.locator('.library-page-header').screenshot({
+      path: testInfo.outputPath('library-header-200.png'),
+    })
     await page.goto('/tests/fixtures/components.html')
     await expect(
       page.getByRole('progressbar', { name: 'Book progress' }),

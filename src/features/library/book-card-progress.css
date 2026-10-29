@@ -1,0 +1,46 @@
+@layer components {
+  .book-card-progress {
+    display: grid;
+    gap: 0.375rem;
+    min-width: 0;
+  }
+  .book-card-progress__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .book-card-progress .progress-field__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .book-card-progress .progress-bar {
+    height: 0.375rem;
+  }
+  .book-card-progress .progress-bar__fill {
+    background: color-mix(in srgb, var(--color-sage) 25%, var(--color-success));
+  }
+  .book-card-progress[data-reached='true'] .progress-bar__fill {
+    background: var(--color-accent-strong);
+  }
+  .book-card-progress__percentage {
+    font-variant-numeric: tabular-nums;
+    color: var(--color-secondary);
+    white-space: nowrap;
+  }
+  .book-card-progress__count {
+    color: var(--color-secondary);
+    overflow-wrap: anywhere;
+    font-variant-numeric: tabular-nums;
+  }
+  @media (forced-colors: active) {
+    .book-card-progress .progress-bar__fill,
+    .book-card-progress[data-reached='true'] .progress-bar__fill {
+      background: Highlight;
+    }
+  }
+}

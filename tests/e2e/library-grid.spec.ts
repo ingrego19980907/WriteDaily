@@ -13,7 +13,7 @@ for (const width of [640, 1100, 1440]) {
     await expect(cards).toHaveCount(1)
     const single = await cards.first().boundingBox()
     expect(single).not.toBeNull()
-    expect(single!.width).toBeLessThanOrEqual(352)
+    expect(single!.width).toBeLessThanOrEqual(544)
     await page.goto('/tests/fixtures/book-editing.html?grid')
     await expect(cards).toHaveCount(3)
     const populated = await cards.first().boundingBox()
@@ -24,8 +24,8 @@ for (const width of [640, 1100, 1440]) {
 for (const [width, columns] of [
   [320, 1],
   [640, 1],
-  [1100, 2],
-  [1440, 3],
+  [1100, 1],
+  [1440, 2],
 ] as const) {
   test(`library has ${columns} columns and opens the correct duplicate title at ${width}px (test IPC)`, async ({
     page,

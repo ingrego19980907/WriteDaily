@@ -11,10 +11,12 @@ export function DeleteBook({
   book,
   onDeleted,
   onCloseAutoFocus,
+  trigger,
 }: {
   book: Book
   onDeleted: (book: Book, cleanupPending?: boolean) => void
   onCloseAutoFocus?: ModalProps['onCloseAutoFocus']
+  trigger?: ModalProps['trigger']
 }) {
   const [open, setOpen] = useState(false)
   const [snapshot, setSnapshot] = useState(book)
@@ -100,7 +102,7 @@ export function DeleteBook({
       onCloseAutoFocus={onCloseAutoFocus}
       open={open}
       onOpenChange={changeOpen}
-      trigger={<Button variant="secondary">{copy.delete}</Button>}
+      trigger={trigger ?? <Button variant="secondary">{copy.delete}</Button>}
       title={copy.delete}
       description={copy.deleteDescription}
       closeLabel={copy.cancel}

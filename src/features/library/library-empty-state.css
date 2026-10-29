@@ -1,0 +1,75 @@
+@layer components {
+  .card.library-empty-state {
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 1rem;
+    min-width: 0;
+    min-height: 22rem;
+    padding: clamp(2.5rem, 6vw, 5rem) clamp(1rem, 4vw, 3rem);
+    border-radius: 1.5rem;
+    background: var(--color-background);
+    text-align: center;
+    box-shadow: none;
+  }
+  .library-empty-state__art {
+    display: grid;
+    place-items: center;
+    width: 5rem;
+    height: 5rem;
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--color-sage) 12%, var(--color-surface));
+    color: var(--color-accent-strong);
+    margin-block-end: 0.25rem;
+  }
+  .library-empty-state__art svg {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  .library-empty-state__title {
+    max-width: 100%;
+    font-family: var(--font-writing);
+    font-size: 1.75rem;
+    line-height: 1.3;
+    color: var(--color-foreground);
+  }
+  .library-empty-state__description {
+    max-width: 32rem;
+    color: var(--color-secondary);
+    line-height: 1.7;
+  }
+  .library-empty-state__action {
+    display: flex;
+    justify-content: center;
+    min-width: 0;
+    max-width: 100%;
+    margin-block-start: 0.5rem;
+  }
+  .library-empty-state__action > div {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .library-empty-state__action .button {
+    max-width: 100%;
+  }
+  .library-empty-state__action .button svg {
+    flex-shrink: 0;
+  }
+  .card.library-empty-state--search,
+  .card.library-empty-state--filter {
+    min-height: 18rem;
+  }
+  @media (forced-colors: active) {
+    .card.library-empty-state,
+    .library-empty-state__art {
+      border-color: CanvasText;
+      background: Canvas;
+    }
+    .library-empty-state__art,
+    .library-empty-state__title,
+    .library-empty-state__description {
+      color: CanvasText;
+    }
+  }
+}

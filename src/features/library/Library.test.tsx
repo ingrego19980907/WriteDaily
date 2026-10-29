@@ -35,6 +35,179 @@ beforeEach(() => {
   vi.mocked(deleteBook).mockReset()
 })
 
+test('the confirmed empty state shares the creation draft and restores focus to the surviving trigger after a real commit', async () => {
+  const user = userEvent.setup()
+  let resolve!: (book: Book) => void
+  vi.mocked(listBooks).mockResolvedValue([])
+  vi.mocked(createBook).mockReturnValue(
+    new Promise((done) => {
+      resolve = done
+    }),
+  )
+  const onBookSaved = vi.fn()
+  render(<Library onBookSaved={onBookSaved} />)
+  const empty = await screen.findByRole('region', {
+    name: 'Your story starts here',
+  })
+  expect(
+    within(empty).getByText(
+      'Create your first book and begin writing, one day at a time.',
+    ),
+  ).toBeVisible()
+  const firstBook = within(empty).getByRole('button', {
+    name: 'Create your first book',
+  })
+  const headerTrigger = screen.getByRole('button', { name: 'New Book' })
+  expect(
+    within(screen.getByRole('list', { name: 'Books' })).queryByRole('listitem'),
+  ).not.toBeInTheDocument()
+  expect(createBook).not.toHaveBeenCalled()
+  await user.click(firstBook)
+  expect(screen.getAllByRole('dialog')).toHaveLength(1)
+  await user.type(screen.getByLabelText('Book title'), 'First pages')
+  await user.keyboard('{Escape}')
+  expect(firstBook).toHaveFocus()
+  await user.click(headerTrigger)
+  expect(screen.getByLabelText('Book title')).toHaveValue('First pages')
+  await user.keyboard('{Escape}')
+  expect(headerTrigger).toHaveFocus()
+  await user.click(firstBook)
+  await user.click(screen.getByRole('button', { name: 'Create book' }))
+  expect(onBookSaved).not.toHaveBeenCalled()
+  await user.keyboard('{Escape}')
+  expect(screen.getByRole('dialog')).toBeVisible()
+  expect(screen.getByLabelText('Book title')).toBeDisabled()
+  expect(createBook).toHaveBeenCalledExactlyOnceWith({
+    title: 'First pages',
+    targetWordCount: null,
+    dailyWordGoal: null,
+    deadline: null,
+  })
+  await act(async () => resolve({ ...book, title: 'First pages' }))
+  expect(
+    screen.queryByRole('region', { name: 'Your story starts here' }),
+  ).not.toBeInTheDocument()
+  expect(screen.getByRole('article', { name: 'First pages' })).toBeVisible()
+  expect(onBookSaved).toHaveBeenCalledExactlyOnceWith({
+    ...book,
+    title: 'First pages',
+  })
+  await vi.waitFor(() => expect(headerTrigger).toHaveFocus())
+})
+
+test('Unicode title search composes with status filters and both views retain real book actions', async () => {
+  const user = userEvent.setup()
+  const onOpenBook = vi.fn()
+  vi.mocked(listBooks).mockResolvedValue([
+    { ...book, title: 'Українська історія' },
+    { ...book, id: 'two', title: 'Історія Café', completedAt: book.updatedAt },
+  ])
+  render(<Library onOpenBook={onOpenBook} />)
+  await screen.findByRole('button', { name: 'All Books 2 books' })
+  const search = screen.getByRole('searchbox', { name: 'Search books' })
+  const list = screen.getByRole('list', { name: 'Books' })
+  await user.type(search, 'ІСТОРІЯ')
+  expect(within(list).getAllByRole('listitem')).toHaveLength(2)
+  await user.click(screen.getByRole('button', { name: 'Completed 1 book' }))
+  expect(within(list).getAllByRole('listitem')).toHaveLength(1)
+  const card = within(list).getByRole('article')
+  await user.click(screen.getByRole('button', { name: 'List view' }))
+  expect(list).toHaveClass('library-list')
+  expect(within(list).getByRole('article')).toBe(card)
+  await user.click(within(card).getByRole('button', { name: 'Open book' }))
+  expect(onOpenBook).toHaveBeenCalledWith(
+    expect.objectContaining({ id: 'two' }),
+  )
+  await user.clear(search)
+  await user.type(search, 'missing')
+  expect(screen.getByRole('heading', { name: 'No books found' })).toBeVisible()
+  expect(
+    screen.getByText(
+      'Try another title, clear your search, or choose a different book filter.',
+    ),
+  ).toBeVisible()
+  expect(
+    screen.queryByText(
+      'Create your first book and begin writing, one day at a time.',
+    ),
+  ).not.toBeInTheDocument()
+  expect(
+    screen.getByRole('button', { name: 'All Books 2 books' }),
+  ).toBeVisible()
+  await user.click(screen.getByRole('button', { name: 'Clear search' }))
+  expect(search).toHaveFocus()
+  expect(search).toHaveValue('')
+  expect(
+    screen.queryByRole('region', { name: 'No books found' }),
+  ).not.toBeInTheDocument()
+  await user.click(screen.getByRole('button', { name: 'Grid view' }))
+  expect(list).toHaveClass('library-grid')
+  expect(within(list).getAllByRole('listitem')).toHaveLength(1)
+  expect(listBooks).toHaveBeenCalledTimes(1)
+  expect(createBook).not.toHaveBeenCalled()
+  expect(updateBook).not.toHaveBeenCalled()
+  expect(deleteBook).not.toHaveBeenCalled()
+})
+
+test('filters committed completion metadata without writing or reloading books', async () => {
+  const user = userEvent.setup()
+  vi.mocked(listBooks).mockResolvedValue([
+    { ...book, title: 'Unfinished story', targetWordCount: 1 },
+    {
+      ...book,
+      id: 'two',
+      title: 'Finished story',
+      completedAt: book.updatedAt,
+    },
+    { ...book, id: 'three', title: 'New story' },
+  ])
+  render(<Library />)
+  const all = await screen.findByRole('button', { name: 'All Books 3 books' })
+  expect(all).toHaveAttribute('aria-pressed', 'true')
+  expect(
+    screen.getByRole('button', { name: 'Archived ? (count unavailable)' }),
+  ).toBeDisabled()
+  await user.click(screen.getByRole('button', { name: 'Completed 1 book' }))
+  expect(screen.getByRole('heading', { name: 'Finished story' })).toBeVisible()
+  expect(
+    screen.queryByRole('heading', { name: 'Unfinished story' }),
+  ).not.toBeInTheDocument()
+  await user.click(screen.getByRole('button', { name: 'In Progress 2 books' }))
+  expect(
+    screen.queryByRole('heading', { name: 'Finished story' }),
+  ).not.toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: 'New story' })).toBeVisible()
+  await user.click(all)
+  expect(
+    within(screen.getByRole('list', { name: 'Books' })).getAllByRole(
+      'listitem',
+    ),
+  ).toHaveLength(3)
+  expect(listBooks).toHaveBeenCalledTimes(1)
+  expect(createBook).not.toHaveBeenCalled()
+  expect(updateBook).not.toHaveBeenCalled()
+  expect(deleteBook).not.toHaveBeenCalled()
+})
+
+test('an empty completed filter retains counts and offers a way back to all books', async () => {
+  const user = userEvent.setup()
+  vi.mocked(listBooks).mockResolvedValue([book])
+  render(<Library />)
+  await user.click(
+    await screen.findByRole('button', { name: 'Completed 0 books' }),
+  )
+  expect(
+    screen.getByRole('heading', { name: 'No books match this filter' }),
+  ).toBeVisible()
+  expect(
+    screen.queryByText(
+      'Create your first book and begin writing, one day at a time.',
+    ),
+  ).not.toBeInTheDocument()
+  await user.click(screen.getByRole('button', { name: 'All Books 1 book' }))
+  expect(screen.getByRole('heading', { name: book.title })).toBeVisible()
+})
+
 test('loads existing books and edits the selected identity even with duplicate titles', async () => {
   const user = userEvent.setup()
   vi.mocked(listBooks).mockResolvedValue([book, { ...book, id: 'two' }])
@@ -50,7 +223,7 @@ test('loads existing books and edits the selected identity even with duplicate t
   await user.click(
     within(rows[1]).getByRole('button', { name: 'Book actions' }),
   )
-  await user.click(within(rows[1]).getByRole('button', { name: 'Edit book' }))
+  await user.click(screen.getByRole('button', { name: 'Edit book' }))
   await user.clear(screen.getByLabelText('Title'))
   await user.type(screen.getByLabelText('Title'), 'Changed')
   await user.click(screen.getByRole('button', { name: 'Save changes' }))
@@ -71,11 +244,18 @@ test('failed loading shows retry and does not claim an empty library', async () 
   render(<Library />)
   expect(await screen.findByRole('alert')).toHaveTextContent('Could not load')
   expect(
-    screen.queryByText('No books yet. Create your first story.'),
+    screen.getByRole('button', { name: 'All Books ? (count unavailable)' }),
+  ).toBeDisabled()
+  expect(
+    screen.queryByText(
+      'Create your first book and begin writing, one day at a time.',
+    ),
   ).not.toBeInTheDocument()
   await user.click(screen.getByRole('button', { name: 'Retry loading books' }))
   expect(
-    await screen.findByText('No books yet. Create your first story.'),
+    await screen.findByText(
+      'Create your first book and begin writing, one day at a time.',
+    ),
   ).toBeVisible()
 })
 
@@ -91,13 +271,21 @@ test('initial loading is announced and never presented as an empty library', asy
     'aria-busy',
     'true',
   )
+  expect(
+    screen.getByRole('button', { name: 'All Books ? (count unavailable)' }),
+  ).toBeDisabled()
   expect(screen.getByText('Loading books…')).toBeVisible()
   expect(
-    screen.queryByText('No books yet. Create your first story.'),
+    screen.queryByText(
+      'Create your first book and begin writing, one day at a time.',
+    ),
   ).not.toBeInTheDocument()
   await act(async () => resolve([]))
   expect(
-    screen.getByRole('heading', { name: 'Room for your next story' }),
+    screen.getByRole('button', { name: 'All Books 0 books' }),
+  ).toBeEnabled()
+  expect(
+    screen.getByRole('heading', { name: 'Your story starts here' }),
   ).toBeVisible()
   expect(screen.getByRole('list', { name: 'Books' })).toHaveAttribute(
     'aria-busy',
@@ -118,7 +306,9 @@ test('desktop-only preview explains the limitation without a misleading retry or
     screen.queryByRole('button', { name: 'Retry loading books' }),
   ).not.toBeInTheDocument()
   expect(
-    screen.queryByText('No books yet. Create your first story.'),
+    screen.queryByText(
+      'Create your first book and begin writing, one day at a time.',
+    ),
   ).not.toBeInTheDocument()
 })
 
@@ -138,7 +328,9 @@ test('retry stays disabled in flight and focuses the Books heading after success
   )
   expect(screen.getByRole('button', { name: 'Retrying…' })).toBeDisabled()
   expect(
-    screen.queryByText('No books yet. Create your first story.'),
+    screen.queryByText(
+      'Create your first book and begin writing, one day at a time.',
+    ),
   ).not.toBeInTheDocument()
   await act(async () => resolve([book]))
   expect(await screen.findByRole('article', { name: book.title })).toBeVisible()
@@ -153,8 +345,8 @@ test('a committed creation after a failed list read does not hide the unresolved
   vi.mocked(createBook).mockResolvedValue(book)
   render(<Library />)
   await screen.findByRole('alert')
-  await user.click(screen.getByRole('button', { name: 'Create book' }))
-  await user.type(screen.getByLabelText('Title'), book.title)
+  await user.click(screen.getByRole('button', { name: 'New Book' }))
+  await user.type(screen.getByLabelText('Book title'), book.title)
   await user.click(
     within(screen.getByRole('dialog')).getByRole('button', {
       name: 'Create book',
@@ -177,8 +369,8 @@ test('a late initial listing cannot erase a newly committed book', async () => {
   )
   vi.mocked(createBook).mockResolvedValue(book)
   render(<Library />)
-  await user.click(screen.getByRole('button', { name: 'Create book' }))
-  await user.type(screen.getByLabelText('Title'), 'Same title')
+  await user.click(screen.getByRole('button', { name: 'New Book' }))
+  await user.type(screen.getByLabelText('Book title'), 'Same title')
   await user.click(
     within(screen.getByRole('dialog')).getByRole('button', {
       name: 'Create book',
@@ -234,8 +426,8 @@ test('failed deletion keeps the row and a late listing cannot resurrect a commit
     .mockRejectedValueOnce({ code: 'persistence' })
     .mockResolvedValueOnce({ cleanupPending: false })
   render(<Library />)
-  await user.click(screen.getByRole('button', { name: 'Create book' }))
-  await user.type(screen.getByLabelText('Title'), book.title)
+  await user.click(screen.getByRole('button', { name: 'New Book' }))
+  await user.type(screen.getByLabelText('Book title'), book.title)
   await user.click(
     within(screen.getByRole('dialog')).getByRole('button', {
       name: 'Create book',
@@ -262,7 +454,9 @@ test('failed deletion keeps the row and a late listing cannot resurrect a commit
     screen.queryByRole('button', { name: 'Delete book' }),
   ).not.toBeInTheDocument()
   expect(
-    screen.getByText('No books yet. Create your first story.'),
+    screen.getByText(
+      'Create your first book and begin writing, one day at a time.',
+    ),
   ).toBeVisible()
 })
 
@@ -284,7 +478,7 @@ test('cancelling deletion retains the existing unsaved editing draft', async () 
   expect(deleteBook).not.toHaveBeenCalled()
 })
 
-test('daily goal display changes only after commit, keeps failed drafts and clears with a blank value', async () => {
+test('daily goal edits publish only after commit, keep failed drafts and clear with a blank value', async () => {
   const user = userEvent.setup()
   const original = { ...book, dailyWordGoal: 500 }
   vi.mocked(listBooks).mockResolvedValue([original])
@@ -294,9 +488,9 @@ test('daily goal display changes only after commit, keeps failed drafts and clea
       reject = fail
     }),
   )
-  render(<Library />)
+  const onBookSaved = vi.fn()
+  render(<Library onBookSaved={onBookSaved} />)
   const card = await screen.findByRole('article')
-  expect(within(card).getByText('Daily goal: 500 words')).toBeVisible()
   await user.click(within(card).getByRole('button', { name: 'Book actions' }))
   await user.click(screen.getByRole('button', { name: 'Edit book' }))
   const input = screen.getByLabelText('Daily word goal (optional)')
@@ -304,7 +498,7 @@ test('daily goal display changes only after commit, keeps failed drafts and clea
   await user.clear(input)
   await user.type(input, '1500')
   await user.click(screen.getByRole('button', { name: 'Save changes' }))
-  expect(within(card).getByText('Daily goal: 500 words')).toBeInTheDocument()
+  expect(onBookSaved).not.toHaveBeenCalled()
   await act(async () => reject({ code: 'persistence' }))
   expect(await screen.findByRole('alert')).toHaveTextContent(
     'Could not save changes',
@@ -319,9 +513,14 @@ test('daily goal display changes only after commit, keeps failed drafts and clea
     updatedAt: '2026-10-27T01:00:00.000Z',
   })
   await user.click(screen.getByRole('button', { name: 'Save changes' }))
-  expect(await screen.findByText('Daily goal: 1,500 words')).toBeVisible()
+  expect(onBookSaved).toHaveBeenLastCalledWith(
+    expect.objectContaining({ dailyWordGoal: 1500 }),
+  )
   await user.click(within(card).getByRole('button', { name: 'Book actions' }))
   await user.click(screen.getByRole('button', { name: 'Edit book' }))
+  expect(screen.getByLabelText('Daily word goal (optional)')).toHaveValue(
+    '1500',
+  )
   await user.clear(screen.getByLabelText('Daily word goal (optional)'))
   vi.mocked(updateBook).mockResolvedValueOnce({
     ...original,
@@ -329,7 +528,9 @@ test('daily goal display changes only after commit, keeps failed drafts and clea
     updatedAt: '2026-10-27T02:00:00.000Z',
   })
   await user.click(screen.getByRole('button', { name: 'Save changes' }))
-  expect(await screen.findByText('No daily goal')).toBeVisible()
+  expect(onBookSaved).toHaveBeenLastCalledWith(
+    expect.objectContaining({ dailyWordGoal: null }),
+  )
   expect(updateBook).toHaveBeenLastCalledWith(
     book.id,
     '2026-10-27T01:00:00.000Z',

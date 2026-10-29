@@ -1,4 +1,11 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
 import { beforeEach, expect, test, vi } from 'vitest'
 import userEvent from '@testing-library/user-event'
 import { readCover, setCover } from '../../services/books'
@@ -27,6 +34,94 @@ beforeEach(() => {
   vi.mocked(setCover).mockReset()
 })
 
+test('actions portal stays linked to its book and omits unsupported operations', async () => {
+  const user = userEvent.setup()
+  const { unmount } = render(<BookCard book={book} {...callbacks} />)
+  const trigger = screen.getByRole('button', { name: 'Book actions' })
+  await user.click(trigger)
+  const panel = screen.getByRole('group', { name: 'Book actions' })
+  expect(panel.id).toBe(trigger.getAttribute('aria-controls'))
+  expect(panel.parentElement).toBe(document.body)
+  expect(within(panel).getAllByRole('button')).toHaveLength(3)
+  expect(
+    within(panel).queryByRole('button', { name: /Duplicate|Archive/i }),
+  ).not.toBeInTheDocument()
+  expect(
+    within(panel).getByRole('button', { name: 'Delete book' }),
+  ).toHaveClass('book-card__menu-item--danger')
+  const id = panel.id
+  unmount()
+  expect(document.getElementById(id)).toBeNull()
+})
+
+test('arrow opening and Tab boundaries keep the portalled actions keyboard accessible', async () => {
+  const user = userEvent.setup()
+  render(<BookCard book={book} {...callbacks} />)
+  const trigger = screen.getByRole('button', { name: 'Book actions' })
+  trigger.focus()
+  await user.keyboard('{ArrowDown}')
+  await waitFor(() =>
+    expect(screen.getByRole('button', { name: 'Edit book' })).toHaveFocus(),
+  )
+  await user.tab({ shift: true })
+  expect(trigger).toHaveFocus()
+  expect(trigger).toHaveAttribute('aria-expanded', 'false')
+  await user.keyboard('{ArrowUp}')
+  await waitFor(() =>
+    expect(screen.getByRole('button', { name: 'Delete book' })).toHaveFocus(),
+  )
+  await user.tab()
+  expect(screen.getByRole('heading', { name: book.title })).toHaveFocus()
+  expect(trigger).toHaveAttribute('aria-expanded', 'false')
+})
+
+test('closing an edit from the actions portal keeps its draft for reopening', async () => {
+  const user = userEvent.setup()
+  render(<BookCard book={book} {...callbacks} />)
+  const trigger = screen.getByRole('button', { name: 'Book actions' })
+  await user.click(trigger)
+  await user.click(screen.getByRole('button', { name: 'Edit book' }))
+  await user.clear(screen.getByLabelText('Title'))
+  await user.type(screen.getByLabelText('Title'), 'Unfinished title')
+  await user.keyboard('{Escape}')
+  expect(trigger).toHaveFocus()
+  await user.click(trigger)
+  await user.click(screen.getByRole('button', { name: 'Edit book' }))
+  expect(screen.getByLabelText('Title')).toHaveValue('Unfinished title')
+})
+
+test('compact Open label keeps the existing accessible action and pending guard', async () => {
+  const onOpen = vi.fn()
+  const { rerender } = render(
+    <BookCard book={book} {...callbacks} onOpen={onOpen} />,
+  )
+  const open = screen.getByRole('button', { name: 'Open book' })
+  expect(open).toHaveTextContent('Open')
+  await userEvent.setup().click(open)
+  expect(onOpen).toHaveBeenCalledWith(book)
+  const title = screen.getByRole('heading', { name: book.title })
+  expect(title).toHaveAttribute('title', book.title)
+  expect(title).toHaveAccessibleDescription(
+    'Focus or hover to read the full title.',
+  )
+  rerender(<BookCard book={book} {...callbacks} onOpen={onOpen} opening />)
+  expect(screen.getByRole('button', { name: 'Opening…' })).toBeDisabled()
+})
+
+test('library cards retain compact progress without Writing details, daily goals or pace', () => {
+  const { container } = render(
+    <BookCard book={book} {...callbacks} wordCount={250} />,
+  )
+  expect(screen.getByText('250 / 50,000 words')).toBeVisible()
+  expect(screen.queryByText('Writing details')).not.toBeInTheDocument()
+  expect(container.querySelector('details')).toBeNull()
+  expect(screen.queryByText('Daily goal: 500 words')).not.toBeInTheDocument()
+  expect(
+    screen.queryByRole('group', { name: 'Required writing pace' }),
+  ).not.toBeInTheDocument()
+  expect(screen.getAllByRole('progressbar')).toHaveLength(1)
+})
+
 test('names the article by its full title, shows target and unknown progress without inventing a count or percentage', async () => {
   render(<BookCard book={book} {...callbacks} />)
   const card = screen.getByRole('article', { name: book.title })
@@ -48,10 +143,8 @@ test('names the article by its full title, shows target and unknown progress wit
   await userEvent
     .setup()
     .click(within(card).getByRole('button', { name: 'Book actions' }))
-  expect(within(card).getByRole('button', { name: 'Edit book' })).toBeVisible()
-  expect(
-    within(card).getByRole('button', { name: 'Delete book' }),
-  ).toBeVisible()
+  expect(screen.getByRole('button', { name: 'Edit book' })).toBeVisible()
+  expect(screen.getByRole('button', { name: 'Delete book' })).toBeVisible()
 })
 
 test('preserves full long titles and persisted completion without pretending completion is a word percentage', () => {
@@ -71,7 +164,7 @@ test('preserves full long titles and persisted completion without pretending com
   expect(screen.getByRole('heading')).toHaveTextContent(title)
   expect(screen.getByText('Completed')).toBeVisible()
   expect(screen.getByText('No word target')).toBeVisible()
-  expect(screen.getByRole('progressbar')).not.toHaveAttribute('aria-valuenow')
+  expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
 })
 
 test('loads one persisted preview per card and handles browser image failure with a readable fallback', async () => {
@@ -90,6 +183,35 @@ test('loads one persisted preview per card and handles browser image failure wit
     'could not be loaded',
   )
   expect(screen.getByRole('heading')).toHaveTextContent(book.title)
+})
+
+test('a default cover is presentation only and never reads or replaces a stored image', async () => {
+  const { container, rerender } = render(
+    <BookCard book={book} {...callbacks} />,
+  )
+  const art = container.querySelector('.library-cover__art')!
+  expect(art).toHaveAttribute('aria-hidden', 'true')
+  expect(art).toHaveTextContent(book.title)
+  expect(
+    container.querySelector('.library-cover__frame--default'),
+  ).toBeInTheDocument()
+  expect(readCover).not.toHaveBeenCalled()
+  expect(setCover).not.toHaveBeenCalled()
+  vi.mocked(readCover).mockResolvedValue([4, 5, 6])
+  rerender(
+    <BookCard
+      book={{ ...book, coverPath: 'covers/saved.png' }}
+      {...callbacks}
+    />,
+  )
+  expect(
+    container.querySelector('.library-cover__frame--default'),
+  ).not.toBeInTheDocument()
+  expect(
+    await screen.findByRole('img', { name: 'Book cover' }),
+  ).toHaveAttribute('src', 'data:image/png;base64,BAUG')
+  expect(readCover).toHaveBeenCalledWith(book.id, 'covers/saved.png')
+  expect(setCover).not.toHaveBeenCalled()
 })
 
 test('old asynchronous cover responses cannot replace the current book cover', async () => {

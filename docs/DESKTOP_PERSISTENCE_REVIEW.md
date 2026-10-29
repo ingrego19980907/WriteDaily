@@ -1,5 +1,11 @@
 # Desktop persistence review (2.12)
 
+## Latest cover-presentation rerun (LIB.16, 2026-10-28)
+
+The existing book/cover scenario was rerun successfully on current schema v6 with the redesigned library and real Tauri/WebView2. Evidence: `.cache/desktop-restart/run-fz8szz/report.json`, `passed=true`, `restoredDefaultBuild=true`, command exit 0. Five visible native windows launched with PIDs 31608, 12340, 13224, 29624 and 4156 at the embedded `http://tauri.localhost/` URL; each closed gracefully. Native and WebView captures remain in that isolated artifact directory; the second WebView capture was inspected.
+
+Added read-only UI assertions verify fixed 3:4 frames, actual decoded local PNGs and object-fit: cover before and after process restart. Existing exact record comparisons, renamed-source independence and unchanged managed-file SHA-256 checks passed. Replacement covers survived the next restart; removing a cover persisted and the CSS default book/title reappeared after another native launch. Covered-book deletion/cleanup and a final empty-library restart passed. No production user covers or library records were opened or changed. The ordinary debug binary/config was rebuilt afterward. This updates the current book/cover observation; the older schema-v2 and editor-specific history below remains historical. No installer/macOS or new editor crash-recovery claim.
+
 Task 3.12 follow-up: the separate `npm.cmd run test:desktop:editor` scenario now verifies actual chapter/editor/preferences persistence and commit-based crash recovery across six native launches on schema v4. See [EDITOR_PERSISTENCE_REVIEW.md](EDITOR_PERSISTENCE_REVIEW.md). The book/cover observations below remain the historical 2.12 run; that original scenario was not repeated in 3.12.
 
 Later compatibility update (3.11): the reusable restart runner now expects schema v4 after chapter migration 003 and editor-preferences migration 004. It was not rerun in 3.11; the observations/results below describe the actual schema-v2 run from 2.12 and establish no chapter/editor restart verification.

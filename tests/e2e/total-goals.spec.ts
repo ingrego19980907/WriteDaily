@@ -9,11 +9,12 @@ for (const width of [320, 640, 1100]) {
     await page.setViewportSize({ width, height: 850 })
     await page.goto('/tests/fixtures/book-editing.html?total-goals')
     const card = page.getByRole('article')
+    await expect(card.locator('details')).toHaveCount(0)
     const edit = async () => {
       await card
         .getByRole('button', { name: 'Book actions', exact: true })
         .click()
-      await card.getByRole('button', { name: 'Edit book', exact: true }).click()
+      await page.getByRole('button', { name: 'Edit book', exact: true }).click()
     }
     const save = () =>
       page.getByRole('button', { name: 'Save changes', exact: true }).click()
@@ -30,13 +31,13 @@ for (const width of [320, 640, 1100]) {
     await input.fill('1000')
     await page.keyboard.press('Escape')
     await expect(
-      card.getByText('Word target reached', { exact: true }),
-    ).toHaveCount(0)
+      card.getByText('Target: 50,000 words', { exact: true }),
+    ).toBeVisible()
     await edit()
     await expect(input).toHaveValue('1000')
     await save()
     await expect(
-      card.getByText('Word target reached', { exact: true }),
+      card.getByText('1,000 / 1,000 words', { exact: true }),
     ).toBeVisible()
     await expect(card.getByText('Completed', { exact: true })).toHaveCount(0)
     await page.getByRole('button', { name: 'Open book', exact: true }).click()
@@ -52,19 +53,13 @@ for (const width of [320, 640, 1100]) {
     await input.fill('1500')
     await save()
     await expect(
-      card.getByText('Word target reached', { exact: true }),
-    ).toHaveCount(0)
-    await expect(
-      card.getByText('500 words remaining', { exact: true }),
+      card.getByText('1,000 / 1,500 words', { exact: true }),
     ).toBeVisible()
     await edit()
     await input.fill('500')
     await save()
     await expect(
-      card.getByText('Word target reached', { exact: true }),
-    ).toBeVisible()
-    await expect(
-      card.getByText('500 words above target', { exact: true }),
+      card.getByText('1,000 / 500 words', { exact: true }),
     ).toBeVisible()
     expect(
       (
