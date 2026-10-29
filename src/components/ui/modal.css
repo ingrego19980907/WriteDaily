@@ -101,4 +101,11 @@
     overflow-y: auto;
     overflow-wrap: anywhere;
   }
+
+  .notification-layer-slot {
+    flex-shrink: 0;
+    min-width: 0;
+    max-height: 35dvh;
+    overflow: auto;
+  }
 }

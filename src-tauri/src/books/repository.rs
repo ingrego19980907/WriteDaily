@@ -146,6 +146,10 @@ impl<'connection> BookRepository<'connection> {
         if book.cover_path.is_some() && !managed_cleanup {
             return Err(BookError::CoverCleanupRequired);
         }
+        crate::achievements::refresh_in_transaction(&transaction).map_err(|error| match error {
+            crate::achievements::AchievementError::Database(error) => BookError::Database(error),
+            _ => BookError::InvalidStoredData("achievement evidence"),
+        })?;
         if let Some(path) = book.cover_path {
             transaction.execute(
                 "INSERT OR IGNORE INTO pending_cover_cleanup(path) VALUES (?1)",

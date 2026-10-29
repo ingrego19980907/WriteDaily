@@ -1,12 +1,26 @@
 # Data model
 
+## Achievement notification receipts (6.6)
+
+Current SQLite schema: **v8**, through append-only migration `008_achievement_notifications.sql`. Migrations 001–007 are unchanged. The STRICT `achievement_notification_receipts` table has `achievement_id TEXT PRIMARY KEY` referencing the permanent `achievement_unlocks` row, `disposition` (`baseline` or `claimed`) and nullable `claimed_at`. Baseline rows require NULL timestamps; claimed rows require canonical validated native UTC milliseconds. There is no book cascade or user-supplied claim timestamp.
+
+Migration baselines existing unlock IDs without inventing historical display times. New unlocks remain unclaimed until one IMMEDIATE claim transaction inserts their receipts and returns validated committed rows. An insertion/commit failure leaves the pending set retryable without affecting writing already saved. Receipts and original unlock timestamps survive reopen and source deletion. Claim timestamps indicate retrieval, not human delivery: a lost reply/crash after claim commit can miss the transient notice without losing the achievement. See [notification contract](ACHIEVEMENTS.md#unlock-notifications-66).
+
+## Achievement rule contract (6.1)
+
+[ACHIEVEMENTS.md](ACHIEVEMENTS.md) defines eight permanent achievement IDs, rule policy version 1, inclusive thresholds and evidence requirements. Credited words use committed retained editor activity; completed scheduled days deduplicate local dates; completed daily goals deduplicate `(sourceBookId, localDate)` using historical goal/schedule results. Deleted sources continue contributing retained activity. Book targets and manuscript counts never imply explicit completion.
+
+Task 6.1 adds no table or migration. Task 6.3 must persist a unique unlock per stable achievement ID (not per ID/version pair), native UTC first-insertion `unlockedAt` and policy version, with any optional source evidence independent of book cascades. Unlocks remain after source deletion, settings changes or clock rollback. The existing nullable `completed_at` is the only explicit book completion field; no command currently sets it. ACH.1 tracks that missing action and its coordination with durable unlocks. The catalog is a definition, not persisted or unlocked state.
+
+Task 6.2 adds a pure evaluator over existing global daily-statistics pages and native completion-field projections. It validates dates, scopes, daily values and completion ordering, deduplicates repeated evidence, rejects contradictory snapshots and preserves unknown/partial states. Progress is a threshold-capped confirmed lower bound, not a stored lifetime total. Missing coverage cannot become a known negative result. No database read/write, table or migration is added; a single-snapshot evidence reader and permanent unlock storage remain 6.3. See [evaluation boundary](ACHIEVEMENTS.md#evaluation-boundary-62).
+
 ## Library status filtering (LIB.13)
 
 The existing nullable `completed_at` / `Book.completedAt` timestamp supports explicit completion filtering without a migration. All Books includes every loaded record; In Progress means `completedAt === null`, including unstarted books; Completed means a saved non-null completion timestamp. Word totals and reached word targets never imply completion. Filtering is an in-memory read-only view and performs no repository writes. Existing metadata updates preserve completion; this task adds no mark-complete operation.
 
 Archive status is not present in the schema, DTOs or repositories. Archived is therefore disabled and its count is unavailable, not zero. Future archive support needs an approved append-only migration (for example nullable canonical UTC `archived_at`), validated Rust/TypeScript snapshots and repository projections, revision-checked archive/unarchive commands and explicit UI, plus migration/persistence tests. Define the overlap of archived and completed status and whether All Books includes archived records before implementation. Archiving must preserve books, chapters, covers and activity. None of these database changes are implemented here.
 
-Current schema (5.7): v6 adds writing_schedule_state, effective writing_schedule_history and per-book activity_goal_history via append-only migration 006. Existing writing and sealed plans are retained without backfill. See [WRITING_SCHEDULE.md](WRITING_SCHEDULE.md).
+Previous schema (6.3): **v7** adds `achievement_unlocks` through append-only migration 007. Fields are `achievement_id` (primary key, eight stable IDs), `rule_policy_version` (1) and `unlocked_at` (validated canonical native UTC milliseconds). No book foreign key or cascade: unlocked rows survive source deletion. Inserts are unique per ID across policy versions, preserve initial timestamps and commit with triggering content/activity writes. Startup/explicit native refresh reconcile committed historical evidence without backfilling manuscript credit. See [achievement persistence](ACHIEVEMENTS.md#permanent-native-unlocks-63). Previous v6 (migration 006) added writing_schedule_state, effective writing_schedule_history and per-book activity_goal_history, preserving sealed plans; see [WRITING_SCHEDULE.md](WRITING_SCHEDULE.md).
 
 Previous schema (5.2): v5 adds activity_operations, writing_activity and activity_day_plans through append-only migration 005. Content/revision/count and activity commit atomically; existing chapters are preserved without credit backfill. See [ACTIVITY_MODEL.md](ACTIVITY_MODEL.md).
 
@@ -44,7 +58,7 @@ Status: book metadata types/validation (2.1), native SQLite/migration v1 (2.2) a
 | Chapters            | ID, book foreign key, title, order, versioned Tiptap JSON, nonnegative word count, revision, timestamps                                                                 |
 | Goal schedules      | Book foreign key, preferred weekdays; effective-dated goals/schedules so historical results remain stable                                                               |
 | Writing activity    | Unique operation ID, book/chapter references, local date, UTC timestamp, timezone context, added/deleted word deltas, credited words, applicable goal/schedule snapshot |
-| Achievement unlocks | Unique achievement key, unlocked timestamp, optional evidence                                                                                                           |
+| Achievement unlocks | Implemented in v7: stable achievement ID primary key, rule policy version and initial native UTC unlocked timestamp; independent of book deletion                       |
 | Preferences         | Implemented global editor size/schema version/revision; language preference remains future work                                                                         |
 
 Foreign keys must be enabled. Use ordered migrations and transactional schema changes where supported. Reject invalid counts/dates and unsafe file references. Store covers under managed application data and only relative references in SQLite; never persist browser object URLs. Coordinate cover replacement/deletion with database writes and recoverable cleanup.

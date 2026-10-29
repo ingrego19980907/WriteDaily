@@ -1,4 +1,109 @@
 export const en = {
+  achievementNotifications: {
+    region: 'Achievement notification',
+    title: (count: number) =>
+      count === 1
+        ? 'Achievement unlocked'
+        : `${new Intl.NumberFormat('en').format(count)} achievements unlocked`,
+    announcement: (count: number, names: string) =>
+      `${count === 1 ? 'Achievement unlocked' : `${new Intl.NumberFormat('en').format(count)} achievements unlocked`}: ${names}`,
+    dismiss: 'Dismiss achievement notification',
+  },
+  achievementsPage: {
+    title: 'Your milestones',
+    collection: 'Achievement milestones',
+    summary: (unlocked: number, total: number) =>
+      `${new Intl.NumberFormat('en').format(unlocked)} / ${new Intl.NumberFormat('en').format(total)} unlocked`,
+    countUnavailable: 'Unlock count unavailable.',
+    refresh: 'Refresh achievements',
+    retry: 'Retry achievements',
+    loading: 'Loading achievements…',
+    refreshing: 'Refreshing achievements…',
+    updated: 'Achievements updated.',
+    failure: 'Could not load or refresh saved achievements. Please try again.',
+    invalidData:
+      'Saved achievement data could not be verified. Please try again.',
+    limit:
+      'Achievement activity exceeds the supported range. Existing unlocks are retained.',
+    desktop:
+      'Open the desktop app to view and refresh your saved achievements.',
+    retained: 'Showing the last confirmed achievements.',
+    emptyTitle: 'Your next milestone awaits',
+    emptyDescription:
+      'Keep writing, one day at a time. Your saved writing will unlock these milestones.',
+    policy:
+      'Achievements celebrate saved writing across all your books. Once unlocked, they stay yours.',
+  },
+  achievementCards: {
+    states: {
+      unlocked: 'Unlocked',
+      locked: 'Locked',
+      unavailable: 'Status unavailable',
+    },
+    statusUnavailable: 'Saved achievement status could not be confirmed.',
+    progressUnavailable: 'Progress unavailable.',
+    awaitingConfirmation: 'Requirements met. Unlock has not been confirmed.',
+    completionUnavailable: 'Marking a book as completed is not available yet.',
+    unlockedOn: (date: string) => `Unlocked ${date}`,
+    progressLabel: (name: string) => `${name} progress`,
+    progress: (
+      confirmed: number,
+      threshold: number,
+      metric:
+        | 'credited_words'
+        | 'completed_scheduled_days'
+        | 'completed_daily_goals'
+        | 'explicitly_completed_books',
+      atLeast: boolean,
+    ) => {
+      const units = {
+        credited_words: 'credited words',
+        completed_scheduled_days: 'scheduled writing days',
+        completed_daily_goals: 'book daily goals',
+        explicitly_completed_books: 'book',
+      }
+      const numbers = new Intl.NumberFormat('en')
+      return `${atLeast ? 'At least ' : ''}${numbers.format(confirmed)} / ${numbers.format(threshold)} ${units[metric]}`
+    },
+  },
+  achievementRules: {
+    first_words: {
+      name: 'First Words',
+      description: 'Write 100 credited words across your books.',
+    },
+    getting_started: {
+      name: 'Getting Started',
+      description: 'Write 1,000 credited words across your books.',
+    },
+    storyteller: {
+      name: 'Storyteller',
+      description: 'Write 10,000 credited words across your books.',
+    },
+    novelist: {
+      name: 'Novelist',
+      description: 'Write 50,000 credited words across your books.',
+    },
+    consistency: {
+      name: 'Consistency',
+      description:
+        'Reach a scheduled daily goal on 7 different days. The days do not need to be consecutive.',
+    },
+    dedicated_writer: {
+      name: 'Dedicated Writer',
+      description:
+        'Reach a scheduled daily goal on 30 different days. The days do not need to be consecutive.',
+    },
+    goal_keeper: {
+      name: 'Goal Keeper',
+      description:
+        'Complete 10 scheduled book daily goals. Each book can count once per day.',
+    },
+    the_end: {
+      name: 'The End',
+      description:
+        'Explicitly mark your first book as completed. Reaching its word target alone does not count.',
+    },
+  },
   libraryView: {
     searchLabel: 'Search books',
     searchPlaceholder: 'Search books...',

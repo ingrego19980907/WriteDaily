@@ -81,7 +81,7 @@ pub fn get_daily_statistics(
     Ok(result)
 }
 
-pub(super) fn read_daily_statistics(
+pub(crate) fn read_daily_statistics(
     connection: &Connection,
     start_date: &str,
     end_date: &str,

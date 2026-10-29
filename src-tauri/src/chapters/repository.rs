@@ -279,6 +279,7 @@ impl<'connection> ChapterRepository<'connection> {
             if current.content != content {
                 return Err(ChapterError::InvalidStoredData);
             }
+            crate::achievements::refresh_in_transaction(&tx)?;
             tx.commit()?;
             return Ok(current);
         }
@@ -293,6 +294,7 @@ impl<'connection> ChapterRepository<'connection> {
             return Err(ChapterError::Conflict);
         }
         activity.persist(&tx, book_id, chapter_id, expected_revision, &digest, &time)?;
+        crate::achievements::refresh_in_transaction(&tx)?;
         let chapter = load(&tx, book_id, chapter_id)?;
         tx.commit()?;
         Ok(chapter)

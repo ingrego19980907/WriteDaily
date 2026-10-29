@@ -1,3 +1,5 @@
+mod achievement_commands;
+mod achievements;
 mod activity;
 mod activity_commands;
 pub mod books;
@@ -17,6 +19,9 @@ use tauri::Manager;
 pub fn run() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
+            achievement_commands::get_achievement_unlocks,
+            achievement_commands::refresh_achievements,
+            achievement_commands::claim_achievement_notifications,
             schedule_commands::get_writing_schedule,
             schedule_commands::save_writing_schedule,
             commands::create_book,

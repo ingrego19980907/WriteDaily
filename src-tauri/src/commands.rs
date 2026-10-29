@@ -170,7 +170,8 @@ pub async fn delete_book(
     expected_updated_at: String,
     confirmed: bool,
 ) -> Result<DeleteResult, BookCommandError> {
-    tauri::async_runtime::spawn_blocking(move || {
+    let notifier = app.clone();
+    let result = tauri::async_runtime::spawn_blocking(move || {
         delete(
             &app.state::<Database>(),
             &app.state::<CoverStore>(),
@@ -180,7 +181,11 @@ pub async fn delete_book(
         )
     })
     .await
-    .map_err(|_| BookCommandError::unavailable())?
+    .map_err(|_| BookCommandError::unavailable())?;
+    if result.is_ok() {
+        crate::achievement_commands::signal_committed(&notifier);
+    }
+    result
 }
 
 #[tauri::command]

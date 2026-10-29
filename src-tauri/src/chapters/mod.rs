@@ -57,6 +57,15 @@ pub enum ChapterError {
     Database(#[from] rusqlite::Error),
 }
 
+impl From<crate::achievements::AchievementError> for ChapterError {
+    fn from(error: crate::achievements::AchievementError) -> Self {
+        match error {
+            crate::achievements::AchievementError::Database(error) => Self::Database(error),
+            _ => Self::InvalidStoredData,
+        }
+    }
+}
+
 #[cfg(test)]
 mod activity_tests;
 #[cfg(test)]

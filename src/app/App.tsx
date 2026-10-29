@@ -7,7 +7,9 @@ import { en } from './i18n/en'
 import { AppShell } from './AppShell'
 import { AppNavigation } from './AppNavigation'
 import type { SectionId } from './navigation'
-import { Card } from '../components/ui/Card'
+import { AchievementsPage } from '../features/achievements/AchievementsPage'
+import { AchievementNotifications } from '../features/achievements/AchievementNotifications'
+import { NotificationLayerProvider } from '../components/ui/NotificationLayerProvider'
 import { Library } from '../features/library/Library'
 import { ChapterManager } from '../features/editor/ChapterManager'
 import { EditorBookPicker } from '../features/editor/EditorBookPicker'
@@ -17,9 +19,12 @@ import { bookErrorCode, getBook } from '../services/books'
 
 export default function App() {
   return (
-    <WritingScheduleProvider>
-      <AppContent />
-    </WritingScheduleProvider>
+    <NotificationLayerProvider>
+      <WritingScheduleProvider>
+        <AppContent />
+      </WritingScheduleProvider>
+      <AchievementNotifications />
+    </NotificationLayerProvider>
   )
 }
 
@@ -85,7 +90,7 @@ function AppContent() {
 
   return (
     <AppShell
-      wide={activeSection === 'library'}
+      wide={activeSection === 'library' || activeSection === 'achievements'}
       navigation={
         <AppNavigation activeSection={activeSection} onSelect={selectSection} />
       }
@@ -93,7 +98,11 @@ function AppContent() {
       <div className="space-y-4">
         <div
           className={
-            activeSection === 'library' ? 'library-page-header' : 'space-y-4'
+            activeSection === 'library'
+              ? 'library-page-header'
+              : activeSection === 'achievements'
+                ? 'achievements-page-header space-y-4'
+                : 'space-y-4'
           }
         >
           <div
@@ -182,15 +191,7 @@ function AppContent() {
             }}
           />
         )}
-        {activeSection !== 'library' &&
-          activeSection !== 'activity' &&
-          activeSection !== 'goals' &&
-          activeSection !== 'editor' && (
-            <Card className="space-y-2">
-              <h2 className="font-semibold">{en.shell.comingSoon}</h2>
-              <p className="text-ui text-secondary">{section.description}</p>
-            </Card>
-          )}
+        <AchievementsPage active={activeSection === 'achievements'} />
       </div>
     </AppShell>
   )

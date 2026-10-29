@@ -10,6 +10,9 @@ const CHAPTER_SCHEMA: &str = include_str!("../../migrations/003_chapters.sql");
 const PREFERENCE_SCHEMA: &str = include_str!("../../migrations/004_editor_preferences.sql");
 const ACTIVITY_SCHEMA: &str = include_str!("../../migrations/005_writing_activity.sql");
 const SCHEDULE_SCHEMA: &str = include_str!("../../migrations/006_writing_schedule.sql");
+const ACHIEVEMENT_SCHEMA: &str = include_str!("../../migrations/007_achievement_unlocks.sql");
+const NOTIFICATION_SCHEMA: &str =
+    include_str!("../../migrations/008_achievement_notifications.sql");
 const MIGRATION_STEPS: &[M<'static>] = &[
     M::up(INITIAL_SCHEMA),
     M::up(COVER_SCHEMA),
@@ -17,6 +20,8 @@ const MIGRATION_STEPS: &[M<'static>] = &[
     M::up(PREFERENCE_SCHEMA),
     M::up(ACTIVITY_SCHEMA),
     M::up(SCHEDULE_SCHEMA),
+    M::up(ACHIEVEMENT_SCHEMA),
+    M::up(NOTIFICATION_SCHEMA),
 ];
 const MIGRATIONS: Migrations<'static> = Migrations::from_slice(MIGRATION_STEPS);
 
@@ -40,6 +45,8 @@ pub enum DatabaseError {
     InvalidSchema(String),
     #[error("SQLite could not enable WAL journaling (reported {0})")]
     WalUnavailable(String),
+    #[error("Achievement initialization failed; no reset was attempted: {0}")]
+    Achievement(#[from] crate::achievements::AchievementError),
 }
 
 pub fn open(data_directory: &Path) -> Result<Database, DatabaseError> {
@@ -62,6 +69,11 @@ pub fn open(data_directory: &Path) -> Result<Database, DatabaseError> {
     connection
         .prepare("SELECT effective_from, weekdays_mask FROM writing_schedule_history LIMIT 0")?;
     connection.prepare("SELECT source_book_id, effective_from, daily_word_goal, retired FROM activity_goal_history LIMIT 0")?;
+    connection.prepare(
+        "SELECT achievement_id, rule_policy_version, unlocked_at FROM achievement_unlocks LIMIT 0",
+    )?;
+    connection.prepare("SELECT achievement_id, disposition, claimed_at FROM achievement_notification_receipts LIMIT 0")?;
+    crate::achievements::refresh(&mut connection)?;
     Ok(Mutex::new(connection))
 }
 

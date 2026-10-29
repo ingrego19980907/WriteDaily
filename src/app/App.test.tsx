@@ -68,3 +68,20 @@ test('returns to the library after selecting another section with the pointer', 
     screen.getByRole('button', { name: 'Achievements' }),
   ).not.toHaveAttribute('aria-current')
 })
+
+test('Achievements navigation opens the real page with explicit desktop availability', async () => {
+  const user = userEvent.setup()
+  render(<App />)
+  await user.click(screen.getByRole('button', { name: 'Achievements' }))
+  expect(
+    screen.getByRole('heading', { level: 1, name: 'Achievements' }),
+  ).toHaveFocus()
+  expect(
+    screen.getByRole('heading', { level: 2, name: 'Your milestones' }),
+  ).toBeVisible()
+  await screen.findByText(
+    'Open the desktop app to view and refresh your saved achievements.',
+  )
+  expect(screen.getAllByRole('article')).toHaveLength(8)
+  expect(screen.queryByText('Coming soon')).not.toBeInTheDocument()
+})

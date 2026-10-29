@@ -1,0 +1,50 @@
+[
+  {
+    "id": "first_words",
+    "policyVersion": 1,
+    "metric": "credited_words",
+    "threshold": 100
+  },
+  {
+    "id": "getting_started",
+    "policyVersion": 1,
+    "metric": "credited_words",
+    "threshold": 1000
+  },
+  {
+    "id": "storyteller",
+    "policyVersion": 1,
+    "metric": "credited_words",
+    "threshold": 10000
+  },
+  {
+    "id": "novelist",
+    "policyVersion": 1,
+    "metric": "credited_words",
+    "threshold": 50000
+  },
+  {
+    "id": "consistency",
+    "policyVersion": 1,
+    "metric": "completed_scheduled_days",
+    "threshold": 7
+  },
+  {
+    "id": "dedicated_writer",
+    "policyVersion": 1,
+    "metric": "completed_scheduled_days",
+    "threshold": 30
+  },
+  {
+    "id": "goal_keeper",
+    "policyVersion": 1,
+    "metric": "completed_daily_goals",
+    "threshold": 10
+  },
+  {
+    "id": "the_end",
+    "policyVersion": 1,
+    "metric": "explicitly_completed_books",
+    "threshold": 1
+  }
+]

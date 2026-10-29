@@ -106,7 +106,8 @@ pub async fn save_chapter_content(
     content_json: String,
     activity_json: String,
 ) -> Result<Chapter, ChapterCommandError> {
-    execute(app, move |connection| {
+    let notifier = app.clone();
+    let result = execute(app, move |connection| {
         ChapterRepository::new(connection).save_content_with_activity(
             &book_id,
             &id,
@@ -115,7 +116,11 @@ pub async fn save_chapter_content(
             &activity_json,
         )
     })
-    .await
+    .await;
+    if result.is_ok() {
+        crate::achievement_commands::signal_committed(&notifier);
+    }
+    result
 }
 fn confirmed_delete(
     connection: &mut rusqlite::Connection,

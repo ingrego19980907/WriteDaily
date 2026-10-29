@@ -17,6 +17,7 @@ import type {
 } from '../../src/features/editor/chapter'
 import type { Book } from '../../src/features/library/book'
 import type { ActivitySubmission } from '../../src/features/activity/activity'
+import type { AchievementUnlock } from '../../src/features/achievements/achievement-unlocks'
 
 const book: Book = {
   id: '8af2b704-45bc-4e41-8e25-d12f427da441',
@@ -82,6 +83,37 @@ if (!seed.success) throw new Error('Invalid test editor seed')
 const manuscripts = new Map<string, ChapterContent>([[first.id, seed.data]])
 const requestedScenario = new URLSearchParams(location.search).get('scenario')
 const scenario = requestedScenario?.replace(/^goal-/, 'editor-')
+const noticeMode = new URLSearchParams(location.search).get('notice')
+const noticeUnlocks = new Map<string, AchievementUnlock>()
+const noticeClaims = new Set<string>()
+let claimFault = false
+let finishNotice: (() => void) | undefined
+let noticeAttempts = 0
+if (noticeMode === 'old') {
+  noticeUnlocks.set('first_words', {
+    achievementId: 'first_words',
+    rulePolicyVersion: 1,
+    unlockedAt: '2026-10-28T10:00:00.000Z',
+  })
+  noticeClaims.add('first_words')
+}
+function recordNotices(words: number) {
+  if (!noticeMode) return
+  for (const [id, threshold] of [
+    ['first_words', 100],
+    ['getting_started', 1000],
+    ['storyteller', 10000],
+    ['novelist', 50000],
+  ] as const) {
+    if (words >= threshold && !noticeUnlocks.has(id))
+      noticeUnlocks.set(id, {
+        achievementId: id,
+        rulePolicyVersion: 1,
+        unlockedAt: '2026-10-29T10:00:00.000Z',
+      })
+  }
+  void emit('achievement-unlocks-changed')
+}
 if (requestedScenario?.startsWith('reorder'))
   chapters = chapters.map((chapter) => ({ ...chapter, title: 'Chapter' }))
 if (requestedScenario?.startsWith('goal-')) {
@@ -107,9 +139,40 @@ Object.assign(globalThis, {
   completeTestReorder: () => finishReorder?.(),
   completePreferenceSave: () => finishPreferenceSave?.(),
   testPreferenceWrites: () => preferenceWrites,
+  completeTestNotice: () => finishNotice?.(),
+  testNoticeClaims: () => noticeAttempts,
+  wakeTestAchievements: () => emit('achievement-unlocks-changed'),
 })
 mockIPC(
   (command, payload) => {
+    if (noticeMode && command === 'claim_achievement_notifications') {
+      noticeAttempts++
+      const pending = [...noticeUnlocks.values()].filter(
+        (row) => !noticeClaims.has(row.achievementId),
+      )
+      if (pending.length && noticeMode === 'claim-failure' && !claimFault) {
+        claimFault = true
+        throw { code: 'persistence' }
+      }
+      const claim = () => {
+        for (const row of pending) noticeClaims.add(row.achievementId)
+        return structuredClone(pending)
+      }
+      if (pending.length && noticeMode === 'pending-claim')
+        return new Promise((resolve) => {
+          finishNotice = () => resolve(claim())
+        })
+      const result = claim()
+      if (pending.length && noticeMode === 'claim-lost' && !claimFault) {
+        claimFault = true
+        throw { code: 'persistence' }
+      }
+      return result
+    }
+    if (noticeMode && command === 'get_achievement_unlocks')
+      return [...noticeUnlocks.values()]
+    if (noticeMode && command === 'refresh_achievements')
+      return { unlocks: [...noticeUnlocks.values()], newlyUnlocked: [] }
     if (command === 'get_writing_schedule') return { revision: 0, history: [] }
     if (command === 'get_editor_preferences') {
       preferenceReads += 1
@@ -301,6 +364,7 @@ mockIPC(
           receipt.revision !== chapters[index].revision
         )
           throw { code: 'conflict' }
+        if (noticeMode) void emit('achievement-unlocks-changed')
         return { ...chapters[index], content: manuscripts.get(args.id) }
       }
       if (scenario === 'editor-conflict') throw { code: 'conflict' }
@@ -325,6 +389,7 @@ mockIPC(
           fingerprint,
           revision: chapters[index].revision,
         })
+        recordNotices(chapters[index].wordCount ?? 0)
         return { ...chapters[index], content: result.data }
       }
       if (

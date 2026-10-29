@@ -1,6 +1,7 @@
 import type { ComponentProps, ReactElement, ReactNode } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { Button } from './Button'
+import { NotificationLayerSlot } from './NotificationLayerProvider'
 import './modal.css'
 
 export type ModalProps = {
@@ -63,6 +64,7 @@ export function Modal({
               </Dialog.Close>
             </div>
           </div>
+          <NotificationLayerSlot />
           <div className="modal-body">
             {description && (
               <Dialog.Description className="text-secondary">
