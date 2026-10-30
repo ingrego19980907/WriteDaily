@@ -118,19 +118,33 @@ fn load(connection: &Connection, book_id: &str, chapter_id: &str) -> Result<Chap
     checked(raw)
 }
 fn list(connection: &Connection, book_id: &str) -> Result<Vec<ChapterSummary>, ChapterError> {
+    let mut result = Vec::new();
+    for_each_chapter(connection, book_id, |chapter| {
+        result.push(chapter.summary);
+        Ok(())
+    })?;
+    Ok(result)
+}
+
+/// Streams full validated chapters in manuscript order inside a caller-owned
+/// snapshot. Callers can bound output without retaining every document in memory.
+pub(crate) fn for_each_chapter(
+    connection: &Connection,
+    book_id: &str,
+    mut visit: impl FnMut(Chapter) -> Result<(), ChapterError>,
+) -> Result<(), ChapterError> {
     parent(connection, book_id)?;
     let mut statement = connection.prepare(&format!(
         "SELECT {COLUMNS} FROM chapters WHERE book_id = ?1 ORDER BY position"
     ))?;
-    let mut result = Vec::new();
-    for row in statement.query_map([book_id], decode)? {
+    for (position, row) in statement.query_map([book_id], decode)?.enumerate() {
         let chapter = checked(row?)?;
-        if chapter.summary.position != result.len() as i64 {
+        if usize::try_from(chapter.summary.position).ok() != Some(position) {
             return Err(ChapterError::InvalidStoredData);
         }
-        result.push(chapter.summary);
+        visit(chapter)?;
     }
-    Ok(result)
+    Ok(())
 }
 fn expected(current: &ChapterSummary, token: i64) -> Result<(), ChapterError> {
     if current.revision == token {

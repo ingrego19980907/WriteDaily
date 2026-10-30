@@ -460,6 +460,122 @@ export const en = {
       invalid_date: 'Enter a valid date (YYYY-MM-DD, years 0001–9999).',
     },
   },
+  libraryRestore: {
+    action: 'Restore library',
+    description:
+      'Choose a WriteDaily ZIP backup. It will be checked before you confirm replacement of your entire saved library.',
+    choose: 'Choose backup…',
+    dialogTitle: 'Choose library backup',
+    fileType: 'WriteDaily backup (ZIP)',
+    cancel: 'Cancel',
+    preparing: 'Checking the backup. Your current library is unchanged.',
+    cancelled: 'No backup selected. Your current library is unchanged.',
+    summary: (
+      createdAt: string,
+      books: number,
+      chapters: number,
+      covers: number,
+    ) =>
+      `Backup from ${new Date(createdAt).toLocaleString('en-US')}. Books: ${books.toLocaleString('en-US')}; chapters: ${chapters.toLocaleString('en-US')}; covers: ${covers.toLocaleString('en-US')}.`,
+    warning:
+      'This replaces all current books, writing, covers, goals, history and settings. An automatic safety backup will keep your current library in restore history. Close other WriteDaily instances first. After restoration, close and reopen WriteDaily to use the restored data.',
+    confirm:
+      'I have saved my writing and understand that this backup will replace the entire current library.',
+    apply: 'Restore this library',
+    restoring: 'Restoring library…',
+    restored:
+      'Library restored. Your previous library is kept in restore history. Close WriteDaily, then open it again to use the restored library.',
+    closeApp: 'Close WriteDaily',
+    invalid:
+      'This backup is damaged or incomplete. Choose another backup. Your current library is unchanged.',
+    unsupported:
+      'This backup format or database version is not supported by this WriteDaily version. Your current library is unchanged.',
+    tooLarge:
+      'This backup exceeds the supported restore limits. Your current library is unchanged.',
+    busy: 'Close other WriteDaily instances and wait for saves or exports to finish, then choose the backup again.',
+    conflict:
+      'The selected restore is no longer available. Choose the backup again.',
+    safetyFailed:
+      'The safety backup could not be created. Your current library was kept. Fix any unreadable covers or storage issues before trying again.',
+    failed:
+      'The restore did not complete. Your previous library was kept. Choose the backup again to retry.',
+    uncertain:
+      'The restore state could not be confirmed. Close and reopen WriteDaily so recovery can finish. Do not continue editing in this window.',
+    closeFailed:
+      'Could not close WriteDaily automatically. Close this window and open WriteDaily again.',
+    desktop: 'Open the desktop app to restore a library backup.',
+  },
+  libraryBackup: {
+    heading: 'Library backup',
+    action: 'Back up library',
+    pendingAction: 'Backing up…',
+    description:
+      'Create a ZIP copy of your saved books, chapters, covers, goals, activity, achievements and settings. Save your writing first; unsaved edits are not included.',
+    dialogTitle: 'Back up library',
+    fileType: 'WriteDaily backup (ZIP)',
+    pending:
+      'Preparing a saved library snapshot. Choose a new ZIP filename when the dialog opens.',
+    cancelled: 'Backup cancelled. Your library is unchanged.',
+    created: (
+      fileName: string,
+      books: number,
+      chapters: number,
+      covers: number,
+    ) =>
+      `Backup saved: ${fileName}. Books: ${books.toLocaleString('en-US')}; chapters: ${chapters.toLocaleString('en-US')}; covers: ${covers.toLocaleString('en-US')}.`,
+    desktop: 'Open the desktop app to back up your library.',
+    invalid:
+      'The database or a referenced cover could not be read safely. No backup was created. Your library is unchanged.',
+    tooLarge:
+      'The library exceeds the backup limit: 4 GiB for the database, 8 GiB of files or 100,000 files. No partial backup was created.',
+    busy: 'Another save, export or backup is in progress. Wait for it to finish and try again.',
+    exists: 'That file already exists and was kept. Choose a new ZIP filename.',
+    destination: 'Choose a new .zip file in an existing folder.',
+    failure:
+      'Could not confirm the backup. Check the destination folder before trying a new filename. Your library is unchanged.',
+  },
+  bookExport: {
+    action: 'Export book',
+    label: (title: string) => `Export book: ${title}`,
+    hint: 'Export includes all saved chapters in their current order and creates a new .txt file.',
+    emptyHint: 'Create a chapter before exporting this book.',
+    dialogTitle: 'Export book',
+    fileType: 'Plain text',
+    pending: 'Exporting…',
+    cancelled: 'Book export cancelled.',
+    exported: (fileName: string) => `Book exported: ${fileName}`,
+    conflict:
+      'The book or its chapters changed. Reload chapters or reopen the book before exporting.',
+    missing: 'The book is no longer available. Return to My Library.',
+    exists: 'That file already exists and was kept. Choose a new filename.',
+    destination: 'Choose a new .txt file in an existing folder.',
+    invalid: 'The saved book could not be read safely. No export was created.',
+    desktop: 'Open the desktop app to export a book.',
+    empty: 'This book has no chapters to export. Create a chapter first.',
+    tooLarge:
+      'This book exceeds the export limit of 64 MiB or 10,000 chapters. Export individual chapters instead.',
+    failure:
+      'Could not confirm the book export. Check the folder and try a new filename. Your writing is unchanged.',
+  },
+  chapterExport: {
+    action: 'Export chapter',
+    label: (title: string) => `Export chapter: ${title}`,
+    hint: 'Export uses saved text and creates a new .txt file.',
+    dialogTitle: 'Export chapter',
+    fileType: 'Plain text',
+    pending: 'Exporting…',
+    cancelled: 'Export cancelled.',
+    exported: (fileName: string) => `Chapter exported: ${fileName}`,
+    conflict: 'The chapter changed. Reload chapters before exporting.',
+    missing: 'The chapter is no longer available. Reload chapters.',
+    exists: 'That file already exists and was kept. Choose a new filename.',
+    destination: 'Choose a new .txt file in an existing folder.',
+    invalid:
+      'The saved chapter could not be read safely. No export was created.',
+    desktop: 'Open the desktop app to export a chapter.',
+    failure:
+      'Could not confirm the export. Check the folder and try a new filename. Your chapter is unchanged.',
+  },
   chapters: {
     open: 'Edit chapter text',
     textSaved: (title: string) => `Chapter text saved: ${title}`,

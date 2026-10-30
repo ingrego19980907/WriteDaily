@@ -4,6 +4,7 @@ mod repository;
 mod word_count;
 pub use content::ChapterContent;
 pub use repository::ChapterRepository;
+pub(crate) use repository::for_each_chapter;
 use serde::{Deserialize, Serialize};
 
 pub const MAX_SAFE_INTEGER: i64 = 9_007_199_254_740_991;

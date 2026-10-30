@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 6,
+  "document": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": { "level": 4, "textAlign": "center" },
+        "content": [{ "type": "text", "text": "Нова сторінка" }]
+      },
+      {
+        "type": "paragraph",
+        "attrs": { "textAlign": "justify" },
+        "content": [
+          {
+            "type": "text",
+            "text": "Cozy",
+            "marks": [
+              { "type": "bold" },
+              { "type": "italic" },
+              { "type": "underline" },
+              { "type": "fontSize", "attrs": { "size": 24 } },
+              { "type": "fontFamily", "attrs": { "family": "Georgia" } }
+            ]
+          },
+          { "type": "text", "text": "-текст" },
+          { "type": "hardBreak", "marks": [{ "type": "underline" }] },
+          { "type": "text", "text": "👩‍💻 Україна — 你好 — مرحبا" }
+        ]
+      },
+      { "type": "pageBreak" },
+      { "type": "paragraph" },
+      {
+        "type": "bulletList",
+        "content": [
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [{ "type": "text", "text": "План" }]
+              },
+              {
+                "type": "orderedList",
+                "attrs": { "start": 3, "type": "i" },
+                "content": [
+                  {
+                    "type": "listItem",
+                    "content": [
+                      {
+                        "type": "paragraph",
+                        "attrs": { "textAlign": "right" },
+                        "content": [
+                          { "type": "text", "text": "Крок" },
+                          { "type": "hardBreak" },
+                          { "type": "text", "text": "Продовження" }
+                        ]
+                      },
+                      {
+                        "type": "paragraph",
+                        "content": [{ "type": "text", "text": "Ще абзац" }]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          { "type": "text", "text": "Кінець." },
+          { "type": "hardBreak" }
+        ]
+      }
+    ]
+  }
+}

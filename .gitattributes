@@ -1,0 +1,2 @@
+# Byte-exact portable text fixtures must keep LF on Windows checkouts too.
+tests/fixtures/text-export/*.txt text eol=lf

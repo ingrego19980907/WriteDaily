@@ -1,5 +1,35 @@
 # Architecture
 
+## Library restore (7.5)
+
+`restores/archive.rs` validates a native-picked v1/current-v8 ZIP and privately stages only allowlisted database/cover members. `restores/swap.rs` creates an automatic safety ZIP, journals replacement of the database/cover pair and recovers incomplete swaps before startup opens SQLite. Previous files/history are retained; invalid recovery state refuses a blank reset. Exact schema, integrity, domain, membership, size and checksum checks precede apply. See [restore contract](LIBRARY_RESTORE.md).
+
+`database/handle.rs` replaces the bare connection mutex with an optional live connection, maintenance fence and cooperative shared/exclusive instance lease. Restore needs exclusive access, checkpoints/closes SQLite and blocks queued/stale calls until process exit. Failure either reopens the original library or stays blocked for recovery. SQLite owns its sidecars. Imported unlocks receive silent notification baselines without new activity. No dependency or migration is added.
+
+`restore_commands.rs` shares the export gate and exposes prepare/cancel/apply/status/close; tokens and explicit confirmation authorize only the native-held preview. `services/restores.ts` validates safe DTOs. LibraryRestore reuses Modal/Button and centralized copy. Lost replies query native state; success or uncertain recovery requires closing/reopening instead of refreshing old caches. Broader integrity/recovery audits remain 7.6–7.7.
+
+## Library backup (7.4)
+
+`backups.rs` owns consistent library capture, a versioned manifest, ZIP creation/verification and collision-safe destination writing. A source IMMEDIATE reservation coordinates SQLite online backup through a separate read-only handle with exact referenced-cover capture via CoverStore. The source mutex/reservation ends before ZIP packing/checking, Save As or destination IO. The self-contained DB includes WAL commits and is closed in DELETE journal mode; all tables survive unchanged. There is no source cleanup/reconciliation or migration.
+
+`backup_commands.rs` runs the work off-thread and shares the export operation gate. JavaScript supplies centralized picker labels only. `services/backups.ts` validates the completed basename/time/counts; the library's `LibraryBackup` card owns pending/error/status/focus behavior. No generic filesystem permission or browser persistence is introduced. Shared `new_destination` validation supports the TXT and ZIP writers. Restore is implemented separately in 7.5 above; broader integrity/recovery audits remain 7.6–7.7. See [format, coordination, dependencies and evidence](LIBRARY_BACKUP.md).
+
+## Portable text verification (7.3)
+
+The existing native content serializer remains the sole text renderer for chapter and book export. Structural hard breaks now apply the current list depth to their continuation indentation, without changing literal text or stored documents. Byte-exact JSON/TXT fixtures and disposable SQLite/file integration tests define the portable contract; only those TXT fixture paths have LF pinned in `.gitattributes`. No UI, IPC, dependency, persistence or picker architecture changes are introduced. See [portable-text rules and evidence](PORTABLE_TEXT_EXPORT.md).
+
+## Whole-book export (7.2)
+
+`SavedBookExport` validates the expected book timestamp and complete ordered chapter ID/revision manifest in one deferred SQLite read transaction. The repository's crate-private `for_each_chapter` streams full validated chapters in contiguous manuscript order; the existing list API reuses that decoder. Export retains one bounded text buffer (64 MiB / 10,000 chapters), rather than all chapter documents. Every body and book metadata read shares the same committed snapshot. Capture finishes before native Save As; no database transaction spans user interaction or file IO.
+
+`export_book` shares the native picker, one-export gate and staged no-overwrite writer with `export_chapter`. `services/exports.ts` allowlists source tokens and validates the confirmed ordered manifest. `ExportBook` and `ExportChapter` compose a feature-local `ExportAction` for common pending/status/error/focus behavior. ChapterManager adds the book action beside Back to library and blocks it during loading, failures or competing operations. No schema, dependency, editor-save or activity calculation changes are introduced. See [contract and verification](BOOK_EXPORT.md).
+
+## Individual chapter export (7.1)
+
+`chapters/content/text_export.rs` renders native-validated content to plain text without changing stored JSON. `exports.rs` captures a book-scoped, revision-checked ChapterRepository snapshot, builds a safe default filename and stages/syncs a new file before `persist_noclobber` promotion. `export_commands.rs` owns the off-thread native picker and one-export gate; the SQLite mutex is released before the picker or external IO. JavaScript supplies IDs/revision and centralized UI labels, never a manuscript or destination path. Cancellation and a confirmed completed write are separate DTO outcomes.
+
+`services/exports.ts` validates the native result without a browser fallback. `ExportChapter` composes the existing Button/Download icon and pending/error/status presentation; ChapterManager mounts it in each chapter row and blocks competing chapter actions while pending. Draft/formatting/autosave behavior is unchanged. Official Tauri Dialog is registered for Rust use only, without new JavaScript filesystem/dialog grants. Schema v8 and repositories remain unchanged; no activity or achievement writes occur. See [content, file safety and real desktop verification](CHAPTER_EXPORT.md).
+
 ## Achievement notifications (6.6)
 
 Native `achievements/notifications.rs` owns one-time claims separately from eligibility and writing persistence. Schema v8 adds unique receipt rows: existing v7 unlocks are silently baselined, while pending committed unlocks are claimed transactionally with native UTC retrieval timestamps. `claim_achievement_notifications` uses the existing off-thread database command boundary. Failed claims roll back independently of completed writing saves. Successful save/delete/reconciliation commands send best-effort post-commit wakeups; the event payload never supplies achievement evidence. See [claim contract and delivery limits](ACHIEVEMENTS.md#unlock-notifications-66).
@@ -149,7 +179,7 @@ npm 11.19.1 is the declared package manager; package-lock.json and src-tauri/Car
 
 Tauri identifies the application as app.writedaily.desktop, version 0.0.0 (matching npm and Cargo manifests). The main window defaults to 1100 by 760, minimum 640 by 480. Dev hooks use npm run dev at http://127.0.0.1:5173; build hooks use npm run build and embed ../dist relative to src-tauri. Bundling is configured but installer creation/testing is not verified. Scaffold icons are temporary. Windows GUI startup and React rendering were visually verified in task 0.9; no production-ready or macOS validation is claimed.
 
-This document distinguishes installed foundation tooling from proposed product architecture. Implemented schema/native persistence and commit-based editor recovery are verified in their task records. A durable draft journal is not implemented; precise streak rules and backup/restore transaction strategy remain their respective tasks.
+This document distinguishes installed foundation tooling from proposed product architecture. Implemented schema/native persistence and commit-based editor recovery are verified in their task records. A durable writing-draft journal is not implemented. Activity/streak rules and the backup/restore transaction strategy now have verified contracts linked above.
 
 ## Colors and typography (1.1)
 

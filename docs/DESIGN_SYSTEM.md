@@ -1,5 +1,29 @@
 # Design system
 
+## Library restore (7.5)
+
+Restore library sits beside Back up library in the existing card, wrapping naturally on narrow windows. Its secondary Button uses the decorative 18px Lucide ArchiveRestore icon at 1.6 stroke width. The shared cream Modal shows centralized instructions, Choose backup, filename/date/counts, a replacement warning and an initially unchecked native acknowledgement checkbox. Restore stays disabled until acknowledged. Text and long Unicode filenames wrap; existing tokens, focus outlines and errors apply without new assets or motion.
+
+During native work, duplicate actions and dismissal are blocked. Cancel removes the preview without changing saved data. Confirmed restore and uncertain recovery move focus to Close WriteDaily; the modal remains open until process exit. Status is polite, errors are alerts, and the underlying stale library is inaccessible. Modal's optional `dismissible` prop defaults to true for existing callers; false disables its header close, Escape and outside dismissal. See [restore contract](LIBRARY_RESTORE.md) and [accessibility evidence](ACCESSIBILITY_REVIEW.md#library-restore-75-2026-10-30).
+
+## Library backup (7.4)
+
+My Library ends with a labelled Library backup section using the existing cream Card, serif H2, small secondary description and secondary 44px Button. An 18px Lucide HardDriveDownload icon at 1.6 stroke width is decorative. The linked description states what the copy includes and that writing must be saved first. Preparing feedback and confirmed basename/counts use a pre-mounted polite status; errors use existing alert/error styles. Repeated starts are blocked and focus returns only when unclaimed.
+
+The surface stays below the library/history content and wraps at narrow widths without altering existing cards or toolbar controls. No new colors/fonts/animations are added. Keyboard, 320/1100px, 200% text, forced colors, axe and the real Windows picker are verified. See [accessibility evidence](ACCESSIBILITY_REVIEW.md#library-backup-74-2026-10-29).
+
+## Whole-book export (7.2)
+
+The book overview in Writing Editor places a secondary **Export book** control beside Back to library, using the existing Download icon, 44px target, cream/brown tokens and wrapping layout. A small linked hint explains saved chapters, current order and the new `.txt` file. A confirmed empty book instead explains why export is disabled. The accessible name includes the book title; pending, cancellation, confirmed basename and actionable errors use the same feature-local `ExportAction` presentation as chapter export.
+
+No new colors, typography, animations or formatting controls are added. Keyboard focus restoration, long Cyrillic titles, 320/1100px, 200% text, axe and forced colors are verified; native Save As also passed real Windows interaction and restart. See [review](ACCESSIBILITY_REVIEW.md#whole-book-export-72-2026-10-29).
+
+## Individual chapter export (7.1)
+
+Chapter rows include a shared secondary **Export chapter** button with an 18px Lucide Download icon at 1.6 stroke width, the existing 44px minimum target and normal hover/focus/disabled styles. A common small hint explains saved-text/new-file behavior. Chapter actions wrap and align at their top edges; the export status/error does not stretch neighboring buttons. Pending, cancellation and confirmed-file feedback use small polite status text; actionable failures use the existing error token and alert semantics, without raw paths or false saved states.
+
+The button's accessible name includes its chapter title, and its description links to the common hint. Native Save As uses centralized English labels. Explicit completion/cancellation restores the originating control when focus is unclaimed; stale unmounted results cannot move focus. There are no new colors, fonts, animations or editor-format controls. Keyboard, 320/1100px, 200% text, axe, forced colors and real Windows picker interaction are verified; see [review](ACCESSIBILITY_REVIEW.md#individual-chapter-export-71-2026-10-29).
+
 ## Achievement notifications (6.6)
 
 Unlock feedback uses a compact shared Card with existing cream, sage and warm brown tokens, a decorative Lucide Trophy, small sans-serif status, serif achievement names and a labelled 44px Dismiss control. New names from one claim appear together; later batches queue. Outside dialogs the surface sits at the lower right, at most 26rem wide and bounded by the viewport. Inside a shared Modal it uses an inline slot below the header, including focus mode. Narrow containers put text below the icon/control; long names wrap without horizontal overflow at 320px and 200% text.

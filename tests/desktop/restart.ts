@@ -27,6 +27,14 @@ assert.equal(
 )
 const root = fileURLToPath(new URL('../../', import.meta.url))
 const editorMode = process.argv.includes('--editor')
+const exportMode = process.argv.includes('--export')
+const bookExportMode = exportMode && process.argv.includes('--book')
+const backupMode = process.argv.includes('--backup')
+const restoreMode = process.argv.includes('--restore')
+assert(
+  [editorMode, exportMode, backupMode, restoreMode].filter(Boolean).length <= 1,
+  'Choose one isolated desktop scenario.',
+)
 const baseConfig = path.join(root, 'src-tauri/tauri.conf.json')
 const originalConfig = await readFile(baseConfig, 'utf8')
 assert.equal(JSON.parse(originalConfig).identifier, 'app.writedaily.desktop')
@@ -166,10 +174,10 @@ async function launch(stage: string): Promise<Page> {
   console.log(`Desktop stage: ${stage}; PID ${app.pid}`)
   return page
 }
-async function close() {
+async function close(alreadyClosing = false) {
   if (app && app.exitCode === null) {
     const exited = once(app, 'exit')
-    nativeWindow(true)
+    if (!alreadyClosing) nativeWindow(true)
     const timeout = new AbortController()
     try {
       const result = await Promise.race([
@@ -338,7 +346,23 @@ try {
     path.join(root, 'src-tauri/target/debug/write-daily.exe'),
     executable,
   )
-  if (editorMode) {
+  if (exportMode || backupMode || restoreMode) {
+    const verify = restoreMode
+      ? (await import('./library-restore.ts')).verifyLibraryRestore
+      : backupMode
+        ? (await import('./library-backup.ts')).verifyLibraryBackup
+        : bookExportMode
+          ? (await import('./book-export.ts')).verifyBookExport
+          : (await import('./chapter-export.ts')).verifyChapterExport
+    await verify({
+      run,
+      databasePath,
+      launch,
+      close,
+      nativeWindow,
+      report,
+    })
+  } else if (editorMode) {
     const { verifyEditorRestart } = await import('./editor-restart.ts')
     await verifyEditorRestart({
       run,
@@ -539,9 +563,17 @@ try {
   assert.equal(await readFile(baseConfig, 'utf8'), originalConfig)
   report.passed = true
   console.log(
-    editorMode
-      ? 'Real desktop editor recovery: PASS (six native process launches).'
-      : 'Real desktop restart persistence: PASS (five native process launches).',
+    restoreMode
+      ? 'Real desktop library restore: PASS (native picker, safety backup, replacement, close/reopen and stale-write fence).'
+      : backupMode
+        ? 'Real desktop library backup: PASS (native Save As, database/covers, cancellation and restart).'
+        : bookExportMode
+          ? 'Real desktop whole-book export: PASS (native Save As, order, chapter regression and restart).'
+          : exportMode
+            ? 'Real desktop chapter export: PASS (native Save As, cancellation and restart).'
+            : editorMode
+              ? 'Real desktop editor recovery: PASS (six native process launches).'
+              : 'Real desktop restart persistence: PASS (five native process launches).',
   )
 } catch (error) {
   report.error = error instanceof Error ? error.stack : String(error)

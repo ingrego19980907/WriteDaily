@@ -18,6 +18,7 @@ import {
 } from './book-filters'
 import { LibraryViewControls, type LibraryView } from './LibraryViewControls'
 import { LibraryEmptyState } from './LibraryEmptyState'
+import { LibraryBackup } from './LibraryBackup'
 import './library-layout.css'
 
 const copy = en.library
@@ -254,6 +255,7 @@ export function Library({
           }
         </CurrentStreakSummary>
       </div>
+      <LibraryBackup />
     </div>
   )
 }

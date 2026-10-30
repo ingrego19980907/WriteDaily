@@ -8,6 +8,37 @@ use std::collections::HashSet;
 pub fn claim_notifications(c: &mut Connection) -> Result<Vec<AchievementUnlock>, AchievementError> {
     let tx = c.transaction_with_behavior(TransactionBehavior::Immediate)?;
     let unlocks = list(&tx)?;
+    let claimed = read_receipts(&tx, &unlocks)?;
+    let pending: Vec<_> = unlocks
+        .into_iter()
+        .filter(|unlock| !claimed.contains(&unlock.achievement_id))
+        .collect();
+    let mut result = Vec::new();
+    if !pending.is_empty() {
+        let now = timestamp(None)?;
+        for unlock in pending {
+            if tx.execute("INSERT INTO achievement_notification_receipts(achievement_id, disposition, claimed_at) VALUES (?1, 'claimed', ?2) ON CONFLICT(achievement_id) DO NOTHING", params![unlock.achievement_id, now])? == 1 {
+                result.push(unlock);
+            }
+        }
+    }
+    tx.commit()?;
+    Ok(result)
+}
+
+pub(crate) fn baseline_restored(c: &mut Connection) -> Result<(), AchievementError> {
+    let tx = c.transaction_with_behavior(TransactionBehavior::Immediate)?;
+    let unlocks = list(&tx)?;
+    read_receipts(&tx, &unlocks)?;
+    tx.execute("INSERT INTO achievement_notification_receipts(achievement_id, disposition, claimed_at) SELECT achievement_id, 'baseline', NULL FROM achievement_unlocks WHERE achievement_id NOT IN (SELECT achievement_id FROM achievement_notification_receipts)", [])?;
+    tx.commit()?;
+    Ok(())
+}
+
+fn read_receipts(
+    tx: &Connection,
+    unlocks: &[AchievementUnlock],
+) -> Result<HashSet<String>, AchievementError> {
     let mut claimed = HashSet::new();
     {
         let mut statement = tx.prepare(
@@ -36,19 +67,5 @@ pub fn claim_notifications(c: &mut Connection) -> Result<Vec<AchievementUnlock>,
             }
         }
     }
-    let pending: Vec<_> = unlocks
-        .into_iter()
-        .filter(|unlock| !claimed.contains(&unlock.achievement_id))
-        .collect();
-    let mut result = Vec::new();
-    if !pending.is_empty() {
-        let now = timestamp(None)?;
-        for unlock in pending {
-            if tx.execute("INSERT INTO achievement_notification_receipts(achievement_id, disposition, claimed_at) VALUES (?1, 'claimed', ?2) ON CONFLICT(achievement_id) DO NOTHING", params![unlock.achievement_id, now])? == 1 {
-                result.push(unlock);
-            }
-        }
-    }
-    tx.commit()?;
-    Ok(result)
+    Ok(claimed)
 }

@@ -1,6 +1,14 @@
 import { BookDeadline } from '../library/BookDeadline'
 import { WritingPace } from '../library/WritingPace'
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from 'react'
 import { en } from '../../app/i18n/en'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
@@ -14,6 +22,8 @@ import type { ChapterSummary } from './chapter'
 import { chapterErrorCode, chapterFailure } from './chapter-errors'
 import { ChapterTitleDialog } from './ChapterTitleDialog'
 import { DeleteChapter } from './DeleteChapter'
+import { ExportChapter } from './ExportChapter'
+import { ExportBook } from './ExportBook'
 
 const ChapterEditorDialog = lazy(() =>
   import('./ChapterEditorDialog').then((module) => ({
@@ -45,6 +55,8 @@ export function ChapterManager({
   const request = useRef(0)
   const heading = useRef<HTMLHeadingElement>(null)
   const retry = useRef<HTMLButtonElement>(null)
+  const exportHintId = useId()
+  const bookExportHintId = useId()
 
   const load = useCallback(() => {
     const current = ++request.current
@@ -181,9 +193,24 @@ export function ChapterManager({
           deadline={book.deadline}
           completed={book.completedAt !== null}
         />
-        <Button variant="secondary" onClick={onBack}>
-          {en.library.backToLibrary}
-        </Button>
+        <p id={bookExportHintId} className="text-secondary text-sm">
+          {loaded && !loading && !failure && chapters.length === 0
+            ? en.bookExport.emptyHint
+            : en.bookExport.hint}
+        </p>
+        <div className="flex flex-wrap items-start gap-3">
+          <Button variant="secondary" onClick={onBack}>
+            {en.library.backToLibrary}
+          </Button>
+          <ExportBook
+            key={`${book.id}:${book.updatedAt}`}
+            book={book}
+            chapters={chapters}
+            disabled={disabled || chapters.length === 0}
+            hintId={bookExportHintId}
+            onPending={operationPending}
+          />
+        </div>
       </Card>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 ref={heading} tabIndex={-1} className="font-writing text-writing">
@@ -234,6 +261,9 @@ export function ChapterManager({
         </p>
       )}
       <p className="text-secondary">{copy.pending}</p>
+      <p id={exportHintId} className="text-secondary text-sm">
+        {en.chapterExport.hint}
+      </p>
       <p role="status" className="break-words">
         {notice}
       </p>
@@ -336,7 +366,7 @@ export function ChapterManager({
                       }}
                     />
                   </div>
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-wrap items-start gap-3">
                     <Suspense
                       fallback={
                         <Button variant="secondary" disabled>
@@ -368,6 +398,14 @@ export function ChapterManager({
                       onPending={operationPending}
                       onSaved={saved}
                       onCommittedClose={() => heading.current?.focus()}
+                    />
+                    <ExportChapter
+                      key={`${chapter.id}:${chapter.revision}`}
+                      bookId={book.id}
+                      chapter={chapter}
+                      disabled={disabled}
+                      hintId={exportHintId}
+                      onPending={operationPending}
                     />
                     <DeleteChapter
                       bookId={book.id}

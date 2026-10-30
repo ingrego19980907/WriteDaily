@@ -2,6 +2,8 @@ mod achievement_commands;
 mod achievements;
 mod activity;
 mod activity_commands;
+mod backup_commands;
+mod backups;
 pub mod books;
 mod chapter_commands;
 pub mod chapters;
@@ -9,7 +11,11 @@ mod commands;
 mod covers;
 mod database;
 mod editor_preferences;
+mod export_commands;
+mod exports;
 mod preference_commands;
+mod restore_commands;
+mod restores;
 mod schedule;
 mod schedule_commands;
 
@@ -18,6 +24,9 @@ use tauri::Manager;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
+        .manage(exports::ExportGate::default())
+        .manage(restores::RestoreState::default())
         .invoke_handler(tauri::generate_handler![
             achievement_commands::get_achievement_unlocks,
             achievement_commands::refresh_achievements,
@@ -41,6 +50,14 @@ pub fn run() {
             chapter_commands::save_chapter_content,
             chapter_commands::delete_chapter,
             chapter_commands::reorder_chapters,
+            export_commands::export_chapter,
+            export_commands::export_book,
+            backup_commands::create_library_backup,
+            restore_commands::prepare_library_restore,
+            restore_commands::cancel_library_restore,
+            restore_commands::apply_library_restore,
+            restore_commands::get_library_restore_status,
+            restore_commands::close_after_library_restore,
             preference_commands::get_editor_preferences,
             preference_commands::save_editor_preferences
         ])

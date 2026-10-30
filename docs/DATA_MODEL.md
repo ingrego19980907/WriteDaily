@@ -1,5 +1,27 @@
 # Data model
 
+## Library restore (7.5)
+
+Restore accepts only the current v1 backup with the exact trusted schema-v8 objects. Bounded checks cover identity, integrity/FKs, domain readers, references, manifest counts and payload hashes before replacement. No migration is added. Rich JSON, revisions, legacy NULL word counts, goals/schedules and retained activity are preserved. Staged startup reconciliation discovers eligible historical unlocks; missing notification receipts become silent baselines without altering existing claim timestamps or earning activity.
+
+An automatic safety ZIP and the previous database/covers are retained in application-data restore history. An exclusive cooperative instance lease and database maintenance fence protect journaled replacement; incomplete swaps roll back before any startup connection/cleanup. Confirmed success requires process close/reopen. Missing restore files or failed recovery never initialize an empty database. Normal startup reconciliation and unreferenced cover cleanup retain their existing semantics. See [restore contract and test limits](LIBRARY_RESTORE.md); broader integrity/recovery audits remain 7.6–7.7.
+
+## Library backup snapshot (7.4)
+
+Backup format v1 packages a self-contained schema-v8 SQLite snapshot, exact referenced managed covers and a versioned SHA-256/size manifest. All persisted tables are copied, including preferences, schedule/goal histories, retained activity, unlocks/claims and pending cleanup records. Unreferenced files and live sidecars are excluded. Source records/counts/revisions/JSON are unchanged; no migration or backup-history table is added. SQLite/cover capture shares a cooperative writer reservation, released before file selection. See [backup contract](LIBRARY_BACKUP.md). Restore, safety backup and rollback are implemented separately in 7.5 above.
+
+## Portable text verification (7.3)
+
+The shared serializer fix changes indentation in exported artifacts only. Source JSON, counts, revisions, metadata, activity/unlocks/claims and schema v8 remain unchanged. Native golden-file integration tests compare chapter/book bytes and source-table snapshots across two disposable database reopens. TXT is not a library backup or restore format. See [portable-text contract](PORTABLE_TEXT_EXPORT.md).
+
+## Read-only whole-book export (7.2)
+
+Export validates the book metadata timestamp plus every chapter's ID, revision, membership and position inside one SQLite read transaction. It includes all validated saved bodies or refuses the entire snapshot; later changes cannot alter a captured export while Save As is open. No tables, migrations or stored export records are added. Schema v8, book/chapter records, legacy unknown counts, activity, unlocks and claims remain unchanged. External files use the existing no-overwrite writer. See [whole-book contract](BOOK_EXPORT.md).
+
+## Read-only chapter export (7.1)
+
+Individual export reads a native-validated, book-scoped chapter snapshot at an expected revision. It serializes the saved title/body into an external UTF-8 `.txt` file through a native Save As choice. Export does not update chapters, metadata, revisions, legacy word-count values, activity, achievement unlocks or claims. No migration, export-history table, generic path-write command or draft persistence is added; SQLite remains v8. Snapshot capture precedes the picker and stays frozen until the new file is written. See [export contract](CHAPTER_EXPORT.md).
+
 ## Achievement notification receipts (6.6)
 
 Current SQLite schema: **v8**, through append-only migration `008_achievement_notifications.sql`. Migrations 001–007 are unchanged. The STRICT `achievement_notification_receipts` table has `achievement_id TEXT PRIMARY KEY` referencing the permanent `achievement_unlocks` row, `disposition` (`baseline` or `claimed`) and nullable `claimed_at`. Baseline rows require NULL timestamps; claimed rows require canonical validated native UTC milliseconds. There is no book cascade or user-supplied claim timestamp.
@@ -192,7 +214,7 @@ Define scheduled-day completion as reaching that day's applicable daily goal; un
 
 ## Backup and restore direction
 
-Use a consistent SQLite snapshot plus managed covers and a versioned manifest with integrity checks. Do not copy a live database blindly. Validate schema, paths, file checksums and compatibility before restore; create a safety backup, stage restored data and provide rollback. Test interrupted restore and corrupted input in milestone 7. Export should provide portable text without counting as new writing.
+Consistent SQLite/covers capture and a versioned manifest are implemented in 7.4; see [library backup](LIBRARY_BACKUP.md). Never copy a live database blindly. Task 7.5 implements staged validation, automatic safety capture, coordinated journaled replacement and rollback; see [library restore](LIBRARY_RESTORE.md). Broader corrupted-input and interruption verification remain 7.6–7.7. Portable text export is implemented in 7.1–7.3 and never counts as new writing.
 
 Daily goals (4.2): optional daily_word_goal is now displayed on cards/editor headers. Create/Edit book uses the existing positive-safe-integer contract; blank persists NULL. Goal removal retains other book metadata. No day-key/activity rows or redundant progress are stored by this task. See [DAILY_GOALS.md](DAILY_GOALS.md).
 

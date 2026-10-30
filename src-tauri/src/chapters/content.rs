@@ -1,6 +1,8 @@
 use super::{ChapterError, MAX_SAFE_INTEGER};
 use serde::{Deserialize, Serialize};
 
+mod text_export;
+
 pub const MAX_BYTES: usize = 5 * 1024 * 1024;
 const MAX_NODES: usize = 100_000;
 const MAX_DEPTH: usize = 64;

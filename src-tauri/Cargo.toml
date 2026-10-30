@@ -16,7 +16,10 @@ tauri-build = { version = "2.7.4", features = [] }
 
 [dependencies]
 tauri = { version = "2.12.5", features = [] }
-rusqlite = { version = "0.40.2", default-features = false, features = ["bundled"] }
+tauri-plugin-dialog = "2.8.4"
+tempfile = "3.27.0"
+rusqlite = { version = "0.40.2", default-features = false, features = ["bundled", "backup"] }
+zip = { version = "=8.6.0", default-features = false }
 rusqlite_migration = "2.6.0"
 thiserror = "2"
 chrono = { version = "0.4.45", default-features = false, features = ["clock"] }
@@ -26,6 +29,3 @@ serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["unbounded_depth"] }
 image = { version = "0.25.10", default-features = false, features = ["png", "jpeg", "webp"] }
 sha2 = "=0.10.9"
-
-[dev-dependencies]
-tempfile = "3.27.0"

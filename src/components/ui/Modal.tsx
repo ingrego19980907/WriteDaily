@@ -20,6 +20,7 @@ export type ModalProps = {
   footer?: ReactNode
   headerActions?: ReactNode
   className?: string
+  dismissible?: boolean
 }
 
 export function Modal({
@@ -38,6 +39,7 @@ export function Modal({
   headerCenter,
   footer,
   className = '',
+  dismissible = true,
 }: ModalProps) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -46,7 +48,13 @@ export function Modal({
         <Dialog.Overlay className="modal-overlay" />
         <Dialog.Content
           onCloseAutoFocus={onCloseAutoFocus}
-          onEscapeKeyDown={onEscapeKeyDown}
+          onEscapeKeyDown={(event) => {
+            if (!dismissible) event.preventDefault()
+            onEscapeKeyDown?.(event)
+          }}
+          onInteractOutside={(event) => {
+            if (!dismissible) event.preventDefault()
+          }}
           className={`modal-content${size === 'large' ? ' modal-content--large' : ''}${fullScreen ? ' modal-content--fullscreen' : ''}${className ? ` ${className}` : ''}`}
           {...(!description ? { 'aria-describedby': undefined } : {})}
         >
@@ -58,7 +66,11 @@ export function Modal({
             <div className="modal-header-actions">
               {headerActions}
               <Dialog.Close asChild>
-                <Button variant="ghost" className="shrink-0">
+                <Button
+                  variant="ghost"
+                  className="shrink-0"
+                  disabled={!dismissible}
+                >
                   {closeLabel}
                 </Button>
               </Dialog.Close>

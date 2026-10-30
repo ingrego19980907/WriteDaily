@@ -21,7 +21,11 @@ import type { AchievementUnlock } from '../../src/features/achievements/achievem
 
 const book: Book = {
   id: '8af2b704-45bc-4e41-8e25-d12f427da441',
-  title: 'A quiet story',
+  title: new URLSearchParams(location.search)
+    .get('scenario')
+    ?.startsWith('book-export')
+    ? 'Книга'.repeat(35)
+    : 'A quiet story',
   targetWordCount: new URLSearchParams(location.search)
     .get('scenario')
     ?.startsWith('goal-')
@@ -63,6 +67,10 @@ let destroyed = false
 let finishSave: (() => void) | undefined
 let finishRead: (() => void) | undefined
 let finishReorder: (() => void) | undefined
+let finishExport: (() => void) | undefined
+const exportRequests: unknown[] = []
+let finishBookExport: (() => void) | undefined
+const bookExportRequests: unknown[] = []
 let reorderAttempts = 0
 let targetReads = 0
 let preferenceReads = 0
@@ -83,6 +91,7 @@ if (!seed.success) throw new Error('Invalid test editor seed')
 const manuscripts = new Map<string, ChapterContent>([[first.id, seed.data]])
 const requestedScenario = new URLSearchParams(location.search).get('scenario')
 const scenario = requestedScenario?.replace(/^goal-/, 'editor-')
+if (requestedScenario === 'book-export-empty') chapters = []
 const noticeMode = new URLSearchParams(location.search).get('notice')
 const noticeUnlocks = new Map<string, AchievementUnlock>()
 const noticeClaims = new Set<string>()
@@ -137,6 +146,10 @@ Object.assign(globalThis, {
   testChapterReads: () => [...chapterReads],
   completeTestRead: () => finishRead?.(),
   completeTestReorder: () => finishReorder?.(),
+  completeTestExport: () => finishExport?.(),
+  testExportRequests: () => structuredClone(exportRequests),
+  completeTestBookExport: () => finishBookExport?.(),
+  testBookExportRequests: () => structuredClone(bookExportRequests),
   completePreferenceSave: () => finishPreferenceSave?.(),
   testPreferenceWrites: () => preferenceWrites,
   completeTestNotice: () => finishNotice?.(),
@@ -235,6 +248,76 @@ mockIPC(
       activityJson: string
     }
     if (args.bookId !== book.id) throw new Error('Unscoped test IPC')
+    if (command === 'export_book') {
+      bookExportRequests.push(structuredClone(payload))
+      const snapshot = payload as {
+        expectedBookUpdatedAt: string
+        expectedChapters: { id: string; revision: number }[]
+      }
+      if (
+        scenario === 'book-export-conflict' &&
+        bookExportRequests.length === 1
+      ) {
+        chapters = [...chapters].reverse().map((row, position) => ({
+          ...row,
+          position,
+          revision: row.revision + 1,
+        }))
+        throw { code: 'conflict' }
+      }
+      if (
+        snapshot.expectedBookUpdatedAt !== book.updatedAt ||
+        snapshot.expectedChapters.length !== chapters.length ||
+        snapshot.expectedChapters.some(
+          (row, index) =>
+            row.id !== chapters[index].id ||
+            row.revision !== chapters[index].revision,
+        )
+      )
+        throw { code: 'conflict' }
+      if (!chapters.length) throw { code: 'empty_book' }
+      if (scenario === 'book-export-cancel' && bookExportRequests.length === 1)
+        return { status: 'cancelled' }
+      if (scenario === 'book-export-failure' && bookExportRequests.length === 1)
+        throw { code: 'export_failed' }
+      const result = {
+        status: 'exported',
+        fileName: 'Книга.txt',
+        bookUpdatedAt: book.updatedAt,
+        chapters: chapters.map(({ id, revision }) => ({ id, revision })),
+      }
+      if (scenario === 'book-export-pending')
+        return new Promise((resolve) => {
+          finishBookExport = () => resolve(result)
+        })
+      return result
+    }
+    if (command === 'export_chapter') {
+      exportRequests.push(structuredClone(payload))
+      const chapter = chapters.find((item) => item.id === args.id)
+      if (!chapter) throw { code: 'not_found' }
+      if (scenario === 'export-conflict' && exportRequests.length === 1) {
+        chapters = chapters.map((item) =>
+          item.id === args.id ? { ...item, revision: item.revision + 1 } : item,
+        )
+        throw { code: 'conflict' }
+      }
+      if (chapter.revision !== args.expectedRevision) throw { code: 'conflict' }
+      if (scenario === 'export-exists' && exportRequests.length === 1)
+        throw { code: 'already_exists' }
+      if (scenario === 'export-cancel' && exportRequests.length === 1)
+        return { status: 'cancelled' }
+      const result = {
+        status: 'exported',
+        fileName: `Розділ ${chapter.position + 1}.txt`,
+        revision: chapter.revision,
+      }
+      if (scenario === 'export-pending')
+        return new Promise((resolve) => {
+          finishExport = () => resolve(result)
+        })
+      return result
+    }
     if (command === 'reorder_chapters') {
       const change = payload as {
         expected: { id: string; revision: number }[]

@@ -12,6 +12,7 @@ use rusqlite::{Connection, Transaction, TransactionBehavior, params};
 use serde::Serialize;
 
 mod notifications;
+pub(crate) use notifications::baseline_restored;
 pub use notifications::claim_notifications;
 
 #[derive(Clone, Copy, Debug, Serialize)]

@@ -1,9 +1,11 @@
-use std::{fs, path::Path, sync::Mutex, time::Duration};
+use std::{fs, path::Path, time::Duration};
+mod handle;
+pub use handle::Database;
 
 use rusqlite::Connection;
 use rusqlite_migration::{M, Migrations};
 
-const APPLICATION_ID: i32 = 0x5744_4159; // WDAY: local format marker, not authentication.
+pub(crate) const APPLICATION_ID: i32 = 0x5744_4159; // WDAY: local format marker, not authentication.
 const INITIAL_SCHEMA: &str = include_str!("../../migrations/001_books.sql");
 const COVER_SCHEMA: &str = include_str!("../../migrations/002_cover_cleanup.sql");
 const CHAPTER_SCHEMA: &str = include_str!("../../migrations/003_chapters.sql");
@@ -24,8 +26,7 @@ const MIGRATION_STEPS: &[M<'static>] = &[
     M::up(NOTIFICATION_SCHEMA),
 ];
 const MIGRATIONS: Migrations<'static> = Migrations::from_slice(MIGRATION_STEPS);
-
-pub type Database = Mutex<Connection>;
+pub(crate) const SCHEMA_VERSION: i32 = MIGRATION_STEPS.len() as i32;
 
 #[derive(Debug, thiserror::Error)]
 pub enum DatabaseError {
@@ -51,6 +52,10 @@ pub enum DatabaseError {
 
 pub fn open(data_directory: &Path) -> Result<Database, DatabaseError> {
     fs::create_dir_all(data_directory)?;
+    Database::open(data_directory)
+}
+
+pub(crate) fn connect(data_directory: &Path) -> Result<Connection, DatabaseError> {
     let mut connection = Connection::open(data_directory.join("write-daily.sqlite3"))?;
     initialize(&mut connection, &MIGRATIONS)?;
     connection.prepare("SELECT path FROM pending_cover_cleanup LIMIT 0")?;
@@ -73,8 +78,30 @@ pub fn open(data_directory: &Path) -> Result<Database, DatabaseError> {
         "SELECT achievement_id, rule_policy_version, unlocked_at FROM achievement_unlocks LIMIT 0",
     )?;
     connection.prepare("SELECT achievement_id, disposition, claimed_at FROM achievement_notification_receipts LIMIT 0")?;
-    crate::achievements::refresh(&mut connection)?;
-    Ok(Mutex::new(connection))
+    Ok(connection)
+}
+
+pub(crate) type SchemaObject = (String, String, String, Option<String>);
+pub(crate) fn expected_schema() -> Result<Vec<SchemaObject>, rusqlite::Error> {
+    let mut reference = Connection::open_in_memory()?;
+    MIGRATIONS
+        .to_latest(&mut reference)
+        .map_err(|_| rusqlite::Error::InvalidQuery)?;
+    schema(&reference)
+}
+pub(crate) fn schema(connection: &Connection) -> Result<Vec<SchemaObject>, rusqlite::Error> {
+    connection
+        .prepare("SELECT type,name,tbl_name,sql FROM sqlite_schema ORDER BY type,name")?
+        .query_map([], |r| {
+            let sql: Option<String> = r.get(3)?;
+            Ok((
+                r.get(0)?,
+                r.get(1)?,
+                r.get(2)?,
+                sql.map(|sql| sql.replace("\r\n", "\n").replace('\r', "\n")),
+            ))
+        })?
+        .collect()
 }
 
 fn initialize(
@@ -88,11 +115,8 @@ fn initialize(
     let application_id: i32 =
         connection.pragma_query_value(None, "application_id", |row| row.get(0))?;
     let version: i32 = connection.pragma_query_value(None, "user_version", |row| row.get(0))?;
-    let objects: i64 = connection.query_row(
-        "SELECT count(*) FROM sqlite_schema WHERE name NOT LIKE 'sqlite_%'",
-        [],
-        |row| row.get(0),
-    )?;
+    let objects: i64 =
+        connection.query_row("SELECT count(*) FROM sqlite_schema", [], |row| row.get(0))?;
     if (version == 0 && (application_id != 0 || objects != 0))
         || (version != 0 && application_id != APPLICATION_ID)
     {

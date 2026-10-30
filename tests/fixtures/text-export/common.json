@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "document": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "Розділ — початок" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          { "type": "text", "text": "пів", "marks": [{ "type": "bold" }] },
+          {
+            "type": "text",
+            "text": "’яблука ",
+            "marks": [{ "type": "italic" }]
+          },
+          { "type": "text", "text": "🌿 e\u0301 <b>literal</b> & \"quotes\"" }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          { "type": "text", "text": "Line one" },
+          { "type": "hardBreak" },
+          { "type": "text", "text": "Line two" }
+        ]
+      },
+      {
+        "type": "orderedList",
+        "attrs": { "start": 99, "type": "A" },
+        "content": [
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  { "type": "text", "text": "First" },
+                  { "type": "hardBreak" },
+                  { "type": "text", "text": "continued" }
+                ]
+              },
+              {
+                "type": "bulletList",
+                "content": [
+                  {
+                    "type": "listItem",
+                    "content": [
+                      {
+                        "type": "paragraph",
+                        "content": [
+                          { "type": "text", "text": "Nested" },
+                          { "type": "hardBreak" },
+                          { "type": "text", "text": "still nested" }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "paragraph",
+                "content": [{ "type": "text", "text": "After nested" }]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [{ "type": "text", "text": "Second" }]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [{ "type": "text", "text": "End" }, { "type": "hardBreak" }]
+      }
+    ]
+  }
+}

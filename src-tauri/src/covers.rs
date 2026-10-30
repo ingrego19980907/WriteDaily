@@ -52,7 +52,7 @@ pub struct CoverStore {
     root: PathBuf,
 }
 
-fn ordinary(metadata: &fs::Metadata) -> bool {
+pub(crate) fn ordinary(metadata: &fs::Metadata) -> bool {
     #[cfg(windows)]
     {
         use std::os::windows::fs::MetadataExt;
@@ -271,6 +271,12 @@ impl CoverStore {
         if book.cover_path.as_deref() != Some(expected_path) {
             return Err(BookError::Conflict.into());
         }
+        self.read_managed(expected_path)
+    }
+
+    /// Caller coordinates source membership/cleanup through its database lock.
+    /// Returns original validated stored bytes, never a regenerated image.
+    pub(crate) fn read_managed(&self, expected_path: &str) -> Result<Vec<u8>, CoverError> {
         let path = self.path(expected_path)?;
         let mut bytes = Vec::new();
         fs::File::open(path)?

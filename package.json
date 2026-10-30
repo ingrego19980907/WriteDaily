@@ -17,6 +17,9 @@
     "test:run": "vitest run",
     "test:e2e": "playwright test",
     "test:desktop": "node --experimental-strip-types tests/desktop/restart.ts",
+    "test:desktop:export": "node --experimental-strip-types tests/desktop/restart.ts --export",
+    "test:desktop:backup": "node --experimental-strip-types tests/desktop/restart.ts --backup",
+    "test:desktop:restore": "node --experimental-strip-types tests/desktop/restart.ts --restore",
     "test:desktop:editor": "node --experimental-strip-types tests/desktop/restart.ts --editor"
   },
   "dependencies": {

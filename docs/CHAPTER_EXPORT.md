@@ -1,0 +1,34 @@
+# Individual chapter export (7.1)
+
+In Writing Editor, each chapter row has a labelled **Export chapter** button with a Lucide Download icon. It opens the native Windows Save As picker for a new `.txt` file. The common hint explains that export uses saved text. This task exports one selected chapter; [whole-book export](BOOK_EXPORT.md) is implemented in 7.2 and the [portable-text contract](PORTABLE_TEXT_EXPORT.md) is verified in 7.3.
+
+## Content contract
+
+The native command captures the selected chapter's validated committed content and title, checking its book ownership and expected revision. No manuscript content or destination path is supplied by JavaScript. A stale, removed, cross-book or unsupported stored chapter fails before the picker/writer. A snapshot stays frozen while the picker is open, even if an external writer later changes or deletes its source.
+
+The file contains the chapter title, a blank line, the body and a final newline. Encoding is UTF-8 without a BOM; generated line breaks use LF. Literal text, Cyrillic, emoji, combining characters, apostrophes and markup-like text are preserved. Text spans separated only by formatting marks remain joined. Paragraphs/headings are separated by blank lines, hard breaks by one newline, and explicit page breaks by a blank block boundary. Empty paragraphs remain empty. Headings retain their text; fonts, alignment, bold, italic and underline have no plain-text styling. Bullet lists use `- `; ordered lists preserve their numeric start and item order, with decimal markers even when stored presentation uses letters/Roman numerals. Nested lists and continuation paragraphs are indented two spaces per level.
+
+No export read changes chapter revisions, word counts, book metadata, writing activity, achievement unlocks or notification receipts. Export is never new writing. Drafts are neither serialized nor discarded; export is available from the chapter list outside the guarded writing dialog. Save/close the editor explicitly before exporting current edits.
+
+## Native boundary and file safety
+
+`export_chapter(bookId, id, expectedRevision, labels)` is the only new IPC command. `labels` carries bounded centralized English picker/filter copy from `en.ts`, not paths or eligibility data. The Rust command uses a blocking worker, takes a validated snapshot through ChapterRepository, and releases SQLite before showing the picker or doing external IO. An application-level export gate prevents overlapping native pickers. Existing JavaScript filesystem/dialog permissions are not broadened.
+
+Cancellation returns `{ status: 'cancelled' }` without a file-success message. A successful finished write returns `{ status: 'exported', fileName, revision }`; only the basename and confirmed revision cross back. The service validates that response and has no browser fallback/mock download. Unknown/malformed results and lost replies are not success.
+
+Default filenames preserve Unicode but replace path separators, Windows forbidden/control characters and reserved device names. They are capped at 80 Unicode characters before `.txt`. The selected path must be absolute, have a `.txt` extension, contain an ordinary non-device basename and resolve an existing parent folder. A temporary file in that folder receives the complete UTF-8 bytes, is synced, then promoted with `tempfile::persist_noclobber`. Existing files, directories, hard links and symlinks are never overwritten; competing exports to the same name have one winner. A collision asks the user to choose another name, even if the OS picker offered replacement. Normal failures clean up staging files. A forced termination may leave an unpromoted temporary file; directory/power-loss durability is not claimed.
+
+The UI blocks repeated export and competing chapter actions while the picker/write is pending, reports errors without raw paths, and permits an explicit retry. Conflicts request Reload chapters. Cancellation/success restore the originating button when focus is still unclaimed; navigation/unmount prevents stale announcements or parent callbacks. If the reply is lost after a file was created, the failure copy asks the user to check the folder and retry with a new name. It does not silently replace that file.
+
+## Compatibility and dependencies
+
+The official [Tauri 2 Dialog documentation](https://v2.tauri.app/plugin/dialog/) and downloaded plugin manifest were checked before installation. `tauri-plugin-dialog` 2.8.4 requires Rust 1.90 and is compatible with the existing Tauri 2.12.5 / declared Rust 1.95 floor, tested here with Rust 1.99.1 MSVC. Dialog is used from Rust only, per the [blocking API contract](https://docs.rs/tauri-plugin-dialog/2.8.4/tauri_plugin_dialog/struct.FileDialogBuilder.html#method.blocking_save_file). The database/UI main thread is not held across the picker. `tempfile` 3.27.0 was already used by native tests and is now also a production dependency. Cargo.lock is retained; no npm dependency or SQL migration was added. SQLite remains schema v8.
+
+The plugin brings `tauri-plugin-fs` transitively; the app does not expose a generic path-write command or add JavaScript filesystem grants. English UI copy remains in `src/app/i18n/en.ts`.
+
+## Verification
+
+- Native tests cover the selected source, unchanged DB/activity/unlocks, all six supported content versions, empty and rich content, Unicode, nested lists, filenames, stale/invalid/cross-book/deleted/corrupt snapshots, uncommitted isolation, frozen snapshots, collisions, existing hard links/directories, failed promotion cleanup and concurrent writes. Command tests validate labels, cancellation DTOs and non-sensitive error codes.
+- Service/component tests cover request allowlisting, malformed replies, desktop-only operation, pending/duplicate clicks, cancellation, error/retry, keyboard focus and late unmounts. Five browser scenarios cover two widths, 200% text, axe, forced colors, keyboard, source identity, no text-save side effects, cancellation, filename collision and conflict/reload.
+- `npm.cmd run test:desktop:export` uses the existing isolated Windows restart harness, private app data and embedded WebView2. The Save As helper only controls a dialog owned by its known test executable/PID and writes new `.txt` destinations under `.cache/desktop-restart`. It creates two same-title chapters, saves the second through the real editor, cancels once, exports through native Save As, checks exact file bytes and unchanged SQLite tables, then repeats after process restart. Ordinary debug configuration/build is restored afterward.
+- Final results and the successful desktop report path are recorded in [TASKS.md](TASKS.md#verification-evidence-71). Automated accessibility checks do not establish complete WCAG conformance. No actual user library, manual screen-reader, installer or macOS test is claimed.
